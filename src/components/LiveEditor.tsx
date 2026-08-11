@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useTelop, useBackgroundInterval } from '@sdk/TelopHubSDK';
+import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
+
+export type TimerState = {
+    isRunning: boolean;
+    lastTick: number; // Date.now() when started
+    accumulatedMs: number; // total ms accumulated before this start
+};
 
 export default function LiveEditor() {
     const bigScore = useTelop('大得点', {
@@ -12,34 +18,65 @@ export default function LiveEditor() {
 
     const timer = useTelop('タイマー', {
         時刻: "00:00", 前後半: "前半",
-        Rectangle: { visible: true }, // Ensure Rectangle object exists and is visible
-        Rectangle_visible: true       // Support fallback naming conventions for visibility
+        Rectangle: { visible: true },
+        Rectangle_visible: true
     });
 
-    // --- Timer Logic ---
-    const [timeMs, setTimeMs] = useState(0);
-    const [isRunning, setIsRunning] = useState(false);
+    // --- Global Timer Logic ---
+    const [timerState, setTimerState] = useSyncedState<TimerState>('match_timer_state', {
+        isRunning: false,
+        lastTick: Date.now(),
+        accumulatedMs: 0
+    });
+
     const [presetVal, setPresetVal] = useState("0");
+    const [displayMs, setDisplayMs] = useState(0);
 
+    // Keep the UI ticking locally for the Live Editor view
     useEffect(() => {
-        const totalSeconds = Math.floor(timeMs / 1000);
-        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-        const s = (totalSeconds % 60).toString().padStart(2, '0');
-        timer.setData(prev => ({ ...prev, 時刻: `${m}:${s}` }));
-    }, [timeMs]);
-
-    useBackgroundInterval(() => {
-        setTimeMs(prev => prev + 100);
-    }, isRunning ? 100 : null);
+        const interval = setInterval(() => {
+            if (!timerState) return;
+            let currentMs = timerState.accumulatedMs || 0;
+            if (timerState.isRunning) {
+                currentMs += (Date.now() - (timerState.lastTick || Date.now()));
+            }
+            setDisplayMs(Math.max(0, currentMs));
+        }, 100);
+        return () => clearInterval(interval);
+    }, [timerState]);
 
     const adjustTime = (ms: number) => {
-        setTimeMs(prev => Math.max(0, prev + ms));
+        setTimerState(prev => {
+            const safePrev = prev || { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 };
+            return {
+                ...safePrev,
+                accumulatedMs: Math.max(0, safePrev.accumulatedMs + ms)
+            };
+        });
     };
 
     const applyPreset = () => {
-        setTimeMs(parseInt(presetVal, 10));
+        setTimerState({
+            isRunning: false,
+            lastTick: Date.now(),
+            accumulatedMs: parseInt(presetVal, 10)
+        });
     };
-    // -------------------
+
+    const toggleTimer = () => {
+        setTimerState(prev => {
+            const safePrev = prev || { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 };
+            if (safePrev.isRunning) {
+                const newAccumulated = safePrev.accumulatedMs + (Date.now() - (safePrev.lastTick || Date.now()));
+                return { ...safePrev, isRunning: false, accumulatedMs: newAccumulated };
+            } else {
+                return { ...safePrev, isRunning: true, lastTick: Date.now() };
+            }
+        });
+    };
+
+    const isRunning = timerState?.isRunning || false;
+    // --------------------------
 
     const syncScores = (data: any) => {
         bigScore.setData(data);
@@ -111,7 +148,7 @@ export default function LiveEditor() {
                     <div className="flex-between" style={{ marginBottom: 20 }}>
                         <h3>Match Timer</h3>
                         <div style={{ display: 'flex', gap: 8 }}>
-                            <button className={`btn ${isRunning ? 'btn-danger' : 'btn-success'}`} onClick={() => setIsRunning(!isRunning)}>
+                            <button className={`btn ${isRunning ? 'btn-danger' : 'btn-success'}`} onClick={toggleTimer}>
                                 {isRunning ? 'STOP' : 'START'}
                             </button>
                             <button className="btn btn-primary" onClick={() => timer.update()}>Update LIVE</button>
@@ -132,7 +169,7 @@ export default function LiveEditor() {
                         <div className="form-group" style={{ flex: 1 }}>
                             <label className="form-label">Live Time (MM:SS)</label>
                             <input type="text" className="form-input" value={timer.data.時刻 || '00:00'} readOnly style={{ fontSize: '2.5rem', textAlign: 'center', fontWeight: 'bold', fontFamily: 'monospace' }} />
-                            <div style={{ textAlign: 'center', color: '#aaa', fontSize: '0.8rem', marginTop: 4 }}>Internal: {(timeMs / 1000).toFixed(1)}s</div>
+                            <div style={{ textAlign: 'center', color: '#aaa', fontSize: '0.8rem', marginTop: 4 }}>Internal: {(displayMs / 1000).toFixed(1)}s</div>
                         </div>
                     </div>
 

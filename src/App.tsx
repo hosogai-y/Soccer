@@ -6,12 +6,14 @@ import CGOperator from './components/CGOperator';
 import LiveEditor from './components/LiveEditor';
 import PlayerRegistry from './components/PlayerRegistry';
 import LineupEditor from './components/LineupEditor';
+import GlobalTimerManager from './components/GlobalTimerManager';
 
 const PROJECT_NAME = "Telops/soccer";
 
 export default function App() {
     return (
         <TelopHubProvider projectName={PROJECT_NAME} config={{ socketUrl: 'https://telophub.onrender.com' }}>
+            <GlobalTimerManager />
             <BrowserRouter>
                 <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                     <nav className="modern-nav flex-between">
