@@ -1,0 +1,4 @@
+node_modules
+dist
+.hub/dashboard_dist
+.parcel-cache

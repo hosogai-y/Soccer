@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "title": "soccer",
+    "version": 1,
+    "canvas": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "rootId": "n1_66qrez29fp9f",
+  "nodesById": {
+    "n1_66qrez29fp9f": {
+      "id": "n1_66qrez29fp9f",
+      "type": "plane",
+      "parentId": null,
+      "children": [
+        "n1_b562utiw19ox",
+        "n1_q6nc1mr6klj7",
+        "n1_ssyev6xle8av",
+        "n1_pq14l83mcuci",
+        "n1_6gwun4qjiuxf",
+        "n1_sgr23ayk53v3",
+        "n1_g08hqocpuom7",
+        "n1_dhlzt46vsda2",
+        "n1_6ua9hzcbdxox",
+        "n1_hpc88ri4zdf0",
+        "n1_nqlp71a7dlfe",
+        "n1_h34l97040ncv"
+      ],
+      "name": "Root",
+      "visible": true,
+      "locked": false,
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "blendMode": "normal",
+      "effects": []
+    }
+  },
+  "assets": {},
+  "assetGroups": {}
+}
