@@ -253,10 +253,17 @@ function MatchScorePanel() {
     const smallScore = useTelop('小得点');
 
     const syncScores = (data: any) => {
-        // Automatically sync rect colors for small score
         const expandedData = { ...data };
-        if (data.LeftTeamColor) expandedData.LeftTeamColorRect = data.LeftTeamColor;
-        if (data.RigtTeamColor) expandedData.RightTeamColorRect = data.RigtTeamColor;
+        
+        // Map to exact domIds found in the .telop files (to avoid crashing on group nodes)
+        if (data.LeftTeamColor) {
+            expandedData.LeftTeamColorLargePoint = data.LeftTeamColor;
+            expandedData.LeftTeamColorSmallPoint = data.LeftTeamColor;
+        }
+        if (data.RigtTeamColor) {
+            expandedData.RightTeamColorLargePoint = data.RigtTeamColor;
+            expandedData.RightTeamColorSmallPoint = data.RigtTeamColor;
+        }
         
         bigScore.setData((prev: any) => ({ ...prev, ...expandedData }));
         smallScore.setData((prev: any) => ({ ...prev, ...expandedData }));
