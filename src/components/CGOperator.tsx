@@ -41,7 +41,7 @@ export default function CGOperator() {
 
     const takeNextQueue = () => {
         if (!cgQueue || cgQueue.length === 0) return;
-        const nextIdx = cgQueue.findIndex(item => !item.skipped);
+        const nextIdx = cgQueue.findIndex(item => !item.skipped && !item.played);
         if (nextIdx === -1) {
             alert('No active items in queue.');
             return;
@@ -52,8 +52,8 @@ export default function CGOperator() {
         // 1. Hide all non-essential items (everything except score/timer)
         window.dispatchEvent(new Event('TRIGGER_HIDE_QUEUE_ITEMS'));
         
-        // 2. Remove from queue
-        setCgQueue(prev => prev.filter((_, i) => i !== nextIdx));
+        // 2. Mark as played instead of removing
+        setCgQueue(prev => (prev || []).map((q, i) => i === nextIdx ? { ...q, played: true } : q));
 
         // 3. Show after short delay to allow clear to process
         setTimeout(() => {
@@ -99,15 +99,17 @@ export default function CGOperator() {
                         <div style={{ flex: 1, overflowY: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '8px', marginBottom: '16px' }}>
                             {(cgQueue || []).length === 0 && <div style={{ color: '#aaa', textAlign: 'center', marginTop: '20px' }}>Queue is empty</div>}
                             {(cgQueue || []).map((item, idx) => (
-                                <div key={item.id} style={{ display: 'flex', alignItems: 'center', background: item.skipped ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)', padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', opacity: item.skipped ? 0.5 : 1 }}>
-                                    <div style={{ marginRight: '12px', fontWeight: 'bold', color: '#888' }}>{idx + 1}</div>
-                                    <div style={{ flex: 1, fontWeight: 'bold' }}>{item.label}</div>
-                                    <button className="btn btn-secondary" style={{ padding: '2px 6px', fontSize: '0.7rem', marginRight: '4px' }} onClick={() => toggleSkipQueueItem(item.id)}>SKIP</button>
+                                <div key={item.id} style={{ display: 'flex', alignItems: 'center', background: item.played ? 'rgba(255,255,255,0.02)' : (item.skipped ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)'), padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', opacity: (item.skipped || item.played) ? 0.5 : 1 }}>
+                                    <div style={{ marginRight: '12px', fontWeight: 'bold', color: item.played ? '#555' : '#888' }}>{idx + 1}</div>
+                                    <div style={{ flex: 1, fontWeight: 'bold', textDecoration: item.played ? 'line-through' : 'none' }}>{item.label}</div>
+                                    {!item.played && (
+                                        <button className="btn btn-secondary" style={{ padding: '2px 6px', fontSize: '0.7rem', marginRight: '4px' }} onClick={() => toggleSkipQueueItem(item.id)}>SKIP</button>
+                                    )}
                                     <button className="btn btn-danger" style={{ padding: '2px 6px', fontSize: '0.7rem' }} onClick={() => deleteQueueItem(item.id)}>X</button>
                                 </div>
                             ))}
                         </div>
-                        <button className="btn btn-success" style={{ padding: '12px', fontSize: '1.2rem', fontWeight: 'bold' }} onClick={takeNextQueue} disabled={(cgQueue || []).filter(i => !i.skipped).length === 0}>
+                        <button className="btn btn-success" style={{ padding: '12px', fontSize: '1.2rem', fontWeight: 'bold' }} onClick={takeNextQueue} disabled={(cgQueue || []).filter(i => !i.skipped && !i.played).length === 0}>
                             TAKE NEXT (w/ Clear)
                         </button>
                     </div>
@@ -123,7 +125,7 @@ export default function CGOperator() {
                             <button className="btn btn-secondary" onClick={clearAll} style={{ borderColor: 'var(--accent-danger)' }}>Clear All</button>
                         </div>
                     </div>
-                    <div className="grid-cards">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
                         {ALL_TELOPS.map(t => (
                             <TelopControl key={t.name} telopName={t.name} label={t.label} queueMode={queueMode} onAddToQueue={() => addToQueue(t.name, t.label)} />
                         ))}
@@ -188,6 +190,7 @@ function PlayerGrid({ players }: { players: Player[] }) {
 
 function TelopControl({ telopName, label, queueMode, onAddToQueue }: { telopName: string, label: string, queueMode: boolean, onAddToQueue: () => void }) {
     const { show, hide, update, isVisible } = useTelop(telopName);
+    const [showUpdate, setShowUpdate] = useState(false);
 
     useEffect(() => {
         const handleTake = (e: any) => {
@@ -210,22 +213,32 @@ function TelopControl({ telopName, label, queueMode, onAddToQueue }: { telopName
     }, [telopName, show, hide]);
 
     return (
-        <div className="glass-panel" style={{ padding: '12px', borderLeft: isVisible ? '4px solid var(--accent-success)' : '4px solid transparent' }}>
-            <div className="flex-between" style={{ marginBottom: 12 }}>
-                <h4 style={{ fontSize: '1rem', margin: 0 }}>{label}</h4>
-                {isVisible && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.7rem' }}>ON AIR</span>}
+        <div className="glass-panel" style={{ padding: '8px', borderLeft: isVisible ? '4px solid var(--accent-success)' : '4px solid transparent' }}>
+            <div className="flex-between" style={{ marginBottom: '8px' }}>
+                <h4 style={{ fontSize: '0.9rem', margin: 0 }}>{label}</h4>
+                {isVisible && <span className="status-badge status-connected" style={{ padding: '2px 4px', fontSize: '0.6rem' }}>ON AIR</span>}
             </div>
             
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 {queueMode ? (
-                    <button className="btn btn-warning" style={{ flex: 1, padding: '4px' }} onClick={onAddToQueue}>Q-ADD</button>
+                    <button className="btn btn-warning" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={onAddToQueue}>Q-ADD</button>
                 ) : (
-                    <button className="btn btn-success" style={{ flex: 1, padding: '4px' }} onClick={() => show()}>TAKE</button>
+                    <button className="btn btn-success" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={() => {
+                        window.dispatchEvent(new Event('TRIGGER_HIDE_QUEUE_ITEMS'));
+                        setTimeout(() => show(), 100);
+                    }}>TAKE</button>
                 )}
-                <button className="btn btn-danger" style={{ flex: 1, padding: '4px' }} onClick={hide}>HIDE</button>
+                <button className="btn btn-danger" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={hide}>HIDE</button>
             </div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                <button className="btn btn-primary" style={{ flex: 1, padding: '4px' }} onClick={() => update()}>UPDATE</button>
+            <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                {showUpdate ? (
+                    <>
+                        <button className="btn btn-primary" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={() => update()}>UPDATE</button>
+                        <button className="btn btn-secondary" style={{ padding: '4px', fontSize: '0.8rem' }} onClick={() => setShowUpdate(false)}>-</button>
+                    </>
+                ) : (
+                    <button className="btn btn-secondary" style={{ width: '100%', padding: '2px', fontSize: '0.7rem' }} onClick={() => setShowUpdate(true)}>+ Show Update</button>
+                )}
             </div>
         </div>
     );
@@ -418,8 +431,8 @@ function MatchTimerPanel() {
                         type="text" 
                         className="form-input" 
                         placeholder="e.g. 3" 
-                        value={additionalTime.data.AT || ''} 
-                        onChange={e => additionalTime.setData({ ...additionalTime.data, AT: e.target.value })} 
+                        value={additionalTime.data.アディショナルタイム || ''} 
+                        onChange={e => additionalTime.setData({ ...additionalTime.data, アディショナルタイム: e.target.value })} 
                         style={{ width: '60px', textAlign: 'center', padding: '4px' }} 
                     />
                     <button className="btn btn-primary" onClick={() => additionalTime.update()} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Update</button>
