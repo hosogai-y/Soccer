@@ -1392,16 +1392,6 @@
       "groupId": null,
       "ownerId": "n1_ssyev6xle8av"
     },
-    "a1_q8f9gtf7uls": {
-      "id": "a1_q8f9gtf7uls",
-      "kind": "image",
-      "name": "HD2D_F09_SubMember_TeamZabu_001_1.png",
-      "src": "img/HD2D_F09_SubMember_TeamZabu_001_1.png",
-      "width": 588,
-      "height": 89,
-      "groupId": null,
-      "ownerId": "n1_ssyev6xle8av"
-    },
     "a1_sfcxbvj66n4g": {
       "id": "a1_sfcxbvj66n4g",
       "kind": "image",
@@ -1409,6 +1399,16 @@
       "src": "img/HD2D_F01_new_BaseMF_FIX.png",
       "width": 318,
       "height": 46,
+      "groupId": null,
+      "ownerId": "n1_ssyev6xle8av"
+    },
+    "a1_sn9cs2vmpd": {
+      "id": "a1_sn9cs2vmpd",
+      "kind": "image",
+      "name": "HD2D_F09_SubMember_TeamZabu_001_1.png",
+      "src": "img/HD2D_F09_SubMember_TeamZabu_001_1.png",
+      "width": 588,
+      "height": 89,
       "groupId": null,
       "ownerId": "n1_ssyev6xle8av"
     },

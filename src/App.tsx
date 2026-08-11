@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { TelopHubProvider, useConnectionStatus } from '@sdk/TelopHubSDK';
 
 import CGOperator from './components/CGOperator';
-import LiveEditor from './components/LiveEditor';
 import PlayerRegistry from './components/PlayerRegistry';
 import LineupEditor from './components/LineupEditor';
 import GlobalTimerManager from './components/GlobalTimerManager';
@@ -23,7 +22,6 @@ export default function App() {
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <NavLink to="/" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>CG Operation</NavLink>
-                                <NavLink to="/live" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Live Editor</NavLink>
                                 <NavLink to="/players" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Player Registry</NavLink>
                                 <NavLink to="/lineup" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Lineups</NavLink>
                             </div>
@@ -33,7 +31,6 @@ export default function App() {
                     <main style={{ padding: '32px', flex: 1, maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
                         <Routes>
                             <Route path="/" element={<CGOperator />} />
-                            <Route path="/live" element={<LiveEditor />} />
                             <Route path="/players" element={<PlayerRegistry />} />
                             <Route path="/lineup" element={<LineupEditor />} />
                         </Routes>

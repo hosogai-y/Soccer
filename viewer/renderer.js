@@ -312,70 +312,251 @@ function drawAppearanceContent(target, app, node, appIdx, isRect, measuredW, mea
         }
         target.appendChild(fillEl);
     }
-    // 4. Alpha Gradient Effect (Implemented as Mask)
-    const alphaGradEffect = (app.effects || []).find(e => e.enabled && e.type === "alpha-gradient");
-    if (alphaGradEffect) {
-        const maskId = `mask-alpha-${node.id}-${appIdx}`;
-        const mask = createSVGElement("mask");
-        mask.setAttribute("id", maskId);
-        // Using objectBoundingBox for BOTH units makes the mask relative to the layer's bounding box.
-        // This is much more robust against coordinate issues.
-        setAttributes(mask, { maskUnits: "objectBoundingBox", maskContentUnits: "objectBoundingBox" });
-        // A single rect covering 100% of the bounding box is enough to apply the gradient.
-        const maskShape = createSVGElement("rect");
-        setAttributes(maskShape, {
-            x: 0, y: 0, width: 1, height: 1
+    // Note: Alpha Gradient and other effects are applied to appearance layers and nodes via applyEffects()
+}
+const FilterFactory = {
+    createFilter(effects, id, registerDef, createSVGElement) {
+        const enabled = (effects || []).filter(e => e && e.enabled && e.type !== "alpha-gradient");
+        if (enabled.length === 0)
+            return null;
+        const filter = createSVGElement("filter");
+        setAttributes(filter, { id, x: "-50%", y: "-50%", width: "200%", height: "200%", filterUnits: "userSpaceOnUse" });
+        let currentIn = "SourceGraphic";
+        const hasPulse = enabled.some(e => e.type === "glow" && e.params?.pulseEnabled);
+        if (hasPulse) {
+            const style = createSVGElement("style");
+            style.textContent = `
+                @keyframes glow-pulse-opacity { 0%, 100% { flood-opacity: var(--pulse-min, 0); } 50% { flood-opacity: var(--pulse-max, 1); } }
+                .animate-glow-pulse { animation: glow-pulse-opacity var(--pulse-period, 1s) ease-in-out var(--pulse-delay, 0s) var(--pulse-count, infinite) both; }
+            `;
+            filter.appendChild(style);
+        }
+        enabled.forEach((eff, idx) => {
+            const res = `eff-${idx}`;
+            if (eff.type === 'blur') {
+                const blur = createSVGElement("feGaussianBlur");
+                setAttributes(blur, { in: currentIn, stdDeviation: eff.params?.strength || 4, result: res });
+                filter.appendChild(blur);
+                currentIn = res;
+            }
+            else if (eff.type === 'glow') {
+                const dist = eff.params?.blur || 10;
+                const { color, alpha } = parseHex8(eff.params?.color || "#ffffff");
+                const outerStr = eff.params?.outerStrength ?? 2;
+                const innerStr = eff.params?.innerStrength ?? 0;
+                const knockout = !!eff.params?.knockout;
+                const outerRes = `${res}-outer`;
+                const innerRes = `${res}-inner`;
+                if (outerStr > 0 || dist > 0) {
+                    const dilate = createSVGElement("feMorphology");
+                    setAttributes(dilate, { in: "SourceAlpha", operator: "dilate", radius: 1, result: `${res}-dil` });
+                    filter.appendChild(dilate);
+                    const bl = createSVGElement("feGaussianBlur");
+                    setAttributes(bl, { in: `${res}-dil`, stdDeviation: dist, result: `${res}-bl` });
+                    filter.appendChild(bl);
+                    const trans = createSVGElement("feComponentTransfer");
+                    setAttributes(trans, { result: `${res}-int` });
+                    const funcA = createSVGElement("feFuncA");
+                    setAttributes(funcA, { type: "linear", slope: outerStr });
+                    trans.appendChild(funcA);
+                    filter.appendChild(trans);
+                    const flood = createSVGElement("feFlood");
+                    setAttributes(flood, { "flood-color": color, "flood-opacity": eff.params?.pulseEnabled ? (eff.params?.pulseMin ?? 0) : alpha, result: `${res}-fl` });
+                    if (eff.params?.pulseEnabled) {
+                        flood.classList.add("animate-glow-pulse");
+                        flood.style.setProperty("--pulse-period", `${eff.params.pulsePeriod || 1}s`);
+                        flood.style.setProperty("--pulse-min", `${eff.params.pulseMin ?? 0}`);
+                        flood.style.setProperty("--pulse-max", `${eff.params.pulseMax ?? alpha}`);
+                        flood.style.setProperty("--pulse-count", (eff.params.pulseCount || 0) === 0 ? "infinite" : `${eff.params.pulseCount}`);
+                        flood.style.setProperty("--pulse-delay", `${eff.params.pulseDelay || 0}s`);
+                    }
+                    filter.appendChild(flood);
+                    const comp = createSVGElement("feComposite");
+                    setAttributes(comp, { in: `${res}-fl`, in2: `${res}-int`, operator: "in", result: outerRes });
+                    filter.appendChild(comp);
+                }
+                if (innerStr > 0 || dist > 0) {
+                    const bl = createSVGElement("feGaussianBlur");
+                    setAttributes(bl, { in: "SourceAlpha", stdDeviation: dist, result: `${res}-in-bl` });
+                    filter.appendChild(bl);
+                    const trans = createSVGElement("feComponentTransfer");
+                    setAttributes(trans, { result: `${res}-int` });
+                    const funcA1 = createSVGElement("feFuncA");
+                    setAttributes(funcA1, { type: "gamma", amplitude: innerStr, exponent: 1.5, offset: 0 });
+                    trans.appendChild(funcA1);
+                    filter.appendChild(trans);
+                    const comp1 = createSVGElement("feComposite");
+                    setAttributes(comp1, { in: `${res}-int`, in2: "SourceAlpha", operator: "in", result: `${res}-in-mask` });
+                    filter.appendChild(comp1);
+                    const flood = createSVGElement("feFlood");
+                    setAttributes(flood, { "flood-color": color, "flood-opacity": eff.params?.pulseEnabled ? (eff.params?.pulseMin ?? 0) : alpha, result: `${res}-in-fl` });
+                    if (eff.params?.pulseEnabled) {
+                        flood.classList.add("animate-glow-pulse");
+                        flood.style.setProperty("--pulse-period", `${eff.params.pulsePeriod || 1}s`);
+                        flood.style.setProperty("--pulse-min", `${eff.params.pulseMin ?? 0}`);
+                        flood.style.setProperty("--pulse-max", `${eff.params.pulseMax ?? alpha}`);
+                        flood.style.setProperty("--pulse-count", (eff.params.pulseCount || 0) === 0 ? "infinite" : `${eff.params.pulseCount}`);
+                        flood.style.setProperty("--pulse-delay", `${eff.params.pulseDelay || 0}s`);
+                    }
+                    filter.appendChild(flood);
+                    const comp2 = createSVGElement("feComposite");
+                    setAttributes(comp2, { in: `${res}-in-fl`, in2: `${res}-in-mask`, operator: "in", result: innerRes });
+                    filter.appendChild(comp2);
+                }
+                if (knockout) {
+                    const outerPunchedName = `${res}-outer-punched`;
+                    if (outerStr > 0 || dist > 0) {
+                        const punch = createSVGElement("feComposite");
+                        setAttributes(punch, { in: outerRes, in2: "SourceAlpha", operator: "out", result: outerPunchedName });
+                        filter.appendChild(punch);
+                    }
+                    const merge = createSVGElement("feMerge");
+                    if (outerStr > 0 || dist > 0) {
+                        const nO = createSVGElement("feMergeNode");
+                        setAttributes(nO, { in: outerPunchedName });
+                        merge.appendChild(nO);
+                    }
+                    if (innerStr > 0 || dist > 0) {
+                        const nI = createSVGElement("feMergeNode");
+                        setAttributes(nI, { in: innerRes });
+                        merge.appendChild(nI);
+                    }
+                    setAttributes(merge, { result: res });
+                    filter.appendChild(merge);
+                }
+                else {
+                    const merge = createSVGElement("feMerge");
+                    if (outerStr > 0 || dist > 0) {
+                        const nO = createSVGElement("feMergeNode");
+                        setAttributes(nO, { in: outerRes });
+                        merge.appendChild(nO);
+                    }
+                    const nS = createSVGElement("feMergeNode");
+                    setAttributes(nS, { in: currentIn });
+                    merge.appendChild(nS);
+                    if (innerStr > 0 || dist > 0) {
+                        const nI = createSVGElement("feMergeNode");
+                        setAttributes(nI, { in: innerRes });
+                        merge.appendChild(nI);
+                    }
+                    setAttributes(merge, { result: res });
+                    filter.appendChild(merge);
+                }
+                currentIn = res;
+            }
+            else if (eff.type === 'outline') {
+                const thick = eff.params?.thickness || 2;
+                const { color, alpha } = parseHex8(eff.params?.color || "#010101");
+                const dil = createSVGElement("feMorphology");
+                setAttributes(dil, { in: "SourceAlpha", operator: "dilate", radius: thick, result: `${res}-dil` });
+                filter.appendChild(dil);
+                const fl = createSVGElement("feFlood");
+                setAttributes(fl, { "flood-color": color, "flood-opacity": alpha, result: `${res}-fl` });
+                filter.appendChild(fl);
+                const cp = createSVGElement("feComposite");
+                setAttributes(cp, { in: `${res}-fl`, in2: `${res}-dil`, operator: "in", result: `${res}-out` });
+                filter.appendChild(cp);
+                const merge = createSVGElement("feMerge");
+                const n1 = createSVGElement("feMergeNode");
+                setAttributes(n1, { in: `${res}-out` });
+                merge.appendChild(n1);
+                const n2 = createSVGElement("feMergeNode");
+                setAttributes(n2, { in: currentIn });
+                merge.appendChild(n2);
+                setAttributes(merge, { result: res });
+                filter.appendChild(merge);
+                currentIn = res;
+            }
         });
-        const gradId = `mask-grad-${node.id}-${appIdx}`;
-        const params = alphaGradEffect.params || {};
-        const type = params.type || "linear";
-        if (type === "radial") {
-            const grad = createSVGElement("radialGradient");
-            grad.setAttribute("id", gradId);
-            const cx = params.centerX ?? 0.5;
-            const cy = params.centerY ?? 0.5;
-            const r = params.radius ?? 0.5;
-            setAttributes(grad, {
-                gradientUnits: "objectBoundingBox",
-                cx: cx, cy: cy, r: r,
-                fx: cx, fy: cy
-            });
-            const stops = params.stops || [];
-            stops.forEach((s) => {
-                const stop = createSVGElement("stop");
-                const { alpha } = parseHex8(s.color || "#ffffff");
-                setAttributes(stop, { offset: `${(Number(s.offset || 0)) * 100}%`, "stop-color": "white", "stop-opacity": alpha });
-                grad.appendChild(stop);
-            });
-            registerDef(grad);
-        }
-        else {
-            const grad = createSVGElement("linearGradient");
-            grad.setAttribute("id", gradId);
-            const angle = Number(params.angle ?? 90);
-            const r = (angle * Math.PI) / 180;
-            // Calculation for objectBoundingBox: 0.5 center, 0.5 radius
-            const x1 = 0.5 - 0.5 * Math.cos(r), y1 = 0.5 - 0.5 * Math.sin(r);
-            const x2 = 0.5 + 0.5 * Math.cos(r), y2 = 0.5 + 0.5 * Math.sin(r);
-            setAttributes(grad, {
-                gradientUnits: "objectBoundingBox",
-                x1: x1, y1: y1, x2: x2, y2: y2
-            });
-            const stops = params.stops || [];
-            stops.forEach((s) => {
-                const stop = createSVGElement("stop");
-                const { alpha } = parseHex8(s.color || "#ffffff");
-                // Standard luminance mask: White is visible, transparent/black is hidden.
-                setAttributes(stop, { offset: `${(Number(s.offset || 0)) * 100}%`, "stop-color": "white", "stop-opacity": alpha });
-                grad.appendChild(stop);
-            });
-            registerDef(grad);
-        }
-        maskShape.setAttribute("fill", `url(#${gradId})`);
-        mask.appendChild(maskShape);
-        registerDef(mask);
-        target.setAttribute("mask", `url(#${maskId})`);
+        const primitiveCount = filter.querySelectorAll("feGaussianBlur, feMorphology, feFlood, feComposite, feMerge, feComponentTransfer").length;
+        if (primitiveCount === 0)
+            return null;
+        registerDef(filter);
+        return `url(#${id})`;
     }
+};
+function createAlphaGradientMask(maskId, effect, node, registerDef, createSVGElement) {
+    const mask = createSVGElement("mask");
+    setAttributes(mask, { id: maskId, maskUnits: "objectBoundingBox", maskContentUnits: "objectBoundingBox" });
+    const gradId = `grad-mask-${maskId}`;
+    const params = effect.params || {};
+    const type = params.type || "linear";
+    if (type === "radial") {
+        const grad = createSVGElement("radialGradient");
+        grad.setAttribute("id", gradId);
+        const cx = params.centerX ?? 0.5;
+        const cy = params.centerY ?? 0.5;
+        const r = params.radius ?? 0.5;
+        setAttributes(grad, {
+            gradientUnits: "objectBoundingBox",
+            cx: cx, cy: cy, r: r,
+            fx: cx, fy: cy
+        });
+        const stops = params.stops || [];
+        stops.forEach((s) => {
+            const stop = createSVGElement("stop");
+            const { alpha } = parseHex8(s.color || "#ffffff");
+            setAttributes(stop, { offset: `${(Number(s.offset || 0)) * 100}%`, "stop-color": "white", "stop-opacity": alpha });
+            grad.appendChild(stop);
+        });
+        registerDef(grad);
+    }
+    else {
+        const grad = createSVGElement("linearGradient");
+        grad.setAttribute("id", gradId);
+        const angle = Number(params.angle ?? 90);
+        const r = (angle * Math.PI) / 180;
+        const x1 = 0.5 - 0.5 * Math.cos(r), y1 = 0.5 - 0.5 * Math.sin(r);
+        const x2 = 0.5 + 0.5 * Math.cos(r), y2 = 0.5 + 0.5 * Math.sin(r);
+        setAttributes(grad, {
+            gradientUnits: params.units ?? "objectBoundingBox",
+            x1: x1, y1: y1, x2: x2, y2: y2
+        });
+        const stops = params.stops || [{ offset: 0, color: "#ffffffff" }, { offset: 1, color: "#ffffff00" }];
+        stops.forEach((s) => {
+            const stop = createSVGElement("stop");
+            const { alpha } = parseHex8(s.color || "#ffffff");
+            setAttributes(stop, { offset: `${(Number(s.offset || 0)) * 100}%`, "stop-color": "white", "stop-opacity": alpha });
+            grad.appendChild(stop);
+        });
+        registerDef(grad);
+    }
+    const rect = createSVGElement("rect");
+    setAttributes(rect, { x: "0", y: "0", width: "1", height: "1", fill: `url(#${gradId})` });
+    mask.appendChild(rect);
+    registerDef(mask);
+}
+function applyEffects(target, effects, nodeId, suffix, registerDef, createSVGElement) {
+    if (!effects || !effects.some(e => e && e.enabled))
+        return target;
+    const enabledEffects = effects.filter(e => e && e.enabled);
+    let currentTarget = target;
+    const filterable = enabledEffects.filter(e => e.type !== 'alpha-gradient');
+    if (filterable.length > 0) {
+        const filterId = `filter-${nodeId}-${suffix}`;
+        const fUrl = FilterFactory.createFilter(filterable, filterId, registerDef, createSVGElement);
+        if (fUrl) {
+            currentTarget.setAttribute("filter", fUrl);
+        }
+    }
+    const gradients = enabledEffects.filter(e => e.type === 'alpha-gradient');
+    gradients.forEach((eff, idx) => {
+        if (currentTarget.getAttribute("mask")) {
+            const wrapper = createSVGElement("g");
+            if (currentTarget.parentElement) {
+                currentTarget.parentElement.replaceChild(wrapper, currentTarget);
+                wrapper.appendChild(currentTarget);
+            }
+            else {
+                wrapper.appendChild(currentTarget);
+            }
+            currentTarget = wrapper;
+        }
+        const maskId = `mask-grad-${nodeId}-${suffix}-${idx}`;
+        createAlphaGradientMask(maskId, eff, { id: nodeId }, registerDef, createSVGElement);
+        currentTarget.setAttribute("mask", `url(#${maskId})`);
+    });
+    return currentTarget;
 }
 function createAppearanceMask(maskId, app, node, appIdx, isRect, measuredW, measuredH, registerDef, createSVGElement) {
     const mask = createSVGElement("mask");
@@ -822,147 +1003,6 @@ function resolveDynamicVisibility(doc) {
         }
     };
 
-    // Filter Factory for Blur, Glow, etc.
-    const FilterFactory = {
-        createFilter(effects, id, registerDef) {
-            const enabled = effects.filter(e => e.enabled);
-            if (enabled.length === 0) return null;
-
-            const filter = createSVGElement("filter");
-            setAttributes(filter, { id, x: "-50%", y: "-50%", width: "200%", height: "200%", filterUnits: "userSpaceOnUse" });
-
-            let currentIn = "SourceGraphic";
-            const hasPulse = enabled.some(e => e.type === "glow" && e.params.pulseEnabled);
-            if (hasPulse) {
-                const style = createSVGElement("style");
-                style.textContent = `
-                    @keyframes glow-pulse-opacity { 0%, 100% { flood-opacity: var(--pulse-min, 0); } 50% { flood-opacity: var(--pulse-max, 1); } }
-                    .animate-glow-pulse { animation: glow-pulse-opacity var(--pulse-period, 1s) ease-in-out var(--pulse-delay, 0s) var(--pulse-count, infinite) both; }
-                `;
-                filter.appendChild(style);
-            }
-
-            enabled.forEach((eff, idx) => {
-                const res = `eff-${idx}`;
-                if (eff.type === 'blur') {
-                    const blur = createSVGElement("feGaussianBlur");
-                    setAttributes(blur, { in: currentIn, stdDeviation: eff.params.strength || 4, result: res });
-                    filter.appendChild(blur);
-                    currentIn = res;
-                } else if (eff.type === 'glow') {
-                    const dist = eff.params.blur || 10;
-                    const { color, alpha } = parseHex8(eff.params.color || "#ffffff");
-                    const outerStr = eff.params.outerStrength ?? 2;
-                    const innerStr = eff.params.innerStrength ?? 0;
-                    
-                    const outerRes = `${res}-outer`;
-                    const innerRes = `${res}-inner`;
-
-                    if (outerStr > 0 || dist > 0) {
-                        const dilate = createSVGElement("feMorphology");
-                        setAttributes(dilate, { in: "SourceAlpha", operator: "dilate", radius: 1, result: `${res}-dil` });
-                        filter.appendChild(dilate);
-
-                        const bl = createSVGElement("feGaussianBlur");
-                        setAttributes(bl, { in: `${res}-dil`, stdDeviation: dist, result: `${res}-bl` });
-                        filter.appendChild(bl);
-
-                        const trans = createSVGElement("feComponentTransfer");
-                        setAttributes(trans, { result: `${res}-int` });
-                        const funcA = createSVGElement("feFuncA");
-                        setAttributes(funcA, { type: "linear", slope: outerStr });
-                        trans.appendChild(funcA);
-                        filter.appendChild(trans);
-
-                        const flood = createSVGElement("feFlood");
-                        setAttributes(flood, { "flood-color": color, "flood-opacity": eff.params.pulseEnabled ? eff.params.pulseMin : alpha, result: `${res}-fl` });
-                        if (eff.params.pulseEnabled) {
-                            flood.classList.add("animate-glow-pulse");
-                            flood.style.setProperty("--pulse-period", `${eff.params.pulsePeriod || 1}s`);
-                            flood.style.setProperty("--pulse-min", eff.params.pulseMin ?? 0);
-                            flood.style.setProperty("--pulse-max", eff.params.pulseMax ?? alpha);
-                            flood.style.setProperty("--pulse-count", (eff.params.pulseCount || 0) === 0 ? "infinite" : eff.params.pulseCount);
-                            flood.style.setProperty("--pulse-delay", `${eff.params.pulseDelay || 0}s`);
-                        }
-                        filter.appendChild(flood);
-
-                        const comp = createSVGElement("feComposite");
-                        setAttributes(comp, { in: `${res}-fl`, in2: `${res}-int`, operator: "in", result: outerRes });
-                        filter.appendChild(comp);
-                    }
-
-                    if (innerStr > 0 || dist > 0) {
-                        const bl = createSVGElement("feGaussianBlur");
-                        setAttributes(bl, { in: "SourceAlpha", stdDeviation: dist, result: `${res}-in-bl` });
-                        filter.appendChild(bl);
-
-                        const trans = createSVGElement("feComponentTransfer");
-                        setAttributes(trans, { result: `${res}-int` });
-                        const funcA1 = createSVGElement("feFuncA");
-                        setAttributes(funcA1, { type: "gamma", amplitude: innerStr, exponent: 1.5 });
-                        trans.appendChild(funcA1);
-                        filter.appendChild(trans);
-
-                        const comp1 = createSVGElement("feComposite");
-                        setAttributes(comp1, { in: `${res}-int`, in2: "SourceAlpha", operator: "in", result: `${res}-in-mask` });
-                        filter.appendChild(comp1);
-
-                        const flood = createSVGElement("feFlood");
-                        setAttributes(flood, { "flood-color": color, "flood-opacity": eff.params.pulseEnabled ? eff.params.pulseMin : alpha, result: `${res}-in-fl` });
-                        if (eff.params.pulseEnabled) {
-                            flood.classList.add("animate-glow-pulse");
-                            flood.style.setProperty("--pulse-period", `${eff.params.pulsePeriod || 1}s`);
-                            flood.style.setProperty("--pulse-min", eff.params.pulseMin ?? 0);
-                            flood.style.setProperty("--pulse-max", eff.params.pulseMax ?? alpha);
-                            flood.style.setProperty("--pulse-count", (eff.params.pulseCount || 0) === 0 ? "infinite" : eff.params.pulseCount);
-                            flood.style.setProperty("--pulse-delay", `${eff.params.pulseDelay || 0}s`);
-                        }
-                        filter.appendChild(flood);
-
-                        const comp2 = createSVGElement("feComposite");
-                        setAttributes(comp2, { in: `${res}-in-fl`, in2: `${res}-in-mask`, operator: "in", result: innerRes });
-                        filter.appendChild(comp2);
-                    }
-
-                    const merge = createSVGElement("feMerge");
-                    if (outerStr > 0 || dist > 0) {
-                        const nO = createSVGElement("feMergeNode"); setAttributes(nO, { in: outerRes }); merge.appendChild(nO);
-                    }
-                    if (!eff.params.knockout) {
-                        const nS = createSVGElement("feMergeNode"); setAttributes(nS, { in: currentIn }); merge.appendChild(nS);
-                    }
-                    if (innerStr > 0 || dist > 0) {
-                        const nI = createSVGElement("feMergeNode"); setAttributes(nI, { in: innerRes }); merge.appendChild(nI);
-                    }
-                    setAttributes(merge, { result: res });
-                    filter.appendChild(merge);
-                    currentIn = res;
-                } else if (eff.type === 'outline') {
-                    const thick = eff.params.thickness || 2;
-                    const { color, alpha } = parseHex8(eff.params.color || "#010101");
-                    const dil = createSVGElement("feMorphology");
-                    setAttributes(dil, { in: "SourceAlpha", operator: "dilate", radius: thick, result: `${res}-dil` });
-                    filter.appendChild(dil);
-                    const fl = createSVGElement("feFlood");
-                    setAttributes(fl, { "flood-color": color, "flood-opacity": alpha, result: `${res}-fl` });
-                    filter.appendChild(fl);
-                    const cp = createSVGElement("feComposite");
-                    setAttributes(cp, { in: `${res}-fl`, in2: `${res}-dil`, operator: "in", result: `${res}-out` });
-                    filter.appendChild(cp);
-
-                    const merge = createSVGElement("feMerge");
-                    const n1 = createSVGElement("feMergeNode"); setAttributes(n1, { in: `${res}-out` }); merge.appendChild(n1);
-                    const n2 = createSVGElement("feMergeNode"); setAttributes(n2, { in: currentIn }); merge.appendChild(n2);
-                    setAttributes(merge, { result: res });
-                    filter.appendChild(merge);
-                    currentIn = res;
-                }
-            });
-            registerDef(filter);
-            return `url(#${id})`;
-        }
-    };
-
     // 9-slice SVG Image Generator for background
     function createNineSliceImage(src, width, height, ns, assetWidth, assetHeight) {
         const group = createSVGElement("g");
@@ -1150,9 +1190,9 @@ function resolveDynamicVisibility(doc) {
                             }
                             wrapper.appendChild(subWrapper);
                         } else {
-                            const g = createSVGElement("g");
-                            const fUrl = FilterFactory.createFilter(a.effects || [], `filter-${node.id}-${appIdx}`, registerDef);
-                            if (fUrl) g.setAttribute("filter", fUrl);
+                            let g = createSVGElement("g");
+                            g.classList.add("appearance-layer");
+                            g = applyEffects(g, a.effects, node.id, `app-${appIdx}`, registerDef, createSVGElement);
                             drawAppearanceContent(g, a, node, appIdx, false, contentW, contentH, registerDef, createSVGElement);
                             wrapper.appendChild(g);
                         }
@@ -1197,9 +1237,9 @@ function resolveDynamicVisibility(doc) {
                         }
                         content.appendChild(subWrapper);
                     } else {
-                        const g = createSVGElement("g");
-                        const fUrl = FilterFactory.createFilter(a.effects || [], `filter-${node.id}-${appIdx}`, registerDef);
-                        if (fUrl) g.setAttribute("filter", fUrl);
+                        let g = createSVGElement("g");
+                        g.classList.add("appearance-layer");
+                        g = applyEffects(g, a.effects, node.id, `app-${appIdx}`, registerDef, createSVGElement);
                         drawAppearanceContent(g, a, node, appIdx, true, undefined, undefined, registerDef, createSVGElement);
                         content.appendChild(g);
                     }
@@ -1216,7 +1256,6 @@ function resolveDynamicVisibility(doc) {
                 });
                 content.appendChild(img);
             } else if (node.type === 'group' || node.type === 'telop' || node.type === 'plane') {
-                // Background rendering for GroupNode
                 if (node.type === 'group' && node.background && node.background.enabled) {
                     const children = node.children || [];
                     const visibleChildren = children.filter(cid => {
@@ -1247,10 +1286,9 @@ function resolveDynamicVisibility(doc) {
                                     }
                                     bgContainer.appendChild(subWrapper);
                                 } else {
-                                    const layer = createSVGElement("g");
+                                    let layer = createSVGElement("g");
                                     layer.setAttribute("class", "appearance-layer");
-                                    const layerFilter = FilterFactory.createFilter(app.effects || [], `filter-${node.id}-bg-${appIdx}`, registerDef);
-                                    if (layerFilter) layer.setAttribute("filter", layerFilter);
+                                    layer = applyEffects(layer, app.effects, node.id, `bg-${appIdx}`, registerDef, createSVGElement);
                                     drawAppearanceContent(layer, app, node, appIdx, true, bgW, bgH, registerDef, createSVGElement);
                                     bgContainer.appendChild(layer);
                                 }
@@ -1279,8 +1317,7 @@ function resolveDynamicVisibility(doc) {
                                 }
                             }
                         }
-                        // Insert background container behind content/clip container
-                        const insertTarget = node.clipRect ? root.querySelector(".clip-container") : content;
+                        const insertTarget = content;
                         if (insertTarget && insertTarget.parentNode === root) {
                             root.insertBefore(bgContainer, insertTarget);
                         } else {
@@ -1290,12 +1327,10 @@ function resolveDynamicVisibility(doc) {
                 }
             }
 
-            const nFilter = FilterFactory.createFilter(node.effects || [], `filter-${node.id}-node`, registerDef);
-            if (nFilter) root.setAttribute("filter", nFilter);
+            const finalRoot = applyEffects(root, node.effects, node.id, "node", registerDef, createSVGElement);
 
             let autoLayoutPositions = null;
             if (node.type === 'group' && node.autoLayout && node.autoLayout.enabled) {
-                // calculateAutoLayout is injected from layoutUtils.ts
                 const layout = calculateAutoLayout(node, activeDoc, TextMeasurer);
                 autoLayoutPositions = layout.childrenPositions;
             }
@@ -1304,7 +1339,7 @@ function resolveDynamicVisibility(doc) {
                 node.children.forEach(cid => {
                     const override = autoLayoutPositions ? autoLayoutPositions[cid] : null;
                     const c = window.createNode(cid, override);
-                    if (c) root.appendChild(c);
+                    if (c) finalRoot.appendChild(c);
                 });
             }
 
@@ -1337,7 +1372,7 @@ function resolveDynamicVisibility(doc) {
                 }
             });
 
-            return root;
+            return finalRoot;
         };
 
         const evaluatedDoc = resolveDynamicVisibility(projectData);

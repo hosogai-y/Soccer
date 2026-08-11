@@ -253,8 +253,13 @@ function MatchScorePanel() {
     const smallScore = useTelop('小得点');
 
     const syncScores = (data: any) => {
-        bigScore.setData((prev: any) => ({ ...prev, ...data }));
-        smallScore.setData((prev: any) => ({ ...prev, ...data }));
+        // Automatically sync rect colors for small score
+        const expandedData = { ...data };
+        if (data.LeftTeamColor) expandedData.LeftTeamColorRect = data.LeftTeamColor;
+        if (data.RigtTeamColor) expandedData.RightTeamColorRect = data.RigtTeamColor;
+        
+        bigScore.setData((prev: any) => ({ ...prev, ...expandedData }));
+        smallScore.setData((prev: any) => ({ ...prev, ...expandedData }));
     };
 
     const updateScores = () => {
@@ -264,43 +269,49 @@ function MatchScorePanel() {
 
     const bsData = bigScore.data || {};
 
+    const renderTeamScore = (teamNameKey: string, colorKey: string, scoreKey: string) => {
+        return (
+            <div style={{ flex: 1, padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="Team Name" 
+                    value={bsData[teamNameKey] || ''} 
+                    onChange={e => syncScores({ [teamNameKey]: e.target.value })} 
+                    style={{ marginBottom: '8px', padding: '6px 12px', fontSize: '1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} 
+                />
+                <input 
+                    type="color" 
+                    className="form-input" 
+                    value={bsData[colorKey] || '#bd39fb'} 
+                    onChange={e => syncScores({ [colorKey]: e.target.value })} 
+                    style={{ height: '20px', padding: 0, width: '100%', border: 'none', borderRadius: '4px', cursor: 'pointer', marginBottom: '20px' }} 
+                />
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center' }}>
+                    <button className="btn btn-secondary" style={{ width: '36px', height: '36px', borderRadius: '8px', fontSize: '1.2rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)' }} onClick={() => syncScores({ [scoreKey]: String(Math.max(0, parseInt(bsData[scoreKey] || '0') - 1)) })}>-</button>
+                    <input 
+                        type="text" 
+                        className="form-input" 
+                        style={{ width: '80px', height: '60px', textAlign: 'center', fontSize: '2.5rem', fontWeight: 'bold', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} 
+                        value={bsData[scoreKey] || '0'} 
+                        onChange={e => syncScores({ [scoreKey]: e.target.value })} 
+                    />
+                    <button className="btn btn-secondary" style={{ width: '36px', height: '36px', borderRadius: '8px', fontSize: '1.2rem', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)' }} onClick={() => syncScores({ [scoreKey]: String(parseInt(bsData[scoreKey] || '0') + 1) })}>+</button>
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <div className="glass-panel">
-            <div className="flex-between" style={{ marginBottom: 16 }}>
-                <h3 style={{ margin: 0 }}>Match Score</h3>
-                <button className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }} onClick={updateScores}>Update LIVE</button>
+        <div className="glass-panel" style={{ padding: '24px' }}>
+            <div className="flex-between" style={{ marginBottom: '24px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>Match Score</h3>
+                <button className="btn btn-primary" style={{ padding: '8px 24px', fontSize: '1rem', borderRadius: '20px' }} onClick={updateScores}>Update LIVE</button>
             </div>
             
-            <div style={{ display: 'flex', gap: 12 }}>
-                {/* Left Team */}
-                <div style={{ flex: 1, padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
-                    <div className="form-group" style={{ marginBottom: 8 }}>
-                        <input type="text" className="form-input" placeholder="Left Name" value={bsData.左チーム名 || ''} onChange={e => syncScores({ 左チーム名: e.target.value })} style={{ padding: '4px 8px', fontSize: '0.9rem' }} />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 8 }}>
-                        <input type="color" className="form-input" value={bsData.LeftTeamColor || '#bd39fb'} onChange={e => syncScores({ LeftTeamColor: e.target.value })} style={{ height: 24, padding: 0, width: '100%' }} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '1rem' }} onClick={() => syncScores({ 左チーム得点: String(Math.max(0, parseInt(bsData.左チーム得点 || '0') - 1)) })}>-</button>
-                        <input type="text" className="form-input" style={{ flex: 1, textAlign: 'center', fontSize: '1.8rem', fontWeight: 'bold', padding: '4px', minWidth: '3rem' }} value={bsData.左チーム得点 || '0'} onChange={e => syncScores({ 左チーム得点: e.target.value })} />
-                        <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '1rem' }} onClick={() => syncScores({ 左チーム得点: String(parseInt(bsData.左チーム得点 || '0') + 1) })}>+</button>
-                    </div>
-                </div>
-
-                {/* Right Team */}
-                <div style={{ flex: 1, padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
-                    <div className="form-group" style={{ marginBottom: 8 }}>
-                        <input type="text" className="form-input" placeholder="Right Name" value={bsData.右チーム名 || ''} onChange={e => syncScores({ 右チーム名: e.target.value })} style={{ padding: '4px 8px', fontSize: '0.9rem' }} />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 8 }}>
-                        <input type="color" className="form-input" value={bsData.RigtTeamColor || '#bd39fb'} onChange={e => syncScores({ RigtTeamColor: e.target.value })} style={{ height: 24, padding: 0, width: '100%' }} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '1rem' }} onClick={() => syncScores({ 右チーム得点: String(Math.max(0, parseInt(bsData.右チーム得点 || '0') - 1)) })}>-</button>
-                        <input type="text" className="form-input" style={{ flex: 1, textAlign: 'center', fontSize: '1.8rem', fontWeight: 'bold', padding: '4px', minWidth: '3rem' }} value={bsData.右チーム得点 || '0'} onChange={e => syncScores({ 右チーム得点: e.target.value })} />
-                        <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '1rem' }} onClick={() => syncScores({ 右チーム得点: String(parseInt(bsData.右チーム得点 || '0') + 1) })}>+</button>
-                    </div>
-                </div>
+            <div style={{ display: 'flex', gap: '16px' }}>
+                {renderTeamScore('左チーム名', 'LeftTeamColor', '左チーム得点')}
+                {renderTeamScore('右チーム名', 'RigtTeamColor', '右チーム得点')}
             </div>
         </div>
     );
