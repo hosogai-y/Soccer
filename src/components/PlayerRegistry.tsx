@@ -11,6 +11,10 @@ export type Player = {
     height: string;
     weight: string;
     prevTeam: string;
+    yellowCards?: string; // 累積イエロー
+    totalGoals?: string; // 通算ゴール
+    todayGoals?: string; // Todaysゴール
+    isSubbed?: boolean; // 交代フラグ
 };
 
 export default function PlayerRegistry() {
