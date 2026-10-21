@@ -109,15 +109,38 @@ function applyCommonProps(el, node) {
         visibility,
         "data-node-id": node.id
     });
+    if (node.visible === false) {
+        el.setAttribute("display", "none");
+        el.style.setProperty("display", "none", "important");
+        el.style.setProperty("visibility", "hidden", "important");
+        el.style.setProperty("opacity", "0", "important");
+        el.style.setProperty("animation", "none", "important");
+        el.classList.add("is-invisible");
+    }
+    else {
+        el.removeAttribute("display");
+        el.style.removeProperty("display");
+        el.style.removeProperty("visibility");
+        el.style.removeProperty("opacity");
+        el.style.removeProperty("animation");
+        el.classList.remove("is-invisible");
+    }
 }
 function setupTextBase(text, node, measuredW, measuredH) {
     const fontSize = Number(node.style?.fontSize || 24);
+    const targetWidth = Number(node.width || 0);
+    const align = (targetWidth > 0 && (node.align === 'right' || node.align === 'center')) ? node.align : 'left';
+    let textAnchor = 'start';
+    if (align === 'right')
+        textAnchor = 'end';
+    else if (align === 'center')
+        textAnchor = 'middle';
     const attrs = {
         "font-family": node.style?.fontFamily || "sans-serif",
         "font-size": fontSize,
         "font-weight": (node.style?.fontWeight === 'bold' || node.style?.fontWeight === '700' || node.style?.fontWeight === 700) ? 'bold' : 'normal',
         "font-style": (node.style?.fontStyle === 'italic') ? 'italic' : 'normal',
-        "text-anchor": "start",
+        "text-anchor": textAnchor,
         "dominant-baseline": "hanging",
         "alignment-baseline": "hanging",
         "text-rendering": "geometricPrecision",
@@ -627,6 +650,11 @@ function getPaddingValues(padding) {
     }
     return { top: 0, right: 0, bottom: 0, left: 0 };
 }
+// Children that take part in a group's bounds / AutoLayout flow.
+// ignoreInLayout children are still rendered (at their own position) but don't affect the size.
+function isLayoutChild(child) {
+    return !!child && child.visible !== false && child.ignoreInLayout !== true;
+}
 // Computes the visual bounds of a node (recursive for groups without autolayout)
 function calculateNodeBounds(nodeId, doc) {
     const node = doc.nodesById[nodeId];
@@ -641,10 +669,7 @@ function calculateNodeBounds(nodeId, doc) {
         // Recursive union for unclipped group
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         const children = group.children || [];
-        const visibleChildren = children.filter(childId => {
-            const child = doc.nodesById[childId];
-            return child && child.visible !== false;
-        });
+        const visibleChildren = children.filter(childId => isLayoutChild(doc.nodesById[childId]));
         if (visibleChildren.length === 0)
             return { x: 0, y: 0, width: 0, height: 0 };
         visibleChildren.forEach((childId) => {
@@ -712,10 +737,7 @@ function calculateAutoLayout(group, doc) {
     const childrenPositions = {};
     const children = group.children || [];
     // Filter visible children
-    const visibleChildren = children.filter(childId => {
-        const child = doc.nodesById[childId];
-        return child && child.visible !== false;
-    });
+    const visibleChildren = children.filter(childId => isLayoutChild(doc.nodesById[childId]));
     let currentX = pad.left;
     let currentY = pad.top;
     let maxChildWidth = 0;
@@ -843,147 +865,649 @@ function calculateAutoLayout(group, doc) {
         bounds: { x: -offsetX, y: -offsetY, width: groupWidth, height: groupHeight }
     };
 }
+
 const expressionCache = new Map();
+function getValueByPath(obj, path) {
+    if (!obj || !path)
+        return undefined;
+    if (path in obj)
+        return obj[path];
+    const parts = path.split('.');
+    let curr = obj;
+    for (const part of parts) {
+        if (curr === null || curr === undefined)
+            return undefined;
+        curr = curr[part];
+    }
+    return curr;
+}
 // Stable-reference cache for resolveDynamicVisibility.
 // Prevents unnecessary Konva/SVG full rebuilds when doc reference hasn't changed
 // (e.g. during zoom/pan operations that trigger render() via React re-renders).
 let _rdv_lastInputDoc = null;
 let _rdv_lastOutputDoc = null;
 let _rdv_lastKeyexpSummary = "";
-function resolveDynamicVisibility(doc) {
+function evaluateConditionLogic(condition, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node) {
+    if (condition.useExpression && condition.expression) {
+        try {
+            const context = {
+                ...(globalKeyexpMap || {}),
+                ...(telopId && telopToKeyexpMap[telopId] ? telopToKeyexpMap[telopId] : {}),
+                ...(externalKeyValues || {}),
+                ...(node && node.type === 'text' && node.text !== undefined ? { [node.keyexp || node.name || 'self']: node.text } : {})
+            };
+            const customFunctions = {
+                isEmpty: (val) => val === null || val === undefined || val === '',
+                contains: (str, search) => String(str).includes(String(search))
+            };
+            let fn = expressionCache.get(condition.expression);
+            if (!fn) {
+                fn = new Function('context', 'customFunctions', `
+                    with (customFunctions) {
+                        with (context) {
+                            return !!(${condition.expression});
+                        }
+                    }
+                `);
+                expressionCache.set(condition.expression, fn);
+            }
+            return !!fn(context, customFunctions);
+        }
+        catch (e) {
+            console.warn("Expression evaluation error", e);
+            return false;
+        }
+    }
+    else {
+        const targetKeyexp = (condition.targetKeyexp || "").trim();
+        let textValue = undefined;
+        // 1. External key values
+        if (externalKeyValues) {
+            if (targetKeyexp) {
+                const externalVal = getValueByPath(externalKeyValues, targetKeyexp);
+                if (externalVal !== undefined && externalVal !== null) {
+                    textValue = String(externalVal).trim();
+                }
+            }
+            else if (node && node.keyexp) {
+                const externalVal = getValueByPath(externalKeyValues, node.keyexp);
+                if (externalVal !== undefined && externalVal !== null) {
+                    textValue = String(externalVal).trim();
+                }
+            }
+        }
+        // 2. Self node context resolution (priority over remote map when rule targets this node)
+        // If targetKeyexp is empty, or matches node.keyexp, node.name, "this", "self"
+        if (textValue === undefined && node) {
+            const isSelf = !targetKeyexp
+                || targetKeyexp === node.keyexp
+                || targetKeyexp === node.name
+                || targetKeyexp.toLowerCase() === "this"
+                || targetKeyexp.toLowerCase() === "self";
+            if (isSelf) {
+                if (node.type === "text" && node.text !== undefined && node.text !== null && String(node.text).trim() !== "") {
+                    textValue = String(node.text).trim();
+                }
+                else if (node.keyexp) {
+                    textValue = String(node.keyexp).trim();
+                }
+            }
+        }
+        // 3. Telop scope text node mappings
+        if (textValue === undefined && telopId && telopToKeyexpMap[telopId] && targetKeyexp) {
+            if (telopToKeyexpMap[telopId][targetKeyexp] !== undefined) {
+                textValue = String(telopToKeyexpMap[telopId][targetKeyexp] ?? "").trim();
+            }
+        }
+        // 4. Global text node mappings
+        if (textValue === undefined && globalKeyexpMap && targetKeyexp) {
+            if (globalKeyexpMap[targetKeyexp] !== undefined) {
+                textValue = String(globalKeyexpMap[targetKeyexp] ?? "").trim();
+            }
+        }
+        const resolvedText = textValue ?? "";
+        const compVal = String(condition.value ?? "").trim();
+        const matchVal = (v) => {
+            switch (condition.operator) {
+                case "empty":
+                    return !v || v === "";
+                case "not_empty":
+                    return !!v && v !== "";
+                case "equals":
+                    return v === compVal;
+                case "not_equals":
+                    return v !== compVal;
+                case "contains":
+                    if (!compVal)
+                        return true;
+                    return v.includes(compVal) || v.toLowerCase().includes(compVal.toLowerCase());
+                case "not_contains":
+                    if (!compVal)
+                        return true;
+                    return !v.includes(compVal) && !v.toLowerCase().includes(compVal.toLowerCase());
+                case "gt":
+                case "gte":
+                case "lt":
+                case "lte": {
+                    const numVal = parseFloat(v);
+                    const compValNum = parseFloat(compVal);
+                    if (isNaN(numVal) || isNaN(compValNum)) {
+                        return false;
+                    }
+                    else if (condition.operator === "gt") {
+                        return numVal > compValNum;
+                    }
+                    else if (condition.operator === "gte") {
+                        return numVal >= compValNum;
+                    }
+                    else if (condition.operator === "lt") {
+                        return numVal < compValNum;
+                    }
+                    else if (condition.operator === "lte") {
+                        return numVal <= compValNum;
+                    }
+                    return false;
+                }
+                default:
+                    return true;
+            }
+        };
+        return matchVal(resolvedText);
+    }
+}
+function resolveConditionalColor(defaultColor, rules, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node) {
+    if (!rules || !Array.isArray(rules) || rules.length === 0) {
+        return defaultColor;
+    }
+    for (const rule of rules) {
+        if (rule.enabled !== false && evaluateConditionLogic(rule, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node)) {
+            if (rule.color !== undefined && rule.color !== "") {
+                return rule.color;
+            }
+        }
+    }
+    return defaultColor;
+}
+function evaluateAppearanceColorRules(app, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node) {
+    if (!app)
+        return app;
+    let currentApp = app;
+    // 1. Per-property color rules (fillColorRules, strokeColorRules, shadowColorRules)
+    if (Array.isArray(app.fillColorRules) && app.fillColorRules.length > 0) {
+        const newFill = resolveConditionalColor(currentApp.fill, app.fillColorRules, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+        if (newFill !== currentApp.fill) {
+            currentApp = { ...currentApp, fill: newFill };
+        }
+    }
+    if (Array.isArray(app.strokeColorRules) && app.strokeColorRules.length > 0) {
+        const newStroke = resolveConditionalColor(currentApp.color, app.strokeColorRules, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+        if (newStroke !== currentApp.color) {
+            currentApp = { ...currentApp, color: newStroke };
+        }
+    }
+    if (Array.isArray(app.shadowColorRules) && app.shadowColorRules.length > 0) {
+        const newShadow = resolveConditionalColor(currentApp.shadowColor, app.shadowColorRules, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+        if (newShadow !== currentApp.shadowColor) {
+            currentApp = { ...currentApp, shadowColor: newShadow };
+        }
+    }
+    // 2. Gradient stops per-stop color rules
+    if (currentApp.gradientConfig?.stops && Array.isArray(currentApp.gradientConfig.stops)) {
+        let stopsChanged = false;
+        const newStops = currentApp.gradientConfig.stops.map((stop) => {
+            if (Array.isArray(stop.colorRules) && stop.colorRules.length > 0) {
+                const newC = resolveConditionalColor(stop.color, stop.colorRules, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+                if (newC !== stop.color) {
+                    stopsChanged = true;
+                    return { ...stop, color: newC };
+                }
+            }
+            return stop;
+        });
+        if (stopsChanged) {
+            currentApp = {
+                ...currentApp,
+                gradientConfig: { ...currentApp.gradientConfig, stops: newStops },
+                fill: newStops.map((s) => s.color)
+            };
+        }
+    }
+    // 3. Top-level colorRules (legacy / composite support)
+    if (Array.isArray(app.colorRules) && app.colorRules.length > 0) {
+        for (const rule of app.colorRules) {
+            if (rule.enabled !== false && evaluateConditionLogic(rule, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node)) {
+                let fill = currentApp.fill;
+                let color = currentApp.color;
+                let shadowColor = currentApp.shadowColor;
+                let hasChange = false;
+                if ((rule.overrideFill || rule.fill !== undefined) && rule.fill !== undefined && rule.fill !== "") {
+                    fill = rule.fill;
+                    hasChange = true;
+                }
+                if ((rule.overrideStrokeColor || rule.color !== undefined) && rule.color !== undefined && rule.color !== "") {
+                    color = rule.color;
+                    hasChange = true;
+                }
+                if ((rule.overrideShadowColor || rule.shadowColor !== undefined) && rule.shadowColor !== undefined && rule.shadowColor !== "") {
+                    shadowColor = rule.shadowColor;
+                    hasChange = true;
+                }
+                if (hasChange) {
+                    currentApp = { ...currentApp, fill, color, shadowColor };
+                }
+                break;
+            }
+        }
+    }
+    return currentApp;
+}
+function resolveDynamicVisibility(doc, externalKeyValues) {
+    // 0. Immediate short-circuit: If externalKeyValues is not passed and doc reference has not changed,
+    // nothing inside has changed (vital for 60fps pan/zoom performance in editor).
+    if (!externalKeyValues && doc === _rdv_lastInputDoc && _rdv_lastOutputDoc !== null) {
+        return _rdv_lastOutputDoc;
+    }
     let currentKeyexpSummary = "";
     const telopToKeyexpMap = {};
-    // Helper to find the parent Telop node's ID
+    const globalKeyexpMap = {};
+    const telopIdCache = new Map();
+    // Helper to find the parent Telop node's ID with memoization
     const getTelopId = (nodeId) => {
+        if (telopIdCache.has(nodeId)) {
+            return telopIdCache.get(nodeId);
+        }
         let curr = doc.nodesById[nodeId];
         while (curr) {
-            if (curr.type === "telop")
+            if (curr.type === "telop") {
+                telopIdCache.set(nodeId, curr.id);
                 return curr.id;
+            }
             if (!curr.parentId)
                 break;
             curr = doc.nodesById[curr.parentId];
         }
+        telopIdCache.set(nodeId, null);
         return null;
     };
-    // 1st pass: Collect keyexp -> text content mappings for each telop
-    Object.values(doc.nodesById).forEach(node => {
-        if (node.keyexp && node.type === "text") {
-            currentKeyexpSummary += node.id + ":" + (node.text || "") + ";";
+    // 1st pass: Collect keyexp -> text content mappings for each telop and globally
+    for (const node of Object.values(doc.nodesById)) {
+        if (node.type === "text") {
+            const textVal = node.text || "";
+            const keyexpVal = (node.keyexp || "").trim();
+            currentKeyexpSummary += node.id + ":" + keyexpVal + ":" + textVal + ";";
+            if (keyexpVal) {
+                if (!globalKeyexpMap[keyexpVal] || node.name === keyexpVal) {
+                    globalKeyexpMap[keyexpVal] = textVal;
+                }
+            }
+            if (node.name && !globalKeyexpMap[node.name]) {
+                globalKeyexpMap[node.name] = textVal;
+            }
             const telopId = getTelopId(node.id);
             if (telopId) {
                 if (!telopToKeyexpMap[telopId]) {
                     telopToKeyexpMap[telopId] = {};
                 }
-                telopToKeyexpMap[telopId][node.keyexp] = node.text || "";
+                if (keyexpVal) {
+                    if (!telopToKeyexpMap[telopId][keyexpVal] || node.name === keyexpVal) {
+                        telopToKeyexpMap[telopId][keyexpVal] = textVal;
+                    }
+                }
+                if (node.name && telopToKeyexpMap[telopId][node.name] === undefined) {
+                    telopToKeyexpMap[telopId][node.name] = textVal;
+                }
             }
         }
-    });
-    if (doc === _rdv_lastInputDoc && _rdv_lastOutputDoc !== null && currentKeyexpSummary === _rdv_lastKeyexpSummary) {
-        return _rdv_lastOutputDoc;
     }
-    // 2nd pass: Resolve conditions and collect overrides
-    const overrides = {};
+    // 2nd pass: Resolve visibility, image reference, and color condition rules
+    const visibilityOverrides = {};
+    const assetOverrides = {};
+    const appearanceOverrides = {};
     let hasAnyChange = false;
-    Object.values(doc.nodesById).forEach(node => {
+    for (const node of Object.values(doc.nodesById)) {
+        const telopId = getTelopId(node.id);
+        // 1. Visibility Condition
+        // Preserve original tree visibility state
+        const originalVisible = node._originalVisible !== undefined
+            ? node._originalVisible
+            : (node.visible !== false);
         if (node.visibilityCondition && node.visibilityCondition.enabled) {
-            const telopId = getTelopId(node.id);
-            const condition = node.visibilityCondition;
-            let isVisible = node.visible;
-            if (condition.useExpression && condition.expression) {
-                try {
-                    const context = telopId && telopToKeyexpMap[telopId] ? telopToKeyexpMap[telopId] : {};
-                    const customFunctions = {
-                        isEmpty: (val) => val === null || val === undefined || val === '',
-                        contains: (str, search) => String(str).includes(String(search))
-                    };
-                    let fn = expressionCache.get(condition.expression);
-                    if (!fn) {
-                        fn = new Function('context', 'customFunctions', `
-                            with (customFunctions) {
-                                with (context) {
-                                    return !!(${condition.expression});
-                                }
-                            }
-                        `);
-                        expressionCache.set(condition.expression, fn);
-                    }
-                    isVisible = fn(context, customFunctions);
-                }
-                catch (e) {
-                    console.warn("Expression evaluation error", e);
-                    isVisible = false;
-                }
-            }
-            else {
-                const targetKeyexp = condition.targetKeyexp || "";
-                const textValue = (telopId && telopToKeyexpMap[telopId])
-                    ? (telopToKeyexpMap[telopId][targetKeyexp] ?? "")
-                    : "";
-                switch (condition.operator) {
-                    case "empty":
-                        isVisible = !textValue || textValue.trim() === "";
-                        break;
-                    case "not_empty":
-                        isVisible = !!textValue && textValue.trim() !== "";
-                        break;
-                    case "equals":
-                        isVisible = textValue === (condition.value ?? "");
-                        break;
-                    case "not_equals":
-                        isVisible = textValue !== (condition.value ?? "");
-                        break;
-                    case "contains":
-                        isVisible = textValue.includes(condition.value ?? "");
-                        break;
-                    case "gt":
-                    case "gte":
-                    case "lt":
-                    case "lte": {
-                        const numVal = parseFloat(textValue);
-                        const compVal = parseFloat(condition.value ?? "");
-                        if (isNaN(numVal) || isNaN(compVal)) {
-                            isVisible = false;
-                        }
-                        else if (condition.operator === "gt") {
-                            isVisible = numVal > compVal;
-                        }
-                        else if (condition.operator === "gte") {
-                            isVisible = numVal >= compVal;
-                        }
-                        else if (condition.operator === "lt") {
-                            isVisible = numVal < compVal;
-                        }
-                        else if (condition.operator === "lte") {
-                            isVisible = numVal <= compVal;
-                        }
-                        break;
-                    }
-                }
-            }
-            if (isVisible !== node.visible) {
-                overrides[node.id] = isVisible;
+            const conditionResult = evaluateConditionLogic(node.visibilityCondition, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+            // User requirement:
+            // - If tree is hidden (originalVisible === false), condition CANNOT force it visible (must stay false)
+            // - If tree is visible (originalVisible === true), follow condition result
+            const targetVisible = originalVisible ? conditionResult : false;
+            if (targetVisible !== node.visible || node._originalVisible !== originalVisible) {
+                visibilityOverrides[node.id] = {
+                    visible: targetVisible,
+                    _originalVisible: originalVisible
+                };
                 hasAnyChange = true;
             }
         }
-    });
+        else if (node._originalVisible !== undefined && node.visible !== node._originalVisible) {
+            // Restore original tree visibility if condition was disabled
+            visibilityOverrides[node.id] = {
+                visible: node._originalVisible,
+                _originalVisible: undefined
+            };
+            hasAnyChange = true;
+        }
+        // 2. Image Reference Condition (Only active when node's own keyexp is not set)
+        if (node.type === "image") {
+            const imgNode = node;
+            const hasOwnKeyexp = !!imgNode.keyexp && String(imgNode.keyexp).trim() !== "";
+            const refCond = imgNode.imageReferenceCondition;
+            // Preserve original assetId if not already stored
+            const originalAssetId = imgNode._originalAssetId || imgNode.assetId;
+            if (!hasOwnKeyexp && refCond && refCond.enabled) {
+                let matchedAssetId = null;
+                // Priority 1: Value mappings for targetKeyexp
+                if (refCond.targetKeyexp && Array.isArray(refCond.mappings) && refCond.mappings.length > 0) {
+                    for (const m of refCond.mappings) {
+                        if (m.assetId) {
+                            const isMatch = evaluateConditionLogic({
+                                enabled: true,
+                                targetKeyexp: refCond.targetKeyexp,
+                                operator: m.operator || "equals",
+                                value: m.value
+                            }, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap);
+                            if (isMatch) {
+                                matchedAssetId = m.assetId;
+                                break;
+                            }
+                        }
+                    }
+                }
+                // Priority 2: Multi-rule evaluation if rules exist
+                if (!matchedAssetId && Array.isArray(refCond.rules) && refCond.rules.length > 0) {
+                    for (const rule of refCond.rules) {
+                        if (rule.enabled !== false && evaluateConditionLogic(rule, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap)) {
+                            if (rule.assetId) {
+                                matchedAssetId = rule.assetId;
+                                break;
+                            }
+                        }
+                    }
+                }
+                // Priority 3: Single-condition evaluation if no rule matched
+                if (!matchedAssetId && evaluateConditionLogic(refCond, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap)) {
+                    if (refCond.assetId) {
+                        matchedAssetId = refCond.assetId;
+                    }
+                }
+                const targetAssetId = matchedAssetId || originalAssetId;
+                if (targetAssetId && targetAssetId !== imgNode.assetId) {
+                    assetOverrides[node.id] = {
+                        assetId: targetAssetId,
+                        _originalAssetId: (targetAssetId !== originalAssetId) ? originalAssetId : undefined
+                    };
+                    hasAnyChange = true;
+                }
+            }
+            else if (imgNode._originalAssetId && imgNode.assetId !== originalAssetId) {
+                // If condition was disabled or keyexp was specified, restore original asset
+                assetOverrides[node.id] = {
+                    assetId: originalAssetId,
+                    _originalAssetId: undefined
+                };
+                hasAnyChange = true;
+            }
+        }
+        // 3. Appearance Color Condition Rules
+        const nodeAny = node;
+        const origStyleApps = nodeAny._originalStyleAppearances || (nodeAny.style?.appearances ? JSON.parse(JSON.stringify(nodeAny.style.appearances)) : undefined);
+        const origBgApps = nodeAny._originalBgAppearances || (nodeAny.background?.appearances ? JSON.parse(JSON.stringify(nodeAny.background.appearances)) : undefined);
+        if (origStyleApps && Array.isArray(origStyleApps)) {
+            let styleAppChanged = false;
+            const newApps = origStyleApps.map((app) => {
+                const evalApp = evaluateAppearanceColorRules(app, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+                if (evalApp !== app)
+                    styleAppChanged = true;
+                return evalApp;
+            });
+            const currentStyleAppsStr = JSON.stringify(nodeAny.style?.appearances);
+            const newAppsStr = JSON.stringify(newApps);
+            const origStyleAppsStr = JSON.stringify(origStyleApps);
+            if (styleAppChanged) {
+                if (currentStyleAppsStr !== newAppsStr || !nodeAny._originalStyleAppearances) {
+                    appearanceOverrides[node.id] = {
+                        ...(appearanceOverrides[node.id] || {}),
+                        style: { ...nodeAny.style, appearances: newApps },
+                        _originalStyleAppearances: origStyleApps
+                    };
+                    hasAnyChange = true;
+                }
+            }
+            else if (nodeAny._originalStyleAppearances && currentStyleAppsStr !== origStyleAppsStr) {
+                appearanceOverrides[node.id] = {
+                    ...(appearanceOverrides[node.id] || {}),
+                    style: { ...nodeAny.style, appearances: origStyleApps },
+                    _originalStyleAppearances: undefined
+                };
+                hasAnyChange = true;
+            }
+        }
+        if (origBgApps && Array.isArray(origBgApps)) {
+            let bgAppChanged = false;
+            const newBgApps = origBgApps.map((app) => {
+                const evalApp = evaluateAppearanceColorRules(app, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
+                if (evalApp !== app)
+                    bgAppChanged = true;
+                return evalApp;
+            });
+            const currentBgAppsStr = JSON.stringify(nodeAny.background?.appearances);
+            const newBgAppsStr = JSON.stringify(newBgApps);
+            const origBgAppsStr = JSON.stringify(origBgApps);
+            if (bgAppChanged) {
+                if (currentBgAppsStr !== newBgAppsStr || !nodeAny._originalBgAppearances) {
+                    appearanceOverrides[node.id] = {
+                        ...(appearanceOverrides[node.id] || {}),
+                        background: { ...nodeAny.background, appearances: newBgApps },
+                        _originalBgAppearances: origBgApps
+                    };
+                    hasAnyChange = true;
+                }
+            }
+            else if (nodeAny._originalBgAppearances && currentBgAppsStr !== origBgAppsStr) {
+                appearanceOverrides[node.id] = {
+                    ...(appearanceOverrides[node.id] || {}),
+                    background: { ...nodeAny.background, appearances: origBgApps },
+                    _originalBgAppearances: undefined
+                };
+                hasAnyChange = true;
+            }
+        }
+    }
     if (!hasAnyChange) {
-        _rdv_lastInputDoc = doc;
-        _rdv_lastOutputDoc = doc;
-        _rdv_lastKeyexpSummary = currentKeyexpSummary;
+        if (!externalKeyValues) {
+            _rdv_lastInputDoc = doc;
+            _rdv_lastOutputDoc = doc;
+            _rdv_lastKeyexpSummary = currentKeyexpSummary;
+        }
         return doc;
     }
     const updatedNodes = { ...doc.nodesById };
-    Object.entries(overrides).forEach(([id, visible]) => {
-        updatedNodes[id] = { ...updatedNodes[id], visible };
+    Object.entries(visibilityOverrides).forEach(([id, visData]) => {
+        updatedNodes[id] = {
+            ...updatedNodes[id],
+            visible: visData.visible,
+            ...(visData._originalVisible !== undefined ? { _originalVisible: visData._originalVisible } : {})
+        };
+        if (visData._originalVisible === undefined && updatedNodes[id]._originalVisible !== undefined) {
+            delete updatedNodes[id]._originalVisible;
+        }
+    });
+    Object.entries(assetOverrides).forEach(([id, assetData]) => {
+        updatedNodes[id] = {
+            ...updatedNodes[id],
+            assetId: assetData.assetId,
+            ...(assetData._originalAssetId ? { _originalAssetId: assetData._originalAssetId } : {})
+        };
+        if (assetData._originalAssetId === undefined && updatedNodes[id]._originalAssetId) {
+            delete updatedNodes[id]._originalAssetId;
+        }
+    });
+    Object.entries(appearanceOverrides).forEach(([id, appData]) => {
+        updatedNodes[id] = {
+            ...updatedNodes[id],
+            ...(appData.style ? { style: appData.style } : {}),
+            ...(appData.background ? { background: appData.background } : {}),
+            ...(appData._originalStyleAppearances ? { _originalStyleAppearances: appData._originalStyleAppearances } : {}),
+            ...(appData._originalBgAppearances ? { _originalBgAppearances: appData._originalBgAppearances } : {})
+        };
+        if (appData._originalStyleAppearances === undefined && updatedNodes[id]._originalStyleAppearances) {
+            delete updatedNodes[id]._originalStyleAppearances;
+        }
+        if (appData._originalBgAppearances === undefined && updatedNodes[id]._originalBgAppearances) {
+            delete updatedNodes[id]._originalBgAppearances;
+        }
     });
     const result = {
         ...doc,
         nodesById: updatedNodes
     };
-    _rdv_lastInputDoc = doc;
-    _rdv_lastOutputDoc = result;
-    _rdv_lastKeyexpSummary = currentKeyexpSummary;
+    if (!externalKeyValues) {
+        _rdv_lastInputDoc = doc;
+        _rdv_lastOutputDoc = result;
+        _rdv_lastKeyexpSummary = currentKeyexpSummary;
+    }
     return result;
+}
+
+/**
+ * Repeat expansion for AutoLayout groups.
+ *
+ * A group with `autoLayout.enabled && repeat.enabled` holds exactly one child (the template).
+ * At render / export time the template subtree is deep-copied `repeat.count` times:
+ * - node ids become `{originalId}~{i}` (1-based, deterministic)
+ * - every string value containing `{i}` gets the row number, except `id` / `parentId` / `children` / `assetId`
+ *
+ * The saved doc always keeps the template form; only the rendered doc is expanded.
+ * This file is dependency-free (type imports only) because scripts/sync-logic.cjs embeds it into the player.
+ */
+const REPEAT_ID_SEPARATOR = "~";
+const REPEAT_INDEX_TOKEN = "{i}";
+const NON_SUBSTITUTED_KEYS = new Set(["id", "parentId", "children", "assetId"]);
+const REPEAT_ID_SUFFIX = /~\d+$/;
+function isRepeatGroup(node) {
+    return !!node && node.type === "group" && !!node.autoLayout?.enabled && !!node.repeat?.enabled;
+}
+/** `n1_card~12` -> `n1_card`. Ids without a repeat suffix are returned unchanged. */
+function toTemplateNodeId(nodeId) {
+    return nodeId.replace(REPEAT_ID_SUFFIX, "");
+}
+/** Row number encoded in an expanded id, or null for template / ordinary ids. */
+function getRepeatRowIndex(nodeId) {
+    const m = REPEAT_ID_SUFFIX.exec(nodeId);
+    return m ? Number(m[0].slice(REPEAT_ID_SEPARATOR.length)) : null;
+}
+/** Nearest repeat group above the node (the node is then part of a repeat template), or null. */
+function findRepeatAncestor(doc, nodeId) {
+    let parentId = doc.nodesById[nodeId]?.parentId;
+    while (parentId) {
+        const parent = doc.nodesById[parentId];
+        if (!parent)
+            return null;
+        if (isRepeatGroup(parent))
+            return parent;
+        parentId = parent.parentId;
+    }
+    return null;
+}
+function collectSubtree(doc, rootId, out) {
+    const node = doc.nodesById[rootId];
+    if (!node)
+        return;
+    out.push(rootId);
+    if (Array.isArray(node.children)) {
+        node.children.forEach((childId) => collectSubtree(doc, childId, out));
+    }
+}
+function analyzeRepeatGroup(doc, group) {
+    const warnings = [];
+    const rawCount = Math.floor(Number(group.repeat?.count));
+    const count = isFinite(rawCount) && rawCount > 0 ? rawCount : 0;
+    const children = Array.isArray(group.children) ? group.children : [];
+    if (children.length === 0) {
+        return { templateId: null, count, expandable: false, warnings: ["Repeat group has no child (template)"] };
+    }
+    if (children.length > 1) {
+        warnings.push(`Repeat group has ${children.length} children. Only the first one is used as the template`);
+    }
+    const templateId = children[0];
+    if (findRepeatAncestor(doc, group.id)) {
+        warnings.push("Nested repeat is not supported (not expanded)");
+        return { templateId, count, expandable: false, warnings };
+    }
+    const subtree = [];
+    collectSubtree(doc, templateId, subtree);
+    if (subtree.some(id => isRepeatGroup(doc.nodesById[id]))) {
+        warnings.push("The template contains a repeat group. Nested repeat is not supported (not expanded)");
+        return { templateId, count, expandable: false, warnings };
+    }
+    return { templateId, count, expandable: true, warnings };
+}
+function substituteRowIndex(value, rowText) {
+    if (typeof value === "string") {
+        return value.includes(REPEAT_INDEX_TOKEN) ? value.split(REPEAT_INDEX_TOKEN).join(rowText) : value;
+    }
+    if (Array.isArray(value)) {
+        return value.map(v => substituteRowIndex(v, rowText));
+    }
+    if (value && typeof value === "object") {
+        const out = {};
+        for (const key of Object.keys(value)) {
+            out[key] = NON_SUBSTITUTED_KEYS.has(key) ? value[key] : substituteRowIndex(value[key], rowText);
+        }
+        return out;
+    }
+    return value;
+}
+/**
+ * Returns a new doc with every repeat group expanded. The input doc is never mutated,
+ * and it is returned as-is when it contains no repeat group.
+ */
+function expandRepeats(doc, options = {}) {
+    if (!doc || !doc.nodesById)
+        return doc;
+    const groups = Object.values(doc.nodesById).filter(isRepeatGroup);
+    if (groups.length === 0)
+        return doc;
+    const warn = options.onWarning || ((groupId, message) => {
+        console.warn(`[repeat] ${groupId}: ${message}`);
+    });
+    const nodesById = { ...doc.nodesById };
+    for (const group of groups) {
+        const info = analyzeRepeatGroup(doc, group);
+        info.warnings.forEach(message => warn(group.id, message));
+        if (!info.expandable || !info.templateId)
+            continue;
+        const rows = options.maxCount !== undefined ? Math.min(info.count, Math.max(0, options.maxCount)) : info.count;
+        const subtree = [];
+        collectSubtree(doc, info.templateId, subtree);
+        // The template itself is replaced by its copies (unless row 1 keeps its ids, which overwrites it below)
+        subtree.forEach(id => { delete nodesById[id]; });
+        const expandedChildren = [];
+        for (let i = 1; i <= rows; i++) {
+            const keepIds = options.keepFirstRowIds === true && i === 1;
+            const idFor = (id) => keepIds ? id : `${id}${REPEAT_ID_SEPARATOR}${i}`;
+            const rowText = String(i);
+            for (const id of subtree) {
+                const source = doc.nodesById[id];
+                const copy = substituteRowIndex(source, rowText);
+                copy.id = idFor(id);
+                copy.parentId = id === info.templateId ? group.id : idFor(source.parentId);
+                if (Array.isArray(source.children)) {
+                    copy.children = source.children.map(idFor);
+                }
+                nodesById[copy.id] = copy;
+            }
+            expandedChildren.push(idFor(info.templateId));
+        }
+        nodesById[group.id] = { ...group, children: expandedChildren };
+    }
+    return { ...doc, nodesById };
 }
 
 
@@ -1059,6 +1583,9 @@ function resolveDynamicVisibility(doc) {
             projectData.assets = window.assetMapping;
         }
 
+        // Repeat groups are expanded into ordinary nodes here; everything after works on the expanded doc
+        projectData = expandRepeats(projectData);
+
         window.telopDoc = projectData;
         window.assetCache = assetCache;
         window.keyExpMap = new Map();
@@ -1080,7 +1607,7 @@ function resolveDynamicVisibility(doc) {
 
         const registerDef = (def) => defs.appendChild(def);
 
-        window.createNode = function (nodeId, autoLayoutOverride) {
+        window.createNode = function (nodeId, autoLayoutOverride, isTelopChild) {
             // resolveDynamicVisibility の結果が反映された doc を使う
             // initPlayer/updateTelop は createNode 呼び出し前に window.telopDoc = evaluatedDoc にセットする
             const activeDoc = window.telopDoc || projectData;
@@ -1091,12 +1618,57 @@ function resolveDynamicVisibility(doc) {
             const content = createSVGElement("g");
             content.classList.add("content-wrapper");
 
+            root.setAttribute("data-node-id", node.id);
+
+            // Check recursive visibility to prevent invisible nodes or descendants from animating/showing
+            let isEffectivelyVisible = true;
+            let checkNode = node;
+            while (checkNode) {
+                if (checkNode.visible === false) {
+                    isEffectivelyVisible = false;
+                    break;
+                }
+                checkNode = checkNode.parentId ? activeDoc.nodesById[checkNode.parentId] : null;
+            }
+
+            // Animation targeting:
+            // When an element is a direct child of a telop:
+            // If it has clipRect, the frame (root) stays static at fixed position, and its content (.content-wrapper) animates.
+            // If it does not have clipRect, the element (root) animates.
+            // IMPORTANT: Invisible nodes MUST NOT receive anim-target to prevent animation from forcing them visible!
+            const shouldBeAnimTarget = isTelopChild && isEffectivelyVisible;
+
             if (node.clipRect) {
+                root.classList.add("has-clip-rect");
+                if (shouldBeAnimTarget) {
+                    content.classList.add("anim-target");
+                }
                 if (node.domId) content.setAttribute("id", node.domId);
-                if (node.domClass) content.setAttribute("class", `content-wrapper ${node.domClass}`);
+                if (node.domClass) {
+                    const classes = node.domClass.trim().split(/s+/).filter(Boolean);
+                    if (classes.length) content.classList.add(...classes);
+                }
             } else {
+                if (shouldBeAnimTarget) {
+                    root.classList.add("anim-target");
+                }
                 if (node.domId) root.setAttribute("id", node.domId);
-                if (node.domClass) root.setAttribute("class", node.domClass);
+                if (node.domClass) {
+                    const classes = node.domClass.trim().split(/s+/).filter(Boolean);
+                    if (classes.length) root.classList.add(...classes);
+                }
+            }
+
+            if (!isEffectivelyVisible) {
+                root.classList.add("is-invisible");
+                content.classList.add("is-invisible");
+                root.setAttribute("display", "none");
+                root.setAttribute("visibility", "hidden");
+                root.style.setProperty("display", "none", "important");
+                root.style.setProperty("visibility", "hidden", "important");
+                root.style.setProperty("opacity", "0", "important");
+                root.style.setProperty("animation", "none", "important");
+                root.style.setProperty("pointer-events", "none", "important");
             }
             
             // If parent group applied an AutoLayout override, clone node and override positions
@@ -1159,8 +1731,8 @@ function resolveDynamicVisibility(doc) {
 
                 let tx = effectivePadX, ty = effectivePadY;
                 if (targetWidth > 0) {
-                    if (align === 'center') tx = targetWidth / 2 - effW / 2;
-                    else if (align === 'right') tx = targetWidth - effectivePadX - effW;
+                    if (align === 'center') tx = targetWidth / 2;
+                    else if (align === 'right') tx = targetWidth - effectivePadX;
                 }
                 if (targetHeight > 0) {
                     if (vAlign === 'middle') ty = targetHeight / 2 - effH / 2;
@@ -1246,7 +1818,7 @@ function resolveDynamicVisibility(doc) {
                 });
             } else if (node.type === 'image') {
                 const img = createSVGElement("image");
-                const asset = projectData.assets ? projectData.assets[node.assetId] : null;
+                const asset = (activeDoc.assets && activeDoc.assets[node.assetId]) || (projectData.assets ? projectData.assets[node.assetId] : null);
                 const src = asset ? asset.src : null;
                 setAttributes(img, { 
                     width: node.width || 100, 
@@ -1330,16 +1902,53 @@ function resolveDynamicVisibility(doc) {
             const finalRoot = applyEffects(root, node.effects, node.id, "node", registerDef, createSVGElement);
 
             let autoLayoutPositions = null;
+            // AutoLayoutグループは transform 専用のラッパー <g> で包み、外部JS（スクロール等）の transform はラッパーにかける。
+            // グループ自身の配置（x/y・AutoLayout の位置）は中の要素に残るので、JS の transform と取り合わない。
+            // data-node-id と domId はラッパーに付けるため、Hub の差し替えや JS の querySelector はラッパーを対象にする。
+            let outerEl = finalRoot;
             if (node.type === 'group' && node.autoLayout && node.autoLayout.enabled) {
                 const layout = calculateAutoLayout(node, activeDoc, TextMeasurer);
                 autoLayoutPositions = layout.childrenPositions;
+
+                const transformHost = createSVGElement("g");
+                transformHost.classList.add("autolayout-transform-host");
+                transformHost.setAttribute("data-node-id", node.id);
+                root.removeAttribute("data-node-id");
+                if (!node.clipRect && node.domId) {
+                    root.removeAttribute("id");
+                    transformHost.setAttribute("id", node.domId);
+                }
+
+                // 再生成時は、古いラッパーに外部JSが付けた transform を引き継ぐ（ラッパーの transform はレンダラーが書かないので、丸ごとコピーしてよい）
+                if (typeof document !== 'undefined') {
+                    const existingEl = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (existingEl && existingEl.classList.contains("autolayout-transform-host")) {
+                        const existingTransformStyle = existingEl.style.transform;
+                        if (existingTransformStyle) {
+                            transformHost.style.transform = existingTransformStyle;
+                            transformHost.style.transformBox = existingEl.style.transformBox || 'fill-box';
+                            transformHost.style.transformOrigin = existingEl.style.transformOrigin || '0 0';
+                        }
+                        const existingTransformAttr = existingEl.getAttribute('transform');
+                        if (existingTransformAttr) {
+                            transformHost.setAttribute('transform', existingTransformAttr);
+                        }
+                    }
+                }
+
+                transformHost.appendChild(finalRoot);
+                outerEl = transformHost;
             }
 
             if (node.children) {
+                const targetWrapper = (node.type === 'group')
+                    ? (root.querySelector(".content-wrapper") || root)
+                    : finalRoot;
+                const childrenAreTelopChildren = (node.type === 'telop');
                 node.children.forEach(cid => {
                     const override = autoLayoutPositions ? autoLayoutPositions[cid] : null;
-                    const c = window.createNode(cid, override);
-                    if (c) finalRoot.appendChild(c);
+                    const c = window.createNode(cid, override, childrenAreTelopChildren);
+                    if (c) targetWrapper.appendChild(c);
                 });
             }
 
@@ -1350,39 +1959,55 @@ function resolveDynamicVisibility(doc) {
                 window.keyExpMap.get(key).push(targetObj);
             };
 
-            if (node.keyexp) registerKeyExp(node.keyexp, { type: node.type, nodeData: node });
+            if (!window.nodeElementMap) window.nodeElementMap = new Map();
+            window.nodeElementMap.set(node.id, outerEl);
+
+            if (node.keyexp) registerKeyExp(node.keyexp, { type: node.type, nodeData: node, element: outerEl });
+            if (node.visibilityCondition && node.visibilityCondition.targetKeyexp) {
+                registerKeyExp(node.visibilityCondition.targetKeyexp, { type: 'visibility_condition', nodeData: node, element: outerEl });
+            }
+            if (node.imageReferenceCondition && node.imageReferenceCondition.targetKeyexp) {
+                registerKeyExp(node.imageReferenceCondition.targetKeyexp, { type: 'image_reference_condition', nodeData: node, element: outerEl });
+            }
             
-            const apps = node.style?.appearances || [];
-            apps.forEach((app, idx) => {
-                if (app.fillKeyexp) {
-                    registerKeyExp(app.fillKeyexp, { type: 'appearance_fill', nodeData: node, appearanceIndex: idx });
-                }
-                if (app.strokeKeyexp) {
-                    registerKeyExp(app.strokeKeyexp, { type: 'appearance_stroke', nodeData: node, appearanceIndex: idx });
-                }
-            });
+            const registerAppKeyExps = (apps, isBg) => {
+                (apps || []).forEach((app, idx) => {
+                    if (app.fillKeyexp) {
+                        registerKeyExp(app.fillKeyexp, { type: isBg ? 'bg_appearance_fill' : 'appearance_fill', nodeData: node, appearanceIndex: idx, element: outerEl });
+                    }
+                    if (app.strokeKeyexp) {
+                        registerKeyExp(app.strokeKeyexp, { type: isBg ? 'bg_appearance_stroke' : 'appearance_stroke', nodeData: node, appearanceIndex: idx, element: outerEl });
+                    }
+                    const registerRuleList = (ruleList) => {
+                        if (!Array.isArray(ruleList)) return;
+                        ruleList.forEach((rule) => {
+                            if (rule && rule.targetKeyexp) {
+                                registerKeyExp(rule.targetKeyexp, { type: isBg ? 'bg_appearance_color_rule' : 'appearance_color_rule', nodeData: node, appearanceIndex: idx, element: outerEl });
+                            }
+                        });
+                    };
+                    registerRuleList(app.fillColorRules);
+                    registerRuleList(app.strokeColorRules);
+                    registerRuleList(app.shadowColorRules);
+                    registerRuleList(app.colorRules);
+                    if (app.gradientConfig?.stops && Array.isArray(app.gradientConfig.stops)) {
+                        app.gradientConfig.stops.forEach((s) => registerRuleList(s.colorRules));
+                    }
+                });
+            };
+            registerAppKeyExps(node.style?.appearances, false);
+            registerAppKeyExps(node.background?.appearances, true);
 
-            const bgApps = node.background?.appearances || [];
-            bgApps.forEach((app, idx) => {
-                if (app.fillKeyexp) {
-                    registerKeyExp(app.fillKeyexp, { type: 'bg_appearance_fill', nodeData: node, appearanceIndex: idx });
-                }
-                if (app.strokeKeyexp) {
-                    registerKeyExp(app.strokeKeyexp, { type: 'bg_appearance_stroke', nodeData: node, appearanceIndex: idx });
-                }
-            });
-
-            return finalRoot;
+            return outerEl;
         };
 
         const evaluatedDoc = resolveDynamicVisibility(projectData);
-        const prevDoc = window.telopDoc;
         window.telopDoc = evaluatedDoc;
         try {
             const rootNode = window.createNode(projectData.rootId);
             if (rootNode) svg.appendChild(rootNode);
-        } finally {
-            window.telopDoc = prevDoc;
+        } catch (e) {
+            console.error("Error creating initial root node in initPlayer", e);
         }
         
         window.dispatchEvent(new CustomEvent('telopRendered'));

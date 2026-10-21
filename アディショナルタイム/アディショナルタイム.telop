@@ -11,9 +11,11 @@
   "rootId": "n1_q6nc1mr6klj7",
   "nodesById": {
     "n1_q6nc1mr6klj7": {
+      "skewX": 0,
+      "skewY": 0,
       "id": "n1_q6nc1mr6klj7",
       "type": "telop",
-      "x": 0,
+      "x": 2,
       "y": 0,
       "rotation": 0,
       "scaleX": 1,
@@ -23,7 +25,8 @@
       "opacity": 1,
       "children": [
         "n1_qvz3erv4g6lc",
-        "n1_hcyjgb71okqe"
+        "n1_hcyjgb71okqe",
+        "n1_spfa7kl7merx"
       ],
       "name": "アディショナルタイム",
       "visible": true,
@@ -37,7 +40,7 @@
       "skewY": 0,
       "id": "n1_qvz3erv4g6lc",
       "type": "rect",
-      "x": 314,
+      "x": 232,
       "y": 84,
       "rotation": 0,
       "scaleX": 1,
@@ -45,18 +48,14 @@
       "pivotX": 0,
       "pivotY": 0,
       "opacity": 1,
-      "width": 83,
+      "width": 45,
       "height": 23,
       "style": {
         "appearances": [
           {
             "enabled": true,
             "fillEnabled": true,
-            "fill": [
-              "#000000",
-              "#00000000",
-              "#000000"
-            ],
+            "fill": "#ff0000",
             "strokeEnabled": false,
             "color": "#000000",
             "thickness": 2,
@@ -87,31 +86,13 @@
                   "units": "objectBoundingBox"
                 }
               }
-            ],
-            "gradientConfig": {
-              "angle": 90,
-              "units": "objectBoundingBox",
-              "stops": [
-                {
-                  "offset": 0,
-                  "color": "#000000"
-                },
-                {
-                  "offset": 0.5,
-                  "color": "#00000000"
-                },
-                {
-                  "offset": 1,
-                  "color": "#000000"
-                }
-              ]
-            }
+            ]
           }
         ],
         "cornerRadius": 10
       },
       "name": "Rectangle",
-      "visible": true,
+      "visible": false,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
@@ -122,7 +103,7 @@
       "skewY": 0,
       "id": "n1_hcyjgb71okqe",
       "type": "text",
-      "x": 336,
+      "x": 235,
       "y": 84,
       "rotation": 0,
       "scaleX": 1,
@@ -158,19 +139,54 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "right",
+      "align": "center",
       "verticalAlign": "middle",
       "name": "アディショナルタイム",
-      "visible": true,
+      "visible": false,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
       "fitMode": "none",
       "parentId": "n1_q6nc1mr6klj7",
-      "keyexp": "アディショナルタイム"
+      "keyexp": "アディショナルテキスト"
+    },
+    "n1_spfa7kl7merx": {
+      "skewX": 0,
+      "skewY": 0,
+      "id": "n1_spfa7kl7merx",
+      "type": "image",
+      "x": 318,
+      "y": 74,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 240,
+      "height": 42,
+      "assetId": "a1_14w6qugc6i4",
+      "name": "アディショナル表示",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_q6nc1mr6klj7",
+      "keyexp": "アディショナル表示"
     }
   },
-  "assets": {},
+  "assets": {
+    "a1_14w6qugc6i4": {
+      "id": "a1_14w6qugc6i4",
+      "kind": "image",
+      "name": "LossSlide_5.png",
+      "src": "img/LossSlide_5.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_q6nc1mr6klj7"
+    }
+  },
   "assetGroups": {
     "ag_2tp9vr7rgjrm": {
       "id": "ag_2tp9vr7rgjrm",

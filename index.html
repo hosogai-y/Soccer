@@ -1,1 +1,6 @@
-<!DOCTYPE html><html><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!DOCTYPE html><html><head><meta charset="utf-8"><script>
+if (window.location.pathname && window.location.pathname.endsWith('/players')) {
+  var basePath = window.location.pathname.replace(/\/players\/?$/, '');
+  window.location.replace((basePath || '/') + '#/players' + window.location.search);
+}
+</script></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>

@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "predev": "node sync-sdk.mjs",
     "dev": "vite",
     "build": "vite build",
     "codegen": "node ../../scripts/scan_telop_schema.mjs .",

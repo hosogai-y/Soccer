@@ -1,4 +1,11 @@
 {
   "時刻": "00:00",
-  "前後半": "延長前半"
+  "前後半": "延長前半",
+  "前半後半延長": "img/HD2D_P01_Moji_1.png",
+  "分１桁": "img/Time_0.png",
+  "分２桁": "img/Time_1.png",
+  "秒２桁": "img/Time_2.png",
+  "秒１桁": "img/Time_8.png",
+  "セミコロン": "img/Time_10.png",
+  "分３桁": "img/Time_1.png"
 }

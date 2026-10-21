@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import { useSyncedState, useTelop, useBackgroundInterval } from '@sdk/TelopHubSDK';
+import { buildTimerPayload } from '../utils/timerHelper';
 
 export type TimerState = {
     isRunning: boolean;
@@ -14,18 +15,21 @@ export default function GlobalTimerManager() {
         accumulatedMs: 0
     });
 
-    const timerTelop = useTelop('タイマー', {
-        時刻: "00:00", 前後半: "前半",
-        Rectangle: { visible: true },
-        Rectangle_visible: true
-    });
+    // 前後半のステートを画面(CGOperator)と同期
+    const [timerPeriod] = useSyncedState<string>('match_timer_period', '前半');
 
-    const [lastRenderedTimeStr, setLastRenderedTimeStr] = useState<string>('');
+    const timerTelop = useTelop('タイマー');
 
+    // 直前送信した時刻と前後半を保持（不要な重複送信を防止）
+    const lastSentTimeStrRef = useRef<string>('');
+    const lastSentPeriodRef = useRef<string>('');
+
+    // ユーザー要件: 200ms〜500msの間隔でタイマー処理 (250msを採用)
+    // バックグラウンドWorkerインターバルで正確かつメインスレッドをブロックせずに処理
     useBackgroundInterval(() => {
         if (!timerState) return;
 
-        // Calculate real current time
+        // タイマーの現在経過時刻(ms)を算出
         let currentMs = timerState.accumulatedMs || 0;
         if (timerState.isRunning) {
             currentMs += (Date.now() - (timerState.lastTick || Date.now()));
@@ -33,24 +37,30 @@ export default function GlobalTimerManager() {
         currentMs = Math.max(0, currentMs);
 
         const totalSeconds = Math.floor(currentMs / 1000);
-        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-        const s = (totalSeconds % 60).toString().padStart(2, '0');
-        const newTimeStr = `${m}:${s}`;
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        const newTimeStr = `${m}:${s.toString().padStart(2, '0')}`;
+        const currentPeriod = timerPeriod || '前半';
 
-        // Update when the MM:SS string actually changes
-        if (newTimeStr !== lastRenderedTimeStr) {
-            setLastRenderedTimeStr(newTimeStr);
-            
-            // Update the staged data
-            timerTelop.setData(prev => ({ ...prev, 時刻: newTimeStr }));
+        // 秒の桁または前後半が変化した時のみ送出処理
+        if (newTimeStr !== lastSentTimeStrRef.current || currentPeriod !== lastSentPeriodRef.current) {
+            lastSentTimeStrRef.current = newTimeStr;
+            lastSentPeriodRef.current = currentPeriod;
 
-            // If the telop is currently ON AIR (TAKE is active), push the update to the renderer
-            // This happens automatically in the background without user interaction!
+            // keyExp分2桁、分1桁、秒2桁、秒1桁にGUI上のタイマー表記とリンクした画像を流し込む
+            const payload = buildTimerPayload(currentMs, currentPeriod);
+
+            // 【重要：ほかのCG操作・送出の邪魔にならない設計】
+            // 1. timerTelop.setData(...) は呼ばない！
+            //    (setDataを毎秒呼ぶと全プロジェクトの巨大なSyncedStateが毎回同期・WebRTC送信され、
+            //     他のCGボタンや送出アクションをキュー詰まり・遅延させる原因になるため)
+            // 2. タイマーがON AIR（表示中）の時のみ update(payload) を送信！
+            //    (軽量なタイマー差分データのみを高速送信するため、他のCG送出の邪魔を一切しない)
             if (timerTelop.isVisible) {
-                timerTelop.update({ ...timerTelop.data, 時刻: newTimeStr });
+                timerTelop.update(payload);
             }
         }
-    }, 100);
+    }, 250);
 
     return null;
 }

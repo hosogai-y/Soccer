@@ -29,10 +29,12 @@ window.showTelop = function (rendarableObject) {
     if (divElement) {
         if (!divElement.classList.contains("in_animation")) {
             divElement.classList.remove(...divElement.classList);
+            divElement.style.opacity = "0";
             
             const triggerShow = () => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
+                        divElement.style.opacity = "";
                         divElement.classList.add("in_animation");
                         document.body.style.display = "block";
                     });
@@ -80,8 +82,13 @@ window.updateTelop = function (rendarableObject) {
             targets.forEach((target) => {
                 if (target.type === 'text') {
                     // Update Doc
-                    if (target.nodeData.text !== String(val)) {
-                        target.nodeData.text = String(val);
+                    const strVal = String(val);
+                    if (target.nodeData.text !== strVal) {
+                        target.nodeData.text = strVal;
+                        const nodeInDoc = doc.nodesById[target.nodeData.id];
+                        if (nodeInDoc) {
+                            nodeInDoc.text = strVal;
+                        }
                         hasUpdates = true;
                     }
                 } else if (target.type === 'image') {
@@ -89,52 +96,118 @@ window.updateTelop = function (rendarableObject) {
                     const node = target.nodeData;
                     if (node.assetId && doc.assets[node.assetId]) {
                         if (doc.assets[node.assetId].src !== String(val)) {
-                            doc.assets[node.assetId].src = String(val);
+                            // Clone asset to avoid clobbering shared assetId entries
+                            var uniqueAssetId = node.assetId + '__keyexp_' + key;
+                            doc.assets[uniqueAssetId] = Object.assign({}, doc.assets[node.assetId], { src: String(val) });
+                            node.assetId = uniqueAssetId;
+                            
+                            // Also mutate the node inside the active document to persist the change
+                            const nodeInDoc = doc.nodesById[node.id];
+                            if (nodeInDoc) {
+                                nodeInDoc.assetId = uniqueAssetId;
+                            }
+                            
                             hasUpdates = true;
                         }
                     }
                 } else if (target.type === 'appearance_fill') {
                     const apps = target.nodeData.style?.appearances || [];
                     const app = apps[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = docNode?.style?.appearances?.[target.appearanceIndex];
                     if (app && (app.fill !== String(val) || app.gradientConfig)) {
                         console.log("Updating appearance_fill for " + target.nodeData.id + " to " + val);
                         app.fill = String(val);
                         if (app.gradientConfig) { delete app.gradientConfig; }
+                        if (docApp) {
+                            docApp.fill = String(val);
+                            if (docApp.gradientConfig) { delete docApp.gradientConfig; }
+                        }
                         hasUpdates = true;
                     }
                 } else if (target.type === 'appearance_stroke') {
                     const apps = target.nodeData.style?.appearances || [];
                     const app = apps[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = docNode?.style?.appearances?.[target.appearanceIndex];
                     if (app && app.color !== String(val)) {
                         console.log("Updating appearance_stroke for " + target.nodeData.id + " to " + val);
                         app.color = String(val);
+                        if (docApp) {
+                            docApp.color = String(val);
+                        }
                         hasUpdates = true;
                     }
                 } else if (target.type === 'bg_appearance_fill') {
                     const apps = target.nodeData.background?.appearances || [];
                     const app = apps[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = docNode?.background?.appearances?.[target.appearanceIndex];
                     if (app && (app.fill !== String(val) || app.gradientConfig)) {
                         console.log("Updating bg_appearance_fill for " + target.nodeData.id + " to " + val);
                         app.fill = String(val);
                         if (app.gradientConfig) { delete app.gradientConfig; }
+                        if (docApp) {
+                            docApp.fill = String(val);
+                            if (docApp.gradientConfig) { delete docApp.gradientConfig; }
+                        }
                         hasUpdates = true;
                     }
                 } else if (target.type === 'bg_appearance_stroke') {
                     const apps = target.nodeData.background?.appearances || [];
                     const app = apps[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = docNode?.background?.appearances?.[target.appearanceIndex];
                     if (app && app.color !== String(val)) {
                         console.log("Updating bg_appearance_stroke for " + target.nodeData.id + " to " + val);
                         app.color = String(val);
+                        if (docApp) {
+                            docApp.color = String(val);
+                        }
                         hasUpdates = true;
                     }
+                } else if (target.type === 'appearance_color_rule' || target.type === 'bg_appearance_color_rule' || target.type === 'visibility_condition' || target.type === 'image_reference_condition') {
+                    hasUpdates = true;
                 }
             });
         }
     });
 
+    if (rendarableObject.highliteNum !== undefined || rendarableObject.barNum !== undefined) {
+        hasUpdates = true;
+    }
+
     if (hasUpdates) {
-        const evaluatedDoc = resolveDynamicVisibility(doc);
-        const prevDoc = window.telopDoc;
+        const evaluatedDoc = resolveDynamicVisibility(doc, rendarableObject);
+
+        // In-place image reference & visibility condition updates (zero-flicker)
+        for (const nodeId in evaluatedDoc.nodesById) {
+            const prevNode = doc.nodesById[nodeId];
+            const nextNode = evaluatedDoc.nodesById[nodeId];
+            if (prevNode && nextNode && nextNode.type === 'image') {
+                if (prevNode.assetId !== nextNode.assetId) {
+                    const nextAsset = (evaluatedDoc.assets && evaluatedDoc.assets[nextNode.assetId]) ||
+                                      (projectData.assets && projectData.assets[nextNode.assetId]);
+                    if (nextAsset && nextAsset.src) {
+                        const nodeEl = app.querySelector('[data-node-id="' + nodeId + '"]');
+                        const imgEl = nodeEl ? nodeEl.querySelector("image") : null;
+                        if (imgEl) {
+                            const targetSrc = (assetCache && assetCache[nextAsset.src]) ? assetCache[nextAsset.src] : nextAsset.src;
+                            imgEl.setAttribute("href", targetSrc);
+                        }
+                    }
+                    prevNode.assetId = nextNode.assetId;
+                }
+            }
+            if (prevNode && nextNode && prevNode.visible !== nextNode.visible) {
+                const nodeEl = app.querySelector('[data-node-id="' + nodeId + '"]');
+                if (nodeEl) {
+                    nodeEl.style.display = nextNode.visible === false ? 'none' : '';
+                }
+                prevNode.visible = nextNode.visible;
+            }
+        }
+
         window.telopDoc = evaluatedDoc;
 
         keyExpMap.clear();
@@ -143,7 +216,7 @@ window.updateTelop = function (rendarableObject) {
             const oldDefs = app.firstChild;
             if (oldDefs) oldDefs.innerHTML = '';
 
-            const newRootNode = createNode(doc.rootId);
+            const newRootNode = createNode(evaluatedDoc.rootId || doc.rootId);
             if (newRootNode) {
                 if (app.childNodes.length > 1) {
                     app.replaceChild(newRootNode, app.childNodes[1]);
@@ -155,8 +228,8 @@ window.updateTelop = function (rendarableObject) {
                     app.removeChild(app.lastChild);
                 }
             }
-        } finally {
-            window.telopDoc = prevDoc;
+        } catch (e) {
+            console.error("Error creating new root node in updateTelop:", e);
         }
 
         window.dispatchEvent(new CustomEvent('telopRendered'));
@@ -171,17 +244,36 @@ window.hideTelop = function () {
     if (divElement) {
         divElement.classList.remove(...divElement.classList);
 
-        const onAnimationEnd = (e) => {
-            if (!divElement.classList.contains("out_animation")) return;
-            console.log("animationed");
+        let finished = false;
+        const completeHide = () => {
+            if (finished) return;
+            finished = true;
+            divElement.style.opacity = '0';
+            divElement.classList.remove("out_animation");
             if (window.animationFinishedCallback) {
                 window.animationFinishedCallback();
             }
             divElement.removeEventListener('animationend', onAnimationEnd);
         };
 
+        const onAnimationEnd = (e) => {
+            if (!divElement.classList.contains("out_animation")) return;
+            completeHide();
+        };
+
         divElement.addEventListener('animationend', onAnimationEnd);
         divElement.classList.add("out_animation");
+
+        // Safety fallback: if no animation or animationend doesn't fire, complete after duration or max 1s
+        const animTarget = divElement.querySelector('.anim-target') || divElement;
+        const animDuration = parseFloat(getComputedStyle(animTarget).animationDuration || '0');
+        const animDelay = parseFloat(getComputedStyle(animTarget).animationDelay || '0');
+        const timeoutMs = Math.max(1000, (animDuration + animDelay + 0.5) * 1000);
+        setTimeout(() => {
+            if (!finished && divElement.classList.contains("out_animation")) {
+                completeHide();
+            }
+        }, timeoutMs);
     }
 };
 
@@ -189,6 +281,9 @@ window.hideTelop = function () {
 // 3. Initialization
 window.addEventListener('load', async () => {
     try {
+        if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+        }
         const dataUrl = './フォーメーション右.telop';
         const dataResp = await fetch(dataUrl);
         if (dataResp.ok) {
