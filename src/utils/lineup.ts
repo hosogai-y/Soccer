@@ -81,6 +81,12 @@ const SUB_POSITION_IMAGES: Record<string, string> = {
     FW: 'img/HD2D_F01_new_BaseFW.png'
 };
 
+/** 選手交代1枚／2枚の OUT/IN ベース画像（ポジション帯）。ポジション不明時は MF */
+export function subChangeBaseImage(kind: 'OUT' | 'IN', position?: string) {
+    const pos = (position || '').toUpperCase().slice(0, 2);
+    return `img/HD2D_S04_Base${kind}_${['GK', 'DF', 'MF', 'FW'].includes(pos) ? pos : 'MF'}.png`;
+}
+
 /**
  * フォーメーション左／右のペイロード（空枠は '' を送り、テロップ側で非表示になる）。
  * <ps>_X / <ps>_Y はプレート左上の座標で、テロップの customJs がグループ位置に反映する。

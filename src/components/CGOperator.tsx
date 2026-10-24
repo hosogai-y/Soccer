@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTelop, useClearAll, useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
-import { Player, toHalfWidthNum } from './PlayerRegistry';
+import { Player, toHalfWidthNum, TEAM_MANAGERS_KEY } from './PlayerRegistry';
 import { TimerState, useShowTimerAtCurrentTime } from './GlobalTimerManager';
 import { buildTimerPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
-import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Control, CgQueueItem } from './WeatherStatsSubControl';
+import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
+import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload } from '../utils/lineup';
@@ -37,6 +38,8 @@ export default function CGOperator() {
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const [teamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
+    const [teamManagers] = useSyncedState<Record<string, string>>(TEAM_MANAGERS_KEY, {});
+    const managerOf = (side: 'left' | 'right') => teamManagers?.[side === 'left' ? oaLeftTeam : oaRightTeam] || '';
 
     // Lineups タブで登録したメンバーを Starters / Subs に出す（未登録の学校は従来どおり全選手・交代フラグで振り分け）
     const teamPlayersOf = (side: 'left' | 'right') => {
@@ -63,19 +66,23 @@ export default function CGOperator() {
     const [isCgControlsOpen, setIsCgControlsOpen] = useState(false);
 
     // CG Queue State
-    const [cgQueue, setCgQueue] = useSyncedState<CgQueueItem[]>('cg_queue', []);
+    const [cgQueue, setCgQueue] = useCgQueue();
     const [queueMode, setQueueMode] = useState(false);
     // マウスクリックで選択したキュー項目（TAKE NEXT はこれを優先して送出）
     const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
 
-    // payload 付きキュー項目（選手交代）の送出先。交代1枚／2枚は排他で出す
+    // payload 付きキュー項目（選手交代・1Shot・1Shotカード）の送出先。互いに排他で出す
     const sub1Telop = useTelop('選手交代1枚');
     const sub2Telop = useTelop('選手交代2枚');
-    const payloadTelops: Record<string, ReturnType<typeof useTelop>> = { '選手交代1枚': sub1Telop, '選手交代2枚': sub2Telop };
+    const oneShotTelop = useTelop('1Shot');
+    const oneShotCardTelop = useTelop('1Shotカード');
+    const payloadTelops: Record<string, ReturnType<typeof useTelop>> = {
+        '選手交代1枚': sub1Telop, '選手交代2枚': sub2Telop, '1Shot': oneShotTelop, '1Shotカード': oneShotCardTelop
+    };
 
     // Queue logic
     const addToQueue = (telopName: string, label: string) => {
-        setCgQueue(prev => [...(prev || []), { id: Date.now().toString(), telopName, label, skipped: false }]);
+        setCgQueue(prev => [...prev, { id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, telopName, label, skipped: false }]);
     };
 
     const toggleSkipQueueItem = (id: string) => {
@@ -84,6 +91,13 @@ export default function CGOperator() {
 
     const deleteQueueItem = (id: string) => {
         setCgQueue(prev => (prev || []).filter(item => item.id !== id));
+    };
+
+    const clearQueue = () => {
+        if (!cgQueue || cgQueue.length === 0) return;
+        if (!confirm(`CG Queue List の ${cgQueue.length} 件をすべて削除しますか？`)) return;
+        setCgQueue([]);
+        setSelectedQueueId(null);
     };
 
     // キューから送出中のCG（HIDE ボタンで消す対象）
@@ -104,7 +118,11 @@ export default function CGOperator() {
             alert('キューに待機中のテロップがありません。');
             return;
         }
+        takeQueueItem(item);
+    };
 
+    // キュー項目を送出（TAKE NEXT と、ダブルクリックでの再送出で共用）
+    const takeQueueItem = (item: CgQueueItem) => {
         // Hide non-essential items
         window.dispatchEvent(new Event('TRIGGER_HIDE_QUEUE_ITEMS'));
 
@@ -141,6 +159,7 @@ export default function CGOperator() {
                         <h3 style={{ color: '#198754', margin: 0 }}>{oaLeftTeam} - Starters</h3>
                         <span style={{ fontSize: '0.75rem', color: '#aaa' }}>クリックで1Shot選択</span>
                     </div>
+                    <ManagerLine name={managerOf('left')} />
                     <LineupTelopButtons side="left" kind="formation" />
                     <PlayerGrid 
                         players={startersOf('left')}
@@ -148,19 +167,15 @@ export default function CGOperator() {
                         onSelect={p => setSelectedPlayerId(p.id)}
                     />
                 </div>
-                <div className="glass-panel" style={{ flex: 1, borderColor: '#8bc34a' }}>
-                    <div className="flex-between" style={{ marginBottom: 10 }}>
-                        <h3 style={{ color: '#8bc34a', margin: 0 }}>{oaLeftTeam} - Subs</h3>
-                        <span style={{ fontSize: '0.75rem', color: '#aaa' }}>クリックで1Shot選択</span>
-                    </div>
-                    <LineupTelopButtons side="left" kind="subs" />
-                    <PlayerGrid 
-                        players={subsOf('left')}
-                        sortBy={hasRegisteredSide('left') ? 'none' : 'number'}
-                        selectedId={selectedPlayer?.id}
-                        onSelect={p => setSelectedPlayerId(p.id)}
-                    />
-                </div>
+                <SubsPanel
+                    side="left"
+                    title={`${oaLeftTeam} - Subs`}
+                    color="#8bc34a"
+                    players={subsOf('left')}
+                    sortBy={hasRegisteredSide('left') ? 'none' : 'number'}
+                    selectedId={selectedPlayer?.id}
+                    onSelect={p => setSelectedPlayerId(p.id)}
+                />
             </div>
 
             {/* CENTER COLUMN: Dashboards & CG Controls */}
@@ -233,6 +248,9 @@ export default function CGOperator() {
                                     <button className="btn btn-danger" style={{ padding: '4px 16px', fontSize: '0.9rem', fontWeight: 'bold' }} onClick={hideQueueOnAir} disabled={!queueOnAir} title={queueOnAir ? `${queueOnAir.label} を消す` : 'キューから送出中のCGはありません'}>
                                         HIDE
                                     </button>
+                                    <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.8rem', borderColor: 'var(--accent-danger)' }} onClick={clearQueue} disabled={(cgQueue || []).length === 0} title="キューの項目をすべて削除">
+                                        一括削除
+                                    </button>
                                 </div>
                             </div>
                             {queueOnAir && (
@@ -250,8 +268,9 @@ export default function CGOperator() {
                                         <div
                                             key={item.id}
                                             onClick={() => !item.played && setSelectedQueueId(isSelected ? null : item.id)}
-                                            title={item.played ? '送出済み' : 'クリックで選択 → TAKE NEXT で送出'}
-                                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? 'rgba(255, 202, 40, 0.25)' : (item.played ? 'rgba(255,255,255,0.03)' : (item.skipped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)')), border: isSelected ? '1px solid #ffca28' : '1px solid transparent', cursor: item.played ? 'default' : 'pointer', padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0, opacity: (item.skipped || item.played) && !isSelected ? 0.5 : 1 }}
+                                            onDoubleClick={() => takeQueueItem(item)}
+                                            title={item.played ? '送出済み（ダブルクリックで再送出）' : 'クリックで選択 → TAKE NEXT で送出／ダブルクリックで即送出'}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? 'rgba(255, 202, 40, 0.25)' : (item.played ? 'rgba(255,255,255,0.03)' : (item.skipped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)')), border: isSelected ? '1px solid #ffca28' : '1px solid transparent', cursor: 'pointer', userSelect: 'none', padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0, opacity: (item.skipped || item.played) && !isSelected ? 0.5 : 1 }}
                                         >
                                             <span style={{ fontWeight: 'bold', color: '#ffca28' }}>#{idx + 1}</span>
                                             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', textDecoration: item.played ? 'line-through' : 'none' }} title={item.label}>{item.label}</span>
@@ -314,6 +333,7 @@ export default function CGOperator() {
                         <h3 style={{ color: '#0dcaf0', margin: 0 }}>{oaRightTeam} - Starters</h3>
                         <span style={{ fontSize: '0.75rem', color: '#aaa' }}>クリックで1Shot選択</span>
                     </div>
+                    <ManagerLine name={managerOf('right')} />
                     <LineupTelopButtons side="right" kind="formation" />
                     <PlayerGrid 
                         players={startersOf('right')} 
@@ -321,19 +341,15 @@ export default function CGOperator() {
                         onSelect={p => setSelectedPlayerId(p.id)}
                     />
                 </div>
-                <div className="glass-panel" style={{ flex: 1, borderColor: '#0d6efd' }}>
-                    <div className="flex-between" style={{ marginBottom: 10 }}>
-                        <h3 style={{ color: '#0d6efd', margin: 0 }}>{oaRightTeam} - Subs</h3>
-                        <span style={{ fontSize: '0.75rem', color: '#aaa' }}>クリックで1Shot選択</span>
-                    </div>
-                    <LineupTelopButtons side="right" kind="subs" />
-                    <PlayerGrid 
-                        players={subsOf('right')}
-                        sortBy={hasRegisteredSide('right') ? 'none' : 'number'}
-                        selectedId={selectedPlayer?.id}
-                        onSelect={p => setSelectedPlayerId(p.id)}
-                    />
-                </div>
+                <SubsPanel
+                    side="right"
+                    title={`${oaRightTeam} - Subs`}
+                    color="#0d6efd"
+                    players={subsOf('right')}
+                    sortBy={hasRegisteredSide('right') ? 'none' : 'number'}
+                    selectedId={selectedPlayer?.id}
+                    onSelect={p => setSelectedPlayerId(p.id)}
+                />
             </div>
 
         </div>
@@ -343,6 +359,11 @@ export default function CGOperator() {
 // --------------------------------------------------------
 // 1Shot & 1Shotカード Dedicated Control Panel (後出し優先排他送出)
 // --------------------------------------------------------
+
+type OneShotMode = 'pro2' | 'today' | 'total';
+type CardType = 'yellow1' | 'yellow2' | 'red';
+const ONE_SHOT_MODE_LABELS: Record<OneShotMode, string> = { pro2: 'プロ2表示', today: "Today'sゴール", total: 'Totalゴール' };
+const CARD_LABELS: Record<CardType, string> = { yellow1: 'イエロー1枚', yellow2: 'イエロー2枚', red: 'レッドカード' };
 
 function OneShotPlayerControl({ 
     player, 
@@ -359,6 +380,7 @@ function OneShotPlayerControl({
 }) {
     const oneShot = useTelop('1Shot');
     const oneShotCard = useTelop('1Shotカード');
+    const registerQueue = useCgQueueRegister();
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
@@ -434,7 +456,7 @@ function OneShotPlayerControl({
     };
 
     // 共通ペイロード生成（黄色フラグONでプロ2コメント黄色が表示・プロ2コメント非表示、OFFでプロ2コメント表示・黄色非表示）
-    const buildBasePayload = (mode: 'pro2' | 'today' | 'total') => {
+    const buildBasePayload = (mode: OneShotMode) => {
         const isYellow = isYellowFlag;
         const yellowComment = (mode === 'pro2' && isYellow) ? commentText : '';
         const whiteComment = (mode === 'pro2' && !isYellow) ? commentText : '';
@@ -470,28 +492,41 @@ function OneShotPlayerControl({
     };
 
     // 1Shot 送出 (後出し優先: 1Shotカードが出ている場合は即座に非表示！)
-    const handleSend1Shot = (mode: 'pro2' | 'today' | 'total') => {
+    const handleSend1Shot = (mode: OneShotMode) => {
         oneShotCard.hide(); // 先に出ていた1Shotカードを消去
         const payload = buildBasePayload(mode);
         oneShot.setData(payload);
         oneShot.show(payload);
     };
 
-    // 1Shotカード 送出 (後出し優先: 1Shotが出ている場合は即座に非表示！)
-    const handleSend1ShotCard = (cardType: 'yellow1' | 'yellow2' | 'red') => {
-        oneShot.hide(); // 先に出ていた1Shotを消去
+    const buildCardPayload = (cardType: CardType) => {
         const cardImgMap = {
             'yellow1': 'img/Yellow1_15.png',
             'yellow2': 'img/Yellow2_15.png',
             'red': 'img/Red_15.png'
         };
-        const payload = {
+        return {
             ...buildBasePayload('pro2'),
             'カード': cardImgMap[cardType],
             'cardType': cardType
         };
+    };
+
+    // 1Shotカード 送出 (後出し優先: 1Shotが出ている場合は即座に非表示！)
+    const handleSend1ShotCard = (cardType: CardType) => {
+        oneShot.hide(); // 先に出ていた1Shotを消去
+        const payload = buildCardPayload(cardType);
         oneShotCard.setData(payload);
         oneShotCard.show(payload);
+    };
+
+    // CG Queue List にストック（送出時は登録時点のデータで出す）
+    const playerTag = `#${player.number} ${player.name}`;
+    const registerOneShot = (mode: OneShotMode) => {
+        registerQueue('1Shot', `1Shot ${ONE_SHOT_MODE_LABELS[mode]} ${playerTag}`, buildBasePayload(mode));
+    };
+    const registerCard = (cardType: CardType) => {
+        registerQueue('1Shotカード', `${CARD_LABELS[cardType]} ${playerTag}`, buildCardPayload(cardType));
     };
 
     return (
@@ -719,6 +754,21 @@ function OneShotPlayerControl({
                     ⏹️ 1Shot全消去
                 </button>
             </div>
+
+            {/* Q登録（CG Queue List にストック） */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                <span style={{ fontSize: '0.75rem', color: '#aaa' }}>Q登録:</span>
+                {(Object.keys(ONE_SHOT_MODE_LABELS) as OneShotMode[]).map(mode => (
+                    <button key={mode} className="btn btn-warning" style={{ padding: '3px 8px', fontSize: '0.72rem' }} onClick={() => registerOneShot(mode)} title="CG Queue List にストック">
+                        {ONE_SHOT_MODE_LABELS[mode]}
+                    </button>
+                ))}
+                {(Object.keys(CARD_LABELS) as CardType[]).map(cardType => (
+                    <button key={cardType} className="btn btn-warning" style={{ padding: '3px 8px', fontSize: '0.72rem' }} onClick={() => registerCard(cardType)} title="CG Queue List にストック">
+                        {CARD_LABELS[cardType]}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }
@@ -800,7 +850,8 @@ function PlayerGrid({
     const sortedPlayers = sortBy === 'none' ? players : [...players].sort(byNumber);
     return (
         <div style={{ overflowX: 'auto', maxHeight: '420px', overflowY: 'auto' }}>
-            <table className="modern-table" style={{ fontSize: '0.78rem' }}>
+            {/* compact: 1行を詰めてスタメン11人がスクロールなしで並ぶ高さにする */}
+            <table className="modern-table compact" style={{ fontSize: '0.78rem' }}>
                 <thead>
                     <tr>
                         <th>No.</th>
@@ -841,6 +892,45 @@ function PlayerGrid({
                     })}
                 </tbody>
             </table>
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// 監督名（PlayerRegistry で学校ごとに登録）
+// --------------------------------------------------------
+
+function ManagerLine({ name }: { name: string }) {
+    return (
+        <div style={{ fontSize: '0.85rem', marginBottom: 8, color: name ? 'white' : '#777' }}>
+            🧑‍💼 監督: <span style={{ fontWeight: 'bold' }}>{name || '未登録（Player Registry で登録）'}</span>
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// Subs パネル（見出しクリックで開閉。デフォルトは畳んで控え選手 TAKE/HIDE のみ表示）
+// --------------------------------------------------------
+
+function SubsPanel({ side, title, color, ...gridProps }: {
+    side: 'left' | 'right',
+    title: string,
+    color: string
+} & React.ComponentProps<typeof PlayerGrid>) {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <div className="glass-panel" style={{ flex: isOpen ? 1 : 'none', borderColor: color }}>
+            <div
+                className="flex-between"
+                style={{ marginBottom: 10, cursor: 'pointer', userSelect: 'none' }}
+                onClick={() => setIsOpen(o => !o)}
+                title={isOpen ? 'クリックで畳む' : 'クリックで選手一覧を開く'}
+            >
+                <h3 style={{ color, margin: 0 }}>{isOpen ? '▼' : '▶'} {title}</h3>
+                <span style={{ fontSize: '0.75rem', color: '#aaa' }}>{isOpen ? 'クリックで1Shot選択' : `${gridProps.players.length}人`}</span>
+            </div>
+            <LineupTelopButtons side={side} kind="subs" />
+            {isOpen && <PlayerGrid {...gridProps} />}
         </div>
     );
 }
@@ -933,8 +1023,9 @@ function MatchScorePanel() {
     const smallScore = useTelop('小得点');
     const timer = useTelop('タイマー');
     const showTimerAtCurrentTime = useShowTimerAtCurrentTime();
-    const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
-    const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+    const [oaLeftTeam, setOaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
+    const [oaRightTeam, setOaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+    const [subsOnAirSide, setSubsOnAirSide] = useSyncedState<string>('subs_telop_side', '');
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
 
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
@@ -993,8 +1084,15 @@ function MatchScorePanel() {
         smallScore.update();
     };
 
-    // 🔄 サイドチェンジ（スコア・チーム名・カラーおよびスタッツのスワップ反転）
+    // 🔄 サイドチェンジ（左右チーム・スコア・チーム名・カラーおよびスタッツのスワップ反転）
+    // 左右チーム (oa_left_team / oa_right_team) を入れ替えるので、Starters/Subs の表示と
+    // フォーメーション TAKE の送出先（左チーム → フォーメーション左、右チーム → フォーメーション右）も追従する
     const handleScoreSideChange = () => {
+        setOaLeftTeam(oaRightTeam);
+        setOaRightTeam(oaLeftTeam);
+        // 控え選手CG（サブ下位置左）の送出中サイドもチームに合わせて入れ替える
+        if (subsOnAirSide) setSubsOnAirSide(subsOnAirSide === 'left' ? 'right' : 'left');
+
         const cur = smallScore.data || {};
         const curBig = bigScore.data || {};
 

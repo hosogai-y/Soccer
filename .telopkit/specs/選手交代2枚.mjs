@@ -23,15 +23,23 @@ export default {
         "visible": true,
         "locked": false,
         "blendMode": "normal",
-        "effects": []
+        "effects": [],
+        "positionBaseAssets": [
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseOUT_GK.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseOUT_DF.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseOUT_MF.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseOUT_FW.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseIN_GK.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseIN_DF.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseIN_MF.png",
+          "@asset:../../選手交代2枚/img/HD2D_S04_BaseIN_FW.png"
+        ]
       },
       "children": [
         {
           "type": "group",
           "name": "OUT2",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 314,
             "y": 908,
             "rotation": 0,
@@ -39,6 +47,8 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -51,8 +61,6 @@ export default {
               "name": "OUTベース2",
               "src": "../../選手交代2枚/img/HD2D_S04_BaseOUT_GK.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -60,21 +68,22 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 602,
-                "height": 98,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
-                "effects": []
+                "effects": [],
+                "width": 602,
+                "height": 98,
+                "keyexp": "OUTポジション2"
               }
             },
             {
               "type": "group",
               "name": "チームカラーザブトン",
               "raw": {
-                "skewX": -12.556492647850591,
-                "skewY": 0,
                 "x": 207,
                 "y": 11,
                 "rotation": 0,
@@ -82,6 +91,8 @@ export default {
                 "scaleY": 1.1749999999999874,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -12.556492647850591,
+                "skewY": 0,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -95,8 +106,6 @@ export default {
                   "w": 45,
                   "h": 51,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -3,
                     "rotation": -1,
@@ -104,7 +113,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 51,
                     "style": {
@@ -123,10 +138,6 @@ export default {
                       ],
                       "cornerRadius": 0
                     },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": [],
                     "domId": "TeamColor"
                   }
                 },
@@ -136,8 +147,6 @@ export default {
                   "w": 45,
                   "h": 51,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -3,
                     "rotation": -1,
@@ -145,7 +154,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 51,
                     "style": {
@@ -200,11 +215,7 @@ export default {
                         }
                       ],
                       "cornerRadius": 0
-                    },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": []
+                    }
                   }
                 }
               ]
@@ -215,8 +226,6 @@ export default {
               "text": "花井　耀",
               "w": 260,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 242,
                 "y": 18,
                 "rotation": 0,
@@ -224,10 +233,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 260,
-                "height": 40,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "花井　耀",
+                "width": 260,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -253,14 +271,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "shrink_font"
+                "height": 40,
+                "keyexp": "OUT選手名2"
               }
             },
             {
@@ -269,8 +281,6 @@ export default {
               "text": "13",
               "w": 42,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 174,
                 "y": 17,
                 "rotation": 0,
@@ -278,10 +288,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 42,
-                "height": 44,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "13",
+                "width": 42,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -307,14 +326,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 44,
+                "keyexp": "OUT背番号2"
               }
             },
             {
@@ -323,8 +336,6 @@ export default {
               "text": "（3年）",
               "w": 70,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 504,
                 "y": 22,
                 "rotation": 0,
@@ -332,10 +343,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 70,
-                "height": 36,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "（3年）",
+                "width": 70,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 25,
@@ -361,14 +381,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 36,
+                "keyexp": "OUT学年2"
               }
             }
           ]
@@ -377,8 +391,6 @@ export default {
           "type": "group",
           "name": "OUT1",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 314,
             "y": 977,
             "rotation": 0,
@@ -386,6 +398,8 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -398,8 +412,6 @@ export default {
               "name": "OUTベース1",
               "src": "../../選手交代2枚/img/HD2D_S04_BaseOUT_DF.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -407,21 +419,22 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 602,
-                "height": 98,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
-                "effects": []
+                "effects": [],
+                "width": 602,
+                "height": 98,
+                "keyexp": "OUTポジション1"
               }
             },
             {
               "type": "group",
               "name": "チームカラーザブトン",
               "raw": {
-                "skewX": -12.556492647850591,
-                "skewY": 0,
                 "x": 207,
                 "y": 12,
                 "rotation": 0,
@@ -429,6 +442,8 @@ export default {
                 "scaleY": 1.1749999999999874,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -12.556492647850591,
+                "skewY": 0,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -442,8 +457,6 @@ export default {
                   "w": 45,
                   "h": 52,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -4,
                     "rotation": -1,
@@ -451,7 +464,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 52,
                     "style": {
@@ -470,10 +489,6 @@ export default {
                       ],
                       "cornerRadius": 0
                     },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": [],
                     "domId": "TeamColor"
                   }
                 },
@@ -483,8 +498,6 @@ export default {
                   "w": 45,
                   "h": 52,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -4,
                     "rotation": -1,
@@ -492,7 +505,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 52,
                     "style": {
@@ -547,11 +566,7 @@ export default {
                         }
                       ],
                       "cornerRadius": 0
-                    },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": []
+                    }
                   }
                 }
               ]
@@ -562,8 +577,6 @@ export default {
               "text": "8",
               "w": 42,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 174,
                 "y": 18,
                 "rotation": 0,
@@ -571,10 +584,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 42,
-                "height": 44,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "8",
+                "width": 42,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -600,14 +622,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 44,
+                "keyexp": "OUT背番号1"
               }
             },
             {
@@ -616,8 +632,6 @@ export default {
               "text": "工藤　大河",
               "w": 260,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 242,
                 "y": 19,
                 "rotation": 0,
@@ -625,10 +639,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 260,
-                "height": 40,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "工藤　大河",
+                "width": 260,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -654,14 +677,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "shrink_font"
+                "height": 40,
+                "keyexp": "OUT選手名1"
               }
             },
             {
@@ -670,8 +687,6 @@ export default {
               "text": "（3年）",
               "w": 70,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 504,
                 "y": 22,
                 "rotation": 0,
@@ -679,10 +694,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 70,
-                "height": 36,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "（3年）",
+                "width": 70,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 25,
@@ -708,14 +732,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 36,
+                "keyexp": "OUT学年1"
               }
             }
           ]
@@ -724,8 +742,6 @@ export default {
           "type": "group",
           "name": "IN1",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1001,
             "y": 977,
             "rotation": 0,
@@ -733,6 +749,8 @@ export default {
             "scaleY": 0.9999999999999998,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -745,8 +763,6 @@ export default {
               "name": "INベース1",
               "src": "../../選手交代2枚/img/HD2D_S04_BaseIN_MF.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -754,21 +770,22 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 602,
-                "height": 98,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
-                "effects": []
+                "effects": [],
+                "width": 602,
+                "height": 98,
+                "keyexp": "INポジション1"
               }
             },
             {
               "type": "group",
               "name": "チームカラーザブトン",
               "raw": {
-                "skewX": -12.7613741187012,
-                "skewY": 0,
                 "x": 207,
                 "y": 11,
                 "rotation": 0,
@@ -776,6 +793,8 @@ export default {
                 "scaleY": 1.1749999999999876,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -12.7613741187012,
+                "skewY": 0,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -789,8 +808,6 @@ export default {
                   "w": 45,
                   "h": 51,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -3,
                     "rotation": -1,
@@ -798,7 +815,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 51,
                     "style": {
@@ -817,10 +840,6 @@ export default {
                       ],
                       "cornerRadius": 0
                     },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": [],
                     "domId": "TeamColor"
                   }
                 },
@@ -830,8 +849,6 @@ export default {
                   "w": 45,
                   "h": 51,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -3,
                     "rotation": -1,
@@ -839,7 +856,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 51,
                     "style": {
@@ -894,11 +917,7 @@ export default {
                         }
                       ],
                       "cornerRadius": 0
-                    },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": []
+                    }
                   }
                 }
               ]
@@ -909,8 +928,6 @@ export default {
               "text": "伊東　涼哉",
               "w": 260,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 240,
                 "y": 19,
                 "rotation": 0,
@@ -918,10 +935,19 @@ export default {
                 "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 260,
-                "height": 44,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "伊東　涼哉",
+                "width": 260,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -947,14 +973,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "shrink_font"
+                "height": 44,
+                "keyexp": "IN選手名1"
               }
             },
             {
@@ -963,8 +983,6 @@ export default {
               "text": "22",
               "w": 42,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 174,
                 "y": 18,
                 "rotation": 0,
@@ -972,10 +990,19 @@ export default {
                 "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 42,
-                "height": 44,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "22",
+                "width": 42,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -1001,14 +1028,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 44,
+                "keyexp": "IN背番号1"
               }
             },
             {
@@ -1017,8 +1038,6 @@ export default {
               "text": "（3年）",
               "w": 70,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 503,
                 "y": 22,
                 "rotation": 0,
@@ -1026,10 +1045,19 @@ export default {
                 "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 70,
-                "height": 36,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "（3年）",
+                "width": 70,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 25,
@@ -1055,14 +1083,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 36,
+                "keyexp": "IN学年1"
               }
             }
           ]
@@ -1090,15 +1112,15 @@ export default {
             {
               "type": "image",
               "name": "INベース2",
-              "src": "../../選手交代2枚/img/HD2D_S04_BaseIN_FW.png",
+              "src": "../../選手交代2枚/img/HD2D_S04_BaseIN_DF.png",
               "raw": {
                 "skewX": 0,
                 "skewY": 0,
-                "x": 0,
+                "x": -3,
                 "y": 0,
                 "rotation": 0,
-                "scaleX": 1,
-                "scaleY": 1,
+                "scaleX": 1.0168646681497993,
+                "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
                 "opacity": 1,
@@ -1107,15 +1129,14 @@ export default {
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
-                "effects": []
+                "effects": [],
+                "keyexp": "INポジション2"
               }
             },
             {
               "type": "group",
               "name": "チームカラーザブトン",
               "raw": {
-                "skewX": -12.7613741187012,
-                "skewY": 0,
                 "x": 207,
                 "y": 8,
                 "rotation": 0,
@@ -1123,6 +1144,8 @@ export default {
                 "scaleY": 1.1749999999999876,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -12.7613741187012,
+                "skewY": 0,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -1136,8 +1159,6 @@ export default {
                   "w": 45,
                   "h": 51,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -1,
                     "rotation": -1,
@@ -1145,7 +1166,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 51,
                     "style": {
@@ -1164,10 +1191,6 @@ export default {
                       ],
                       "cornerRadius": 0
                     },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": [],
                     "domId": "TeamColor"
                   }
                 },
@@ -1177,8 +1200,6 @@ export default {
                   "w": 45,
                   "h": 51,
                   "raw": {
-                    "skewX": -1,
-                    "skewY": 1,
                     "x": -27,
                     "y": -1,
                     "rotation": -1,
@@ -1186,7 +1207,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 45,
                     "height": 51,
                     "style": {
@@ -1241,11 +1268,7 @@ export default {
                         }
                       ],
                       "cornerRadius": 0
-                    },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": []
+                    }
                   }
                 }
               ]
@@ -1256,8 +1279,6 @@ export default {
               "text": "松下　侑生",
               "w": 260,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 240,
                 "y": 20,
                 "rotation": 0,
@@ -1265,10 +1286,19 @@ export default {
                 "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 260,
-                "height": 40,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "松下　侑生",
+                "width": 260,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -1294,14 +1324,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "shrink_font"
+                "height": 40,
+                "keyexp": "IN選手名2"
               }
             },
             {
@@ -1310,8 +1334,6 @@ export default {
               "text": "8",
               "w": 42,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 174,
                 "y": 19,
                 "rotation": 0,
@@ -1319,10 +1341,19 @@ export default {
                 "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 42,
-                "height": 44,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "8",
+                "width": 42,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 40,
@@ -1348,14 +1379,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 44,
+                "keyexp": "IN背番号2"
               }
             },
             {
@@ -1364,8 +1389,6 @@ export default {
               "text": "（3年）",
               "w": 70,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 503,
                 "y": 23,
                 "rotation": 0,
@@ -1373,10 +1396,19 @@ export default {
                 "scaleY": 1.0000000000000002,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 70,
-                "height": 36,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "（3年）",
+                "width": 70,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 25,
@@ -1402,14 +1434,8 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "keyexp": "",
-                "fitMode": "none"
+                "height": 36,
+                "keyexp": "IN学年2"
               }
             }
           ]
@@ -1419,8 +1445,6 @@ export default {
           "name": "矢印1",
           "src": "../../選手交代2枚/img/HD2D_F01_new_YajirushiL.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 916,
             "y": 988,
             "rotation": 0,
@@ -1428,13 +1452,15 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 121,
-            "height": 57,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 121,
+            "height": 57
           }
         },
         {
@@ -1442,8 +1468,6 @@ export default {
           "name": "矢印2",
           "src": "../../選手交代2枚/img/HD2D_F01_new_YajirushiL.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 916,
             "y": 918,
             "rotation": 0,
@@ -1451,13 +1475,15 @@ export default {
             "scaleY": 0.9999999999999923,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 121,
-            "height": 57,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 121,
+            "height": 57
           }
         },
         {
@@ -1465,8 +1491,6 @@ export default {
           "name": "高校名ベース",
           "src": "../../選手交代2枚/img/HD2D_S04_Base_001.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 314,
             "y": 859,
             "rotation": 0,
@@ -1474,22 +1498,162 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "width": 585,
-            "height": 86,
+            "height": 86
+          }
+        },
+        {
+          "type": "group",
+          "name": "チームカラーザブトン",
+          "raw": {
+            "skewX": -12.556492647850591,
+            "skewY": 0,
+            "x": 1080,
+            "y": 1140,
+            "rotation": 0,
+            "scaleX": 1.2312344648066182,
+            "scaleY": 1.1749999999999874,
+            "pivotX": 0,
+            "pivotY": 0,
+            "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
             "effects": []
-          }
+          },
+          "children": [
+            {
+              "type": "rect",
+              "name": "ベースカラー",
+              "w": 17,
+              "h": 34,
+              "raw": {
+                "skewX": -1,
+                "skewY": 1,
+                "x": -586,
+                "y": -228,
+                "rotation": -1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "width": 17,
+                "height": 34,
+                "style": {
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": "#bd39fb",
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "fillKeyexp": "ColorRect"
+                    }
+                  ],
+                  "cornerRadius": 0
+                },
+                "domId": "TeamColor"
+              }
+            },
+            {
+              "type": "rect",
+              "name": "グラデーションマット",
+              "w": 17,
+              "h": 34,
+              "raw": {
+                "skewX": -1,
+                "skewY": 1,
+                "x": -586,
+                "y": -228,
+                "rotation": -1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "width": 17,
+                "height": 34,
+                "style": {
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": [
+                        "#00000073",
+                        "#00000078",
+                        "#ffffff29",
+                        "#00000075",
+                        "#0000001a",
+                        "#000000a1"
+                      ],
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "gradientConfig": {
+                        "type": "linear",
+                        "angle": 90,
+                        "units": "objectBoundingBox",
+                        "stops": [
+                          {
+                            "offset": 0.05,
+                            "color": "#00000073"
+                          },
+                          {
+                            "offset": 0.05,
+                            "color": "#00000078"
+                          },
+                          {
+                            "offset": 0.5,
+                            "color": "#ffffff29"
+                          },
+                          {
+                            "offset": 0.51,
+                            "color": "#00000075"
+                          },
+                          {
+                            "offset": 0.95,
+                            "color": "#0000001a"
+                          },
+                          {
+                            "offset": 1,
+                            "color": "#000000a1"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "cornerRadius": 0
+                }
+              }
+            }
+          ]
         },
         {
           "type": "image",
           "name": "蹴り上げマーク",
           "src": "../../選手交代2枚/img/MarkHighSchool.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 349,
             "y": 871,
             "rotation": 0,
@@ -1497,13 +1661,15 @@ export default {
             "scaleY": 0.6713816692633006,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 84,
-            "height": 57,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 84,
+            "height": 57
           }
         },
         {
@@ -1512,8 +1678,6 @@ export default {
           "text": "とわの森三愛",
           "w": 300,
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 452,
             "y": 871,
             "rotation": 0,
@@ -1521,10 +1685,19 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 300,
-            "height": 37,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "text": "とわの森三愛",
+            "width": 300,
+            "padding": 0,
+            "align": "left",
+            "verticalAlign": "top",
+            "fitMode": "shrink_font",
             "style": {
               "fontFamily": "Noto Sans JP",
               "fontSize": 33,
@@ -1550,14 +1723,8 @@ export default {
               "letterSpacing": 0,
               "lineHeight": 1.2
             },
-            "align": "left",
-            "verticalAlign": "top",
-            "visible": true,
-            "locked": false,
-            "blendMode": "normal",
-            "effects": [],
-            "keyexp": "",
-            "fitMode": "shrink_font"
+            "height": 37,
+            "keyexp": "高校名テキスト"
           }
         }
       ]

@@ -361,7 +361,13 @@ export default {
             "blendMode": "normal",
             "effects": [],
             "fitMode": "shrink_x",
-            "keyexp": "プロ2コメント黄色"
+            "keyexp": "プロ2コメント黄色",
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "mode",
+              "operator": "equals",
+              "value": "pro2"
+            }
           }
         },
         {
@@ -415,7 +421,13 @@ export default {
             "blendMode": "normal",
             "effects": [],
             "fitMode": "shrink_x",
-            "keyexp": "プロ2コメント"
+            "keyexp": "プロ2コメント",
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "mode",
+              "operator": "equals",
+              "value": "pro2"
+            }
           }
         },
         {
@@ -436,7 +448,13 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "TOTALゴールグループ"
+            "keyexp": "TOTALゴールグループ",
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "mode",
+              "operator": "equals",
+              "value": "total"
+            }
           },
           "children": [
             {
@@ -621,7 +639,13 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "TODAYゴールグループ"
+            "keyexp": "TODAYゴールグループ",
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "mode",
+              "operator": "equals",
+              "value": "today"
+            }
           },
           "children": [
             {
@@ -1356,8 +1380,21 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "顔写真"
+            "keyexp": "顔写真",
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "顔写真",
+              "operator": "not_empty"
+            }
           }
+        },
+        {
+          "type": "text",
+          "name": "mode",
+          "key": "mode",
+          "text": "pro2",
+          "w": 60,
+          "visible": false
         }
       ]
     }

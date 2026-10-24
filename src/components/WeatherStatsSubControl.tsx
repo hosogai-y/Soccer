@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
 import { Player } from './PlayerRegistry';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
-import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, formatGrade } from '../utils/lineup';
+import { useCgQueueRegister } from '../utils/cgQueue';
+import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, formatGrade, subChangeBaseImage } from '../utils/lineup';
 
 export type StatsData = {
     leftShoot: string;
@@ -390,15 +391,7 @@ export function WeatherControl() {
 // --------------------------------------------------------
 type Side = 'left' | 'right';
 
-/** CG Queue List に積む項目。payload 付きの項目は TAKE NEXT でそのデータのまま送出する */
-export type CgQueueItem = {
-    id: string;
-    telopName: string;
-    label: string;
-    skipped: boolean;
-    played?: boolean;
-    payload?: Record<string, string>;
-};
+export type { CgQueueItem } from '../utils/cgQueue';
 
 function useSubTeams() {
     const [players] = useSyncedState<Player[]>('roster', []);
@@ -419,13 +412,6 @@ function useSubTeams() {
         startersOf: (side: Side) => registeredStarters(lineupOf(side), players || []),
         subsOf: (side: Side) => registeredSubs(lineupOf(side), players || []),
         findPlayer: (id: string) => (id ? (players || []).find(p => p.id === id) : undefined)
-    };
-}
-
-function useCgQueueRegister() {
-    const [, setCgQueue] = useSyncedState<CgQueueItem[]>('cg_queue', []);
-    return (telopName: string, label: string, payload: Record<string, string>) => {
-        setCgQueue(prev => [...(prev || []), { id: Date.now().toString(), telopName, label, skipped: false, payload }]);
     };
 }
 
@@ -493,7 +479,9 @@ export function Sub1Control() {
             'OUT学年': formatGrade(outPlayer?.grade),
             'IN背番号': inPlayer?.number || '',
             'IN選手名': inPlayer?.name || '',
-            'IN学年': formatGrade(inPlayer?.grade)
+            'IN学年': formatGrade(inPlayer?.grade),
+            'OUTポジション': subChangeBaseImage('OUT', outPlayer?.position),
+            'INポジション': subChangeBaseImage('IN', inPlayer?.position)
         };
     };
 
@@ -553,26 +541,26 @@ export function Sub2Control() {
     const [sub2Data, setSub2Data] = useState<{ side: Side } & typeof emptyPicks>({ side: 'left', ...emptyPicks });
 
     const buildPayload = () => {
-        const outP1 = teams.findPlayer(sub2Data.outPlayerId1);
-        const inP1 = teams.findPlayer(sub2Data.inPlayerId1);
-        const outP2 = teams.findPlayer(sub2Data.outPlayerId2);
-        const inP2 = teams.findPlayer(sub2Data.inPlayerId2);
-        return {
+        // テロップは KeyExp「〜2」が上段・「〜1」が下段なので、GUI の 1 段目 → 〜2、2 段目 → 〜1 に送る
+        const rows = [
+            { n: 2, out: teams.findPlayer(sub2Data.outPlayerId1), in: teams.findPlayer(sub2Data.inPlayerId1) },
+            { n: 1, out: teams.findPlayer(sub2Data.outPlayerId2), in: teams.findPlayer(sub2Data.inPlayerId2) }
+        ];
+        const payload: Record<string, string> = {
             '高校名テキスト': teams.schoolOf(sub2Data.side),
-            'ColorRect': teams.colorOf(sub2Data.side), // CG の チームカラーザブトン (KeyExp: ColorRect)
-            'OUT背番号1': outP1?.number || '',
-            'OUT選手名1': outP1?.name || '',
-            'OUT学年1': formatGrade(outP1?.grade),
-            'IN背番号1': inP1?.number || '',
-            'IN選手名1': inP1?.name || '',
-            'IN学年1': formatGrade(inP1?.grade),
-            'OUT背番号2': outP2?.number || '',
-            'OUT選手名2': outP2?.name || '',
-            'OUT学年2': formatGrade(outP2?.grade),
-            'IN背番号2': inP2?.number || '',
-            'IN選手名2': inP2?.name || '',
-            'IN学年2': formatGrade(inP2?.grade)
+            'ColorRect': teams.colorOf(sub2Data.side) // CG の チームカラーザブトン (KeyExp: ColorRect)
         };
+        rows.forEach(({ n, out, in: inP }) => {
+            payload[`OUT背番号${n}`] = out?.number || '';
+            payload[`OUT選手名${n}`] = out?.name || '';
+            payload[`OUT学年${n}`] = formatGrade(out?.grade);
+            payload[`OUTポジション${n}`] = subChangeBaseImage('OUT', out?.position);
+            payload[`IN背番号${n}`] = inP?.number || '';
+            payload[`IN選手名${n}`] = inP?.name || '';
+            payload[`IN学年${n}`] = formatGrade(inP?.grade);
+            payload[`INポジション${n}`] = subChangeBaseImage('IN', inP?.position);
+        });
+        return payload;
     };
 
     const sendSub2 = () => {

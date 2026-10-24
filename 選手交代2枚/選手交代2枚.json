@@ -1,3 +1,20 @@
 {
-  "ColorRect": "#bd39fb"
+  "OUTポジション2": "img/HD2D_S04_BaseOUT_GK.png",
+  "ColorRect": "#bd39fb",
+  "OUT選手名2": "花井　耀",
+  "OUT背番号2": "13",
+  "OUT学年2": "（3年）",
+  "OUTポジション1": "img/HD2D_S04_BaseOUT_DF.png",
+  "OUT背番号1": "8",
+  "OUT選手名1": "工藤　大河",
+  "OUT学年1": "（3年）",
+  "INポジション1": "img/HD2D_S04_BaseIN_MF.png",
+  "IN選手名1": "伊東　涼哉",
+  "IN背番号1": "22",
+  "IN学年1": "（3年）",
+  "INポジション2": "img/HD2D_S04_BaseIN_DF.png",
+  "IN選手名2": "松下　侑生",
+  "IN背番号2": "8",
+  "IN学年2": "（3年）",
+  "高校名テキスト": "とわの森三愛"
 }

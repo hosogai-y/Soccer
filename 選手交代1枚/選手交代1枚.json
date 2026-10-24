@@ -1,3 +1,12 @@
 {
-  "ColorRect": "#bd39fb"
+  "OUTポジション": "img/HD2D_S04_BaseOUT_MF.png",
+  "ColorRect": "#bd39fb",
+  "OUT背番号": "8",
+  "OUT選手名": "工藤　大河",
+  "OUT学年": "（3年）",
+  "INポジション": "img/HD2D_S04_BaseIN_DF.png",
+  "IN選手名": "松下　侑生",
+  "IN背番号": "3",
+  "IN学年": "（3年）",
+  "高校名テキスト": "とわの森三愛"
 }

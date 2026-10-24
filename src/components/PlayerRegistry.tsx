@@ -38,10 +38,14 @@ export const toHalfWidthNum = (str: string): string => {
 
 const DEFAULT_SCHOOLS = ['札幌創成', '札幌大谷', '帯広北', '北海'];
 
+/** 監督名（学校名 → 監督名）の synced state キー */
+export const TEAM_MANAGERS_KEY = 'team_managers';
+
 export default function PlayerRegistry() {
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [schools, setSchools] = useSyncedState<string[]>('school_list', DEFAULT_SCHOOLS);
     const [globalPhotoEnabled, setGlobalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
+    const [teamManagers, setTeamManagers] = useSyncedState<Record<string, string>>(TEAM_MANAGERS_KEY, {});
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const { uploadAsset, gcAssets, isConnected } = useTelopHub();
@@ -859,6 +863,19 @@ export default function PlayerRegistry() {
                                 );
                             })}
                         </div>
+                    </div>
+
+                    {/* 監督登録（学校ごと。CG Operation の Starters に表示） */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 12px', background: 'rgba(0,0,0,0.25)', borderRadius: 8 }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>🧑‍💼 監督 ({selectedSchool})</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            placeholder="監督名を入力"
+                            value={teamManagers?.[selectedSchool] || ''}
+                            onChange={e => setTeamManagers(prev => ({ ...(prev || {}), [selectedSchool]: e.target.value }))}
+                            style={{ padding: '6px 10px', maxWidth: 280 }}
+                        />
                     </div>
                     
                     <div style={{ overflowX: 'auto' }}>
