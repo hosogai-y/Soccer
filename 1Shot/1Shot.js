@@ -4,7 +4,127 @@ let projectData = null;
 let assetCache = {};
 
 // 2. Controller Logic (Editable)
-// @telop-editor-default-template: If you modify this file, remove this line to prevent TelopEditor from overwriting your changes.
+// Customized: スタッフ（監督・コーチ）表示のレイアウト切替
+
+/**
+ * スタッフ表示（役職表示 = 1）: 役職（ポジション）を背番号の位置へ移し、チームカラーザブトンを文字数に応じて伸ばす。
+ * ザブトンは右端（氏名側）を固定して左へ伸ばし、蹴り上げマークの手前までに収める（長い役職は shrink_x で縮む）。
+ * 選手表示（役職表示 = 0）では projectData の元の配置・色に戻す。
+ */
+const STAFF_LAYOUT = {
+    flagKey: '役職表示',
+    zabutonGroup: 'チームカラーザブトン',
+    zabutonRects: ['ベースカラー', 'グラデーションマット'],
+    roleText: 'ポジション',
+    numberText: '背番号',
+    leftLimitNode: '蹴り上げマーク', // ザブトンはこのノードの右端より左へは伸ばさない
+    padding: 8 // 文字とザブトン端の余白 (px)
+};
+let staffLayoutOn = false;
+// 元の配置・色。telopDoc のノードは projectData と同じオブジェクトなので、書き換える前に複製しておく
+let staffLayoutOrig = null;
+
+const findByName = (d, name) => Object.values(d.nodesById).find(n => n && n.name === name);
+const cloneJson = v => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+
+/** 全角 1em・半角 0.6em で役職の表示幅を見積もる */
+function estimateTextWidth(text, fontSize) {
+    let em = 0;
+    for (const ch of String(text || '')) em += ch.charCodeAt(0) > 0xff ? 1 : 0.6;
+    return em * fontSize;
+}
+
+/** 役職・ザブトンの配置を doc に書き込み、変わったノード ID を返す */
+function applyStaffLayout(d, values) {
+    if (!d || !d.nodesById) return [];
+    if (!staffLayoutOrig) {
+        staffLayoutOrig = {};
+        Object.values(d.nodesById).forEach(n => {
+            if (n && [STAFF_LAYOUT.roleText, ...STAFF_LAYOUT.zabutonRects].includes(n.name)) {
+                staffLayoutOrig[n.id] = cloneJson({ x: n.x, y: n.y, width: n.width, height: n.height, style: n.style });
+            }
+        });
+    }
+    const group = findByName(d, STAFF_LAYOUT.zabutonGroup);
+    const role = findByName(d, STAFF_LAYOUT.roleText);
+    const number = findByName(d, STAFF_LAYOUT.numberText);
+    if (!group || !role || !number) return [];
+    const rects = (group.children || []).map(id => d.nodesById[id]).filter(n => n && STAFF_LAYOUT.zabutonRects.includes(n.name));
+    const o = id => staffLayoutOrig[id];
+    const before = JSON.stringify([role.x, role.y, role.width, role.height, role.style, rects.map(r => [r.x, r.width])]);
+
+    // まず元の配置・色に戻す
+    ['x', 'y', 'width', 'height'].forEach(k => { if (o(role.id)) role[k] = o(role.id)[k]; });
+    if (o(role.id)) role.style = cloneJson(o(role.id).style);
+    rects.forEach(r => { if (o(r.id)) { r.x = o(r.id).x; r.width = o(r.id).width; } });
+
+    if (staffLayoutOn) {
+        const parent = group.parentId ? d.nodesById[group.parentId] : null;
+        const scaleX = group.scaleX || 1;
+        const baseRect = rects[0];
+        const origRect = o(baseRect.id);
+        // ザブトンの右端（絶対座標）を固定
+        const groupAbsX = (parent ? parent.x : 0) + group.x;
+        const rightAbs = groupAbsX + (origRect.x + origRect.width) * scaleX;
+        const limit = findByName(d, STAFF_LAYOUT.leftLimitNode);
+        const leftLimitAbs = limit ? limit.x + (limit.width || 0) + 4 : rightAbs - 160;
+        const fontSize = (role.style && role.style.fontSize) || 36;
+        const roleText = values && values[STAFF_LAYOUT.roleText] !== undefined ? values[STAFF_LAYOUT.roleText] : role.text;
+        const wanted = estimateTextWidth(roleText, fontSize) + STAFF_LAYOUT.padding * 2;
+        const width = Math.max(origRect.width * scaleX, Math.min(wanted, rightAbs - leftLimitAbs));
+        const localWidth = width / scaleX;
+        rects.forEach(r => {
+            const or = o(r.id);
+            r.width = localWidth;
+            r.x = or.x + or.width - localWidth;
+        });
+        // 役職をザブトンの上（背番号と同じ高さ・色）へ
+        const leftAbs = rightAbs - width;
+        role.x = leftAbs + STAFF_LAYOUT.padding;
+        role.width = width - STAFF_LAYOUT.padding * 2;
+        role.y = number.y + ((number.height || 0) - (role.height || 0)) / 2;
+        if (number.style && number.style.appearances) {
+            role.style = Object.assign({}, role.style, { appearances: cloneJson(number.style.appearances) });
+        }
+    }
+    const after = JSON.stringify([role.x, role.y, role.width, role.height, role.style, rects.map(r => [r.x, r.width])]);
+    return before === after ? [] : [role.id, group.id];
+}
+
+/**
+ * TelopHub の OnAir / Preview は updateTelop を差し替えるが、更新のたびに 'telopRendered'（detail = 受け取ったデータ）が届く。
+ * ここで配置を反映し、変わったノードだけ DOM を作り直す（フォーメーション左／右と同じ方式）。
+ */
+window.addEventListener('telopRendered', (e) => {
+    const values = (e && e.detail) || {};
+    if (values[STAFF_LAYOUT.flagKey] !== undefined) staffLayoutOn = String(values[STAFF_LAYOUT.flagKey]) === '1';
+    const doc = window.telopDoc;
+    const app = window.telopApp;
+    if (!doc || !doc.nodesById || !app || !window.createNode) return;
+    const changed = applyStaffLayout(doc, values);
+    changed.forEach(id => {
+        const node = doc.nodesById[id];
+        const map = window.nodeElementMap;
+        const oldEl = (map && map.get(id) && map.get(id).isConnected) ? map.get(id) : app.querySelector('[data-node-id="' + id + '"]');
+        if (!node || !oldEl || !oldEl.parentNode) return;
+        try {
+            const parent = node.parentId ? doc.nodesById[node.parentId] : null;
+            const newEl = window.createNode(id, undefined, !!parent && parent.type === 'telop');
+            if (!newEl) return;
+            oldEl.parentNode.replaceChild(newEl, oldEl);
+            if (map) map.set(id, newEl);
+        } catch (err) {
+            console.warn('[StaffLayout] re-create failed for ' + node.name, err);
+        }
+    });
+    // 作り直した要素の古い keyExp 登録を外す（次の UPDATE で外れた要素を書き換えないように）
+    if (changed.length && window.keyExpMap) {
+        window.keyExpMap.forEach((targets, key) => {
+            const live = targets.filter(t => !t.element || t.element.isConnected);
+            if (live.length !== targets.length) window.keyExpMap.set(key, live);
+        });
+    }
+});
 
 // --- External Control API ---
 window._pendingRenderableObject = null;
@@ -232,7 +352,7 @@ window.updateTelop = function (rendarableObject) {
             console.error("Error creating new root node in updateTelop:", e);
         }
 
-        window.dispatchEvent(new CustomEvent('telopRendered'));
+        window.dispatchEvent(new CustomEvent('telopRendered', { detail: rendarableObject }));
     }
 };
 

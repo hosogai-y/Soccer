@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTelop, useClearAll, useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
-import { Player, toHalfWidthNum, TEAM_MANAGERS_KEY } from './PlayerRegistry';
+import { Player, toHalfWidthNum } from './PlayerRegistry';
+import { useTeamStaff, registeredStaff, staffComments, StaffMember } from '../utils/staff';
 import { TimerState, useShowTimerAtCurrentTime } from './GlobalTimerManager';
 import { buildTimerPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
@@ -38,8 +39,6 @@ export default function CGOperator() {
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const [teamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
-    const [teamManagers] = useSyncedState<Record<string, string>>(TEAM_MANAGERS_KEY, {});
-    const managerOf = (side: 'left' | 'right') => teamManagers?.[side === 'left' ? oaLeftTeam : oaRightTeam] || '';
 
     // Lineups タブで登録したメンバーを Starters / Subs に出す（未登録の学校は従来どおり全選手・交代フラグで振り分け）
     const teamPlayersOf = (side: 'left' | 'right') => {
@@ -159,7 +158,7 @@ export default function CGOperator() {
                         <h3 style={{ color: '#198754', margin: 0 }}>{oaLeftTeam} - Starters</h3>
                         <span style={{ fontSize: '0.75rem', color: '#aaa' }}>クリックで1Shot選択</span>
                     </div>
-                    <ManagerLine name={managerOf('left')} />
+                    <StaffOneShotList school={oaLeftTeam} side="left" />
                     <LineupTelopButtons side="left" kind="formation" />
                     <PlayerGrid 
                         players={startersOf('left')}
@@ -333,7 +332,7 @@ export default function CGOperator() {
                         <h3 style={{ color: '#0dcaf0', margin: 0 }}>{oaRightTeam} - Starters</h3>
                         <span style={{ fontSize: '0.75rem', color: '#aaa' }}>クリックで1Shot選択</span>
                     </div>
-                    <ManagerLine name={managerOf('right')} />
+                    <StaffOneShotList school={oaRightTeam} side="right" />
                     <LineupTelopButtons side="right" kind="formation" />
                     <PlayerGrid 
                         players={startersOf('right')} 
@@ -469,6 +468,8 @@ function OneShotPlayerControl({
             'ポジション': player.position || 'FW',
             '所属': oneShotSchoolName, // １SHOT上段のチーム名表記
             '学年': (player.grade || '').replace('年', ''),
+            '学年単位': '年', // スタッフ送出時は「歳」に差し替わるので毎回送る
+            '役職表示': '0', // 0: 選手（身長・体重を表示し、ポジションは通常位置）
             '身長': player.height || '',
             '体重': player.weight || '',
             // 黄色フラグONなら「プロ2コメント黄色」を使い、「プロ2コメント」は空文字(非表示)
@@ -897,13 +898,89 @@ function PlayerGrid({
 }
 
 // --------------------------------------------------------
-// 監督名（PlayerRegistry で学校ごとに登録）
+// スタッフ（監督・コーチ等。PlayerRegistry で学校ごとに登録）→ 1Shot プロ2表示で送出
+// 身長・体重は空（テロップ側で単位ごと非表示）、学年オブジェクトに年齢・単位「歳」を流し込む
 // --------------------------------------------------------
 
-function ManagerLine({ name }: { name: string }) {
+function StaffOneShotList({ school, side }: { school: string, side: 'left' | 'right' }) {
+    const { staffOf } = useTeamStaff();
+    const staff = registeredStaff(staffOf(school));
+    const manager = staffOf(school)[0];
+
+    if (staff.length === 0) {
+        return (
+            <div style={{ fontSize: '0.8rem', marginBottom: 8, color: '#777' }}>
+                🧑‍💼 監督: 未登録（Player Registry で登録）
+            </div>
+        );
+    }
     return (
-        <div style={{ fontSize: '0.85rem', marginBottom: 8, color: name ? 'white' : '#777' }}>
-            🧑‍💼 監督: <span style={{ fontWeight: 'bold' }}>{name || '未登録（Player Registry で登録）'}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+            {/* 監督が未登録でも他のスタッフは出す */}
+            {!manager.name.trim() && <div style={{ fontSize: '0.8rem', color: '#777' }}>🧑‍💼 監督: 未登録</div>}
+            {staff.map(m => <StaffOneShotRow key={`${m.role}_${m.name}`} school={school} side={side} member={m} />)}
+        </div>
+    );
+}
+
+function StaffOneShotRow({ school, side, member }: { school: string, side: 'left' | 'right', member: StaffMember }) {
+    const oneShot = useTelop('1Shot');
+    const oneShotCard = useTelop('1Shotカード');
+    const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
+    const [commentIdx, setCommentIdx] = useState(0);
+
+    const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
+    const teamConfig = teams.find(t => t.name === school);
+    const teamColor = teamConfig?.color || (side === 'right' ? '#0dcaf0' : '#198754');
+    const comments = staffComments(member);
+    const comment = comments[Math.min(commentIdx, comments.length - 1)] || { text: '', isYellow: false };
+
+    const handleTake = () => {
+        oneShotCard.hide(); // 1Shot と 1Shotカード は排他
+        const yellow = comment.isYellow ? comment.text : '';
+        const white = comment.isYellow ? '' : comment.text;
+        const payload = {
+            'TeamColor': teamColor,
+            'ColorRect': teamColor,
+            '背番号': '',
+            '氏名': member.name,
+            'ポジション': member.role,
+            '所属': teamConfig?.oneShotName || school,
+            '学年': member.age,
+            '学年単位': member.age ? '歳' : '',
+            '役職表示': '1', // 1: スタッフ（身長・体重を隠し、役職を背番号位置のザブトン上に出す）
+            '身長': '',
+            '体重': '',
+            'プロ2コメント': white,
+            'プロ２コメント': white,
+            'プロ2コメント黄色': yellow,
+            'プロ２コメント黄色': yellow,
+            "Today's数値": '',
+            'Total数値': '',
+            '顔写真': '',
+            '顔写真_visible': false,
+            'mode': 'pro2'
+        };
+        oneShot.setData(payload);
+        oneShot.show(payload);
+    };
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }} title={`${member.role}: ${member.name}`}>
+                🧑‍💼 {member.role}: <b>{member.name}</b>{member.age && ` (${member.age}歳)`}
+            </span>
+            {comments.length > 1 && (
+                <select className="form-select" value={commentIdx} onChange={e => setCommentIdx(Number(e.target.value))} style={{ padding: '1px 4px', fontSize: '0.7rem', width: 'auto', maxWidth: 90 }} title={comment.text}>
+                    {comments.map((c, i) => <option key={i} value={i}>{`#${i + 1} ${c.text}`}</option>)}
+                </select>
+            )}
+            <button className="btn btn-success" style={{ padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold' }} onClick={handleTake} title={comment.text ? `プロ2: ${comment.text}` : 'プロ2コメント未登録'}>
+                TAKE
+            </button>
+            <button className="btn btn-danger" style={{ padding: '2px 6px', fontSize: '0.7rem' }} onClick={() => oneShot.hide()}>
+                HIDE
+            </button>
         </div>
     );
 }
