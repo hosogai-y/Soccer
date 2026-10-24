@@ -137,7 +137,10 @@
             "color": "#000000",
             "thickness": 2,
             "lineJoin": "miter",
-            "miterLimit": 10
+            "miterLimit": 10,
+            "isMask": false,
+            "maskMode": "subtract",
+            "fillKeyexp": "ColorRectL"
           }
         ],
         "cornerRadius": 0
@@ -274,7 +277,8 @@
             "color": "#000000",
             "thickness": 2,
             "lineJoin": "miter",
-            "miterLimit": 10
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRectR"
           }
         ],
         "cornerRadius": 0
@@ -398,6 +402,22 @@
             "shadowAlpha": 1,
             "shadowOffsetX": 4,
             "shadowOffsetY": 4
+          },
+          {
+            "fillEnabled": false,
+            "fill": "#ffffff",
+            "strokeEnabled": true,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "enabled": true,
+            "shadowEnabled": false,
+            "shadowColor": "#000000",
+            "shadowBlur": 0,
+            "shadowAlpha": 1,
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 0
           }
         ],
         "letterSpacing": 0,
@@ -450,6 +470,22 @@
             "shadowAlpha": 1,
             "shadowOffsetX": 4,
             "shadowOffsetY": 4
+          },
+          {
+            "fillEnabled": false,
+            "fill": "#ffffff",
+            "strokeEnabled": true,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "enabled": true,
+            "shadowEnabled": false,
+            "shadowColor": "#000000",
+            "shadowBlur": 0,
+            "shadowAlpha": 1,
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 0
           }
         ],
         "letterSpacing": 0,

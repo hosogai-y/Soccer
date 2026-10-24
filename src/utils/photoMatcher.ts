@@ -1,10 +1,21 @@
+// 顔写真は VolleyBall と同じく SDK の uploadAsset で TelopHub に上げ、
+// /telop-assets/soccer/assets/face/<高校名>/<ファイル名> の URL で選手に持たせる
+
 export interface PhotoItem {
     school: string;
     filename: string;
     number: string;
     name: string;
-    url: string;
 }
+
+export interface PhotoFile extends PhotoItem {
+    file: File;
+}
+
+// uploadAsset の保存先（プロジェクト内の assets/ 配下）
+export const FACE_ASSET_DIR = 'assets/face';
+// uploadAsset が返す URL と同じ形（App.tsx の PROJECT_NAME "Telops/soccer" から Telops/ を除いたもの）
+const FACE_URL_BASE = `/telop-assets/soccer/${FACE_ASSET_DIR}`;
 
 // 全角数字を半角数字に変換
 export const toHalfWidthNum = (str?: string): string => {
@@ -26,12 +37,57 @@ export const parseNum = (str?: string): number | null => {
     return isNaN(n) ? null : n;
 };
 
+export const isImageFile = (filename: string): boolean => /\.(png|jpe?g|webp)$/i.test(filename);
+
+// ファイル名 "14 菅野桜抜き.png" → 背番号 "14" / 氏名 "菅野桜"
+export function parsePhotoFilename(filename: string): { number: string; name: string } {
+    const cleaned = filename.replace(/\.(png|jpe?g|webp)$/i, '').replace(/抜き$/, '').trim();
+    const match = cleaned.match(/^([0-9０-９]+)[\s　]*(.*)$/);
+    return match ? { number: match[1], name: match[2].trim() } : { number: '', name: cleaned };
+}
+
+// 選んだ画像ファイルを照合用の PhotoFile にする。
+// フォルダごと選んだ場合は、ファイルのすぐ上のフォルダ名を高校名として使う
+export function toPhotoFile(file: File, fallbackSchool: string): PhotoFile {
+    const filename = file.name.normalize('NFC');
+    const parts = ((file as any).webkitRelativePath || '').normalize('NFC').split('/').filter(Boolean);
+    const school = parts.length >= 2 ? parts[parts.length - 2] : fallbackSchool;
+    return { file, school, filename, ...parsePhotoFilename(filename) };
+}
+
+// uploadAsset に渡す保存先パス
+export const faceAssetPath = (school: string, filename: string): string =>
+    `${FACE_ASSET_DIR}/${school}/${filename}`.normalize('NFC');
+
+// 以前の Photo フォルダ形式 (/Photo/高校名/ファイル名) を assets/face の URL に読み替える。
+// それ以外（uploadAsset の URL や img/ のパス）はそのまま返す
+export function toPhotoAssetUrl(raw?: string): string {
+    if (!raw || !raw.trim()) return '';
+    const clean = raw.trim().replace(/\\/g, '/');
+    const legacy = clean.match(/^(?:\.\.)?\/?Photo\/([^\/]+)\/(.+)$/i);
+    if (legacy) {
+        return `${FACE_URL_BASE}/${legacy[1].trim()}/${legacy[2].trim()}`;
+    }
+    return clean;
+}
+
+// ブラウザで表示するための URL（日本語・空白をエンコード）
+export function encodePhotoUrl(url?: string): string {
+    const clean = toPhotoAssetUrl(url);
+    if (!clean) return '';
+    try {
+        return encodeURI(decodeURI(clean));
+    } catch {
+        return encodeURI(clean);
+    }
+}
+
 // 選手情報と写真リストの照合
-export function matchPlayerPhoto(
+export function matchPlayerPhoto<T extends PhotoItem>(
     player: { schoolName?: string; teamId?: string; number?: string; name?: string; photoUrl?: string },
-    photos: PhotoItem[],
+    photos: T[],
     fallbackSchool?: string
-): PhotoItem | null {
+): T | null {
     if (!photos || photos.length === 0) return null;
 
     // 選手所属校の候補
@@ -45,8 +101,6 @@ export function matchPlayerPhoto(
                phSchoolClean.includes(cleanPSchool) ||
                cleanPSchool.includes(phSchoolClean);
     });
-
-    const targetList = schoolPhotos.length > 0 ? schoolPhotos : photos;
 
     const pNum = parseNum(player.number);
     const pCleanName = cleanStr(player.name);
@@ -90,95 +144,4 @@ export function matchPlayerPhoto(
     }
 
     return null;
-}
-
-// Photoフォルダの写真一覧API取得
-export async function fetchPhotoList(): Promise<PhotoItem[]> {
-    // 静的ビルド (TelopHub内) と Vite開発サーバー両方に対応
-    const endpoints = ['./photos.json', 'photos.json', '/photos.json', '/api/photos'];
-    for (const url of endpoints) {
-        try {
-            const res = await fetch(url);
-            if (!res.ok) continue;
-            const data = await res.json();
-            const list = (data.photos || []).map((ph: any) => ({
-                ...ph,
-                // 人間が読める平文パス形式 (/Photo/高校名/ファイル名) に統一
-                plainUrl: `/Photo/${ph.school}/${ph.filename}`
-            }));
-            if (list.length > 0) return list;
-        } catch {
-            // 次のエンドポイントを試行
-        }
-    }
-    return [];
-}
-
-// 高校名による写真の選別（フィルタリング）
-export function getPhotosBySchool(photos: PhotoItem[], schoolName?: string): PhotoItem[] {
-    if (!photos || photos.length === 0 || !schoolName) return [];
-    const cleanTarget = cleanStr(schoolName);
-    return photos.filter(ph => {
-        const cleanSchool = cleanStr(ph.school);
-        return cleanSchool === cleanTarget ||
-               cleanSchool.includes(cleanTarget) ||
-               cleanTarget.includes(cleanSchool);
-    });
-}
-
-// 写真パスの正規化（どんな入力形式でも /Photo/高校名/顔写真.png に統一）
-export function normalizePhotoUrl(
-    inputPath?: string,
-    schoolName?: string,
-    photos: PhotoItem[] = []
-): string {
-    if (!inputPath || !inputPath.trim()) return '';
-    let raw = inputPath.trim().replace(/\\/g, '/');
-
-    // すでに /Photo/高校名/ファイル名 の形式になっているかチェック
-    const photoMatch = raw.match(/\/Photo\/([^\/]+)\/(.+)$/i) || raw.match(/Photo\/([^\/]+)\/(.+)$/i);
-    if (photoMatch) {
-        const school = photoMatch[1].trim();
-        const filename = photoMatch[2].trim();
-        return `/Photo/${school}/${filename}`;
-    }
-
-    // パスからファイル名のみを取り出す（ディレクトリ部分を除去）
-    const lastSlashIdx = raw.lastIndexOf('/');
-    let filename = lastSlashIdx !== -1 ? raw.substring(lastSlashIdx + 1).trim() : raw;
-
-    // 拡張子がない場合（例: "14 菅野桜抜き"）、.png を付与
-    if (!/\.[a-zA-Z0-9]+$/.test(filename)) {
-        filename += '.png';
-    }
-
-    // 高校名の決定
-    const targetSchool = schoolName?.trim() || '北海';
-
-    // もし photos リストがある場合、その高校フォルダ内の実在写真から最も近いものを照合
-    if (photos && photos.length > 0) {
-        const schoolPhotos = getPhotosBySchool(photos, targetSchool);
-        if (schoolPhotos.length > 0) {
-            // 1. ファイル名完全一致
-            const exactFile = schoolPhotos.find(p => p.filename === filename);
-            if (exactFile) return `/Photo/${exactFile.school}/${exactFile.filename}`;
-
-            // 2. スペースを除去したファイル名一致
-            const cleanFn = cleanStr(filename);
-            const looseMatch = schoolPhotos.find(p => cleanStr(p.filename) === cleanFn);
-            if (looseMatch) return `/Photo/${looseMatch.school}/${looseMatch.filename}`;
-        }
-    }
-
-    return `/Photo/${targetSchool}/${filename}`;
-}
-
-// ブラウザ/SVGで安全に読み込めるURIエンコード
-export function encodePhotoUrl(url?: string): string {
-    if (!url) return '';
-    let clean = String(url).trim();
-    try {
-        clean = decodeURI(clean);
-    } catch {}
-    return encodeURI(clean);
 }

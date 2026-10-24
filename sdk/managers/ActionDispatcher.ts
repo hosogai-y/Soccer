@@ -1,5 +1,6 @@
 import { DataConnection } from 'peerjs';
 import { TelopHubSDK } from '../TelopHubClient';
+import { SendActionOptions } from '../types';
 
 export class ActionDispatcher {
     private client: TelopHubSDK;
@@ -49,7 +50,8 @@ export class ActionDispatcher {
         }
     }
 
-    public async sendAction(message: string, data?: any) {
+    public async sendAction(message: string, data?: any, options?: SendActionOptions) {
+        const targets = this.normalizeTargets(options?.targets);
         const actionId = 'act_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
         this.processedActionIds.add(actionId);
 
@@ -78,9 +80,14 @@ export class ActionDispatcher {
         }
 
         // 4. Send via WebRTC chunking over PeerJS DataChannels
-        if (!this.client.isConnected()) {
-            console.warn('[SDK] ⚠️ Host DataChannel not active. Queued action for remote host:', message);
-            this.client.pendingAppActions.push({ actionId, message, data });
+        if (targets && targets.length === 0) {
+            console.warn('[SDK] ⚠️ sendAction: targets is empty. Not sent to any host:', message);
+            return;
+        }
+        if (!this.hasOpenConn(targets)) {
+            const where = targets ? ` (${targets.join(', ')})` : '';
+            console.warn(`[SDK] ⚠️ Host DataChannel not active${where}. Queued action for remote host:`, message);
+            this.client.pendingAppActions.push({ actionId, message, data, targets });
             return;
         }
 
@@ -90,16 +97,44 @@ export class ActionDispatcher {
             if (sizeKB > 32) {
                 console.log(`[SDK] 📡 sendAction: ${message} (Large: ${sizeKB} KB)`);
             }
-            await this.sendPayloadSafely(payload);
-            this.client.pendingAppActions = [];
+            await this.sendPayloadSafely(payload, targets);
+            // 宛先がまだつながっていない宛先指定の分は、つながったときに送るので残す
+            this.client.pendingAppActions = this.client.pendingAppActions.filter(
+                (p) => p.targets && !p.targets.every((id: string) => this.isConnOpen(id))
+            );
         } catch (err) {
             console.error('[SDK] ❌ Failed to send payload via PeerJS DataChannel:', err);
         }
     }
 
-    private async sendPayloadSafely(payload: string) {
+    /**
+     * 宛先を整える。省略なら undefined（全ホスト宛て）。
+     * 接続先に入っていない ID はつながることがなく、キューに残り続けるので、警告して外す
+     */
+    private normalizeTargets(targets?: string[]): string[] | undefined {
+        if (!targets) return undefined;
+        const ids = Array.from(new Set(targets.map((s) => String(s).trim()).filter(Boolean)));
+        const unknown = ids.filter((id) => !this.client.targetMachineIds.includes(id));
+        if (unknown.length > 0) {
+            console.warn(`[SDK] ⚠️ sendAction: ignoring unknown target machine ID(s): ${unknown.join(', ')}`);
+        }
+        return ids.filter((id) => this.client.targetMachineIds.includes(id));
+    }
+
+    private isConnOpen(machineId: string): boolean {
+        const conn = this.client.hostConns.get(machineId);
+        return !!(conn && conn.open);
+    }
+
+    private hasOpenConn(targets?: string[]): boolean {
+        if (!targets) return this.client.isConnected();
+        return targets.some((id) => this.isConnOpen(id));
+    }
+
+    private async sendPayloadSafely(payload: string, targets?: string[]) {
         const sends: Promise<void>[] = [];
         for (const [machineId, conn] of this.client.hostConns.entries()) {
+            if (targets && !targets.includes(machineId)) continue;
             if (conn && conn.open) {
                 sends.push(this.sendPayloadSafelyToConn(conn, payload));
             }

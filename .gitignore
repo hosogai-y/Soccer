@@ -3,3 +3,12 @@ dist
 .hub/dashboard_dist
 .parcel-cache
 .serena
+
+# 選手の顔写真（リポジトリに含めない）
+assets/face/
+
+# telopkit / TelopHub の自動生成物・バックアップ
+.telopkit/backup/
+.telopkit/preview/
+.telopkit/tmp/
+data/

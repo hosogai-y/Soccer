@@ -1,7 +1,8 @@
-import { useContext, useCallback, useRef, useEffect } from 'react';
+import { useContext, useCallback, useRef, useEffect, useState } from 'react';
 import { TelopHubContext } from './TelopHubContext';
 import { IDBStateStore } from '../IDBStateStore';
 import { safeDeepMergeState, cleanBase64Deep } from '../stateUtils';
+import type { RelayStatus, RelayStreamHandlers, RelayStreamOptions, SerialPortInfo, SerialRelayTarget, TcpRelayTarget } from '../relay';
 
 
 export const useTelopHub = () => useContext(TelopHubContext);
@@ -85,32 +86,73 @@ export const useFullSyncedState = () => {
 
 
 
+/** show / update に渡すデータ。関数ならマシン ID ごとに呼んで、そのマシンにだけ送る */
+export type TelopData<T> = T | ((machineId: string) => T);
+
+export interface UseTelopOptions {
+    /** マシン ID ごとに使うテロップ名（例: 英語のマシンだけ `${name}_EN`）。省略なら全マシンで name */
+    resolveName?: (machineId: string) => string;
+}
+
 /**
  * High-level hook for controlling a specific telop.
  * Supports the three core player actions: show, hide, update.
+ * データに関数を渡すか resolveName を指定すると、接続先のマシンごとに中身・テロップ名を変えて送る。
  */
-export function useTelop<T = any>(name: string, initialData?: T) {
+export function useTelop<T = any>(name: string, initialData?: T, options?: UseTelopOptions) {
     const [data, setData] = useSyncedState<T>(name, initialData || {} as T);
     const [isVisible, setIsVisible] = useSyncedState<boolean>(`${name}_visible`, false);
     const { sdk, projectName } = useTelopHub();
-    
-    const keyWithProject = projectName ? `${projectName}/${name}` : name;
+    const resolveName = options?.resolveName;
 
-    const show = useCallback((overrideData?: T) => {
-        sdk?.sendAction('ShowTelopOnAir', { key: keyWithProject, RenderableObject: overrideData || data });
+    const keyFor = useCallback((telopName: string) => (
+        projectName ? `${projectName}/${telopName}` : telopName
+    ), [projectName]);
+
+    /**
+     * マシンごとに送る必要があればマシンごと、なければ全マシンへ 1 回送る。
+     * 接続先が無い（machineId 未指定）ときは、関数は machineId '' で呼ぶ
+     */
+    const sendTelop = useCallback((message: string, payloadData?: TelopData<T>) => {
+        if (!sdk) return;
+        const withData = (machineId: string, telopName: string) => {
+            const payload: any = { key: keyFor(telopName) };
+            if (message !== 'HideTelopOnAir') {
+                const resolved = typeof payloadData === 'function'
+                    ? (payloadData as (id: string) => T)(machineId)
+                    : (payloadData || data);
+                payload.RenderableObject = resolved;
+            }
+            return payload;
+        };
+
+        const machineIds: string[] = sdk.getTargetMachineIds();
+        const perMachine = typeof payloadData === 'function' || !!resolveName;
+        if (!perMachine || machineIds.length === 0) {
+            sdk.sendAction(message, withData('', resolveName ? resolveName('') : name));
+            return;
+        }
+        machineIds.forEach((machineId) => {
+            const telopName = resolveName ? resolveName(machineId) : name;
+            sdk.sendAction(message, withData(machineId, telopName), { targets: [machineId] });
+        });
+    }, [sdk, keyFor, name, resolveName, data]);
+
+    const show = useCallback((overrideData?: TelopData<T>) => {
+        sendTelop('ShowTelopOnAir', overrideData);
         setIsVisible(true);
-    }, [sdk, keyWithProject, data, setIsVisible]);
+    }, [sendTelop, setIsVisible]);
 
     const hide = useCallback(() => {
-        sdk?.sendAction('HideTelopOnAir', { key: keyWithProject });
+        sendTelop('HideTelopOnAir');
         setIsVisible(false);
-    }, [sdk, keyWithProject, setIsVisible]);
+    }, [sendTelop, setIsVisible]);
 
-    const update = useCallback((overrideData?: T) => {
-        sdk?.sendAction('UpdateTelopOnAir', { key: keyWithProject, RenderableObject: overrideData || data });
-    }, [sdk, keyWithProject, data]);
+    const update = useCallback((overrideData?: TelopData<T>) => {
+        sendTelop('UpdateTelopOnAir', overrideData);
+    }, [sendTelop]);
 
-    const toggle = useCallback((overrideData?: T) => {
+    const toggle = useCallback((overrideData?: TelopData<T>) => {
         if (isVisible) {
             hide();
         } else {
@@ -199,3 +241,92 @@ export const useIsSyncingSnapshot = (): boolean => {
     return !!isSyncingSnapshot;
 };
 
+export interface RelayStreamState {
+    status: RelayStatus;
+    /** Why the last attempt failed or the stream dropped (cleared once connected) */
+    message?: string;
+}
+
+/**
+ * Keeps a relay stream open while `target` is set; reconnects when the target's settings change.
+ * Handlers are read through a ref, so passing new callbacks on every render does not reconnect.
+ */
+function useRelayStream<T extends object>(
+    kind: 'tcp' | 'serial',
+    target: T | null | undefined,
+    handlers: RelayStreamHandlers,
+    options?: RelayStreamOptions,
+): RelayStreamState {
+    const { sdk } = useTelopHub();
+    const handlersRef = useRef(handlers);
+    handlersRef.current = handlers;
+    const [state, setState] = useState<RelayStreamState>({ status: 'closed' });
+
+    const targetKey = target ? JSON.stringify(target) : '';
+    const encoding = options?.encoding;
+    const reconnectMs = options?.reconnectMs;
+    const maxReconnectMs = options?.maxReconnectMs;
+
+    useEffect(() => {
+        if (!sdk || !targetKey) {
+            setState({ status: 'closed' });
+            return;
+        }
+        const parsed = JSON.parse(targetKey);
+        const relayHandlers: RelayStreamHandlers = {
+            onData: (chunk) => handlersRef.current.onData?.(chunk),
+            onStatus: (status, message) => {
+                setState({ status, message: status === 'open' ? undefined : message });
+                handlersRef.current.onStatus?.(status, message);
+            },
+        };
+        // Only decode when the caller wants text (checked when the stream opens)
+        if (handlersRef.current.onText) {
+            relayHandlers.onText = (text) => handlersRef.current.onText?.(text);
+        }
+        const relayOptions = { encoding, reconnectMs, maxReconnectMs };
+        const stream = kind === 'tcp'
+            ? sdk.openTcpStream(parsed, relayHandlers, relayOptions)
+            : sdk.openSerialStream(parsed, relayHandlers, relayOptions);
+        return () => stream.close();
+    }, [sdk, kind, targetKey, encoding, reconnectMs, maxReconnectMs]);
+
+    return state;
+}
+
+/** Reads a TCP server through the TelopHub server while `target` is set (pass null to disconnect) */
+export function useTcpStream(target: TcpRelayTarget | null | undefined, handlers: RelayStreamHandlers, options?: RelayStreamOptions) {
+    return useRelayStream('tcp', target, handlers, options);
+}
+
+/** Reads a serial port of the TelopHub machine while `target` is set (pass null to disconnect) */
+export function useSerialStream(target: SerialRelayTarget | null | undefined, handlers: RelayStreamHandlers, options?: RelayStreamOptions) {
+    return useRelayStream('serial', target, handlers, options);
+}
+
+/** Serial ports on the TelopHub machine. Call refresh() to list them again (e.g. after plugging in an adapter) */
+export function useSerialPorts() {
+    const { sdk } = useTelopHub();
+    const [ports, setPorts] = useState<SerialPortInfo[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const refresh = useCallback(async () => {
+        if (!sdk) return;
+        setLoading(true);
+        try {
+            setPorts(await sdk.listSerialPorts());
+            setError(null);
+        } catch (err: any) {
+            setError(err?.message || 'Could not list serial ports');
+        } finally {
+            setLoading(false);
+        }
+    }, [sdk]);
+
+    useEffect(() => {
+        refresh();
+    }, [refresh]);
+
+    return { ports, error, loading, refresh };
+}

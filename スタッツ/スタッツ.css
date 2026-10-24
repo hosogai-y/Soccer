@@ -94,10 +94,6 @@
     font-family: 'ZenOldMincho/Regular';
     src: url('/.hub/fonts/ZenOldMincho/Regular.ttf') format('truetype');
 }
-@font-face {
-    font-family: 'fonts';
-    src: url('/.hub/fonts/fonts.css') format('truetype');
-}
 
 /* @telop-editor-default-template: If you modify this file, remove this line to prevent TelopEditor from overwriting your changes. */
 body { margin: 0; padding: 0; background: transparent; overflow: hidden; }

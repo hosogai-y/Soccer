@@ -8,12 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_q6nc1mr6klj7",
+  "rootId": "n1_zohnywhr352r",
   "nodesById": {
-    "n1_q6nc1mr6klj7": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_q6nc1mr6klj7",
+    "n1_zohnywhr352r": {
+      "id": "n1_zohnywhr352r",
       "type": "telop",
       "x": 2,
       "y": 0,
@@ -22,11 +20,13 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_qvz3erv4g6lc",
-        "n1_hcyjgb71okqe",
-        "n1_spfa7kl7merx"
+        "n1_7am6g2xtkco6",
+        "n1_abhf2q1zjnwq",
+        "n1_pc2e8yel1so8"
       ],
       "name": "アディショナルタイム",
       "visible": true,
@@ -35,10 +35,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_qvz3erv4g6lc": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_qvz3erv4g6lc",
+    "n1_7am6g2xtkco6": {
+      "id": "n1_7am6g2xtkco6",
       "type": "rect",
       "x": 232,
       "y": 84,
@@ -47,7 +45,14 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
+      "name": "Rectangle",
+      "visible": false,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "width": 45,
       "height": 23,
       "style": {
@@ -91,17 +96,10 @@
         ],
         "cornerRadius": 10
       },
-      "name": "Rectangle",
-      "visible": false,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "parentId": "n1_q6nc1mr6klj7"
+      "parentId": "n1_zohnywhr352r"
     },
-    "n1_hcyjgb71okqe": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_hcyjgb71okqe",
+    "n1_abhf2q1zjnwq": {
+      "id": "n1_abhf2q1zjnwq",
       "type": "text",
       "x": 235,
       "y": 84,
@@ -110,10 +108,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 39,
-      "height": 23,
+      "name": "アディショナルタイム",
+      "visible": false,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "+00",
+      "width": 39,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "middle",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 17,
@@ -139,21 +147,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "middle",
-      "name": "アディショナルタイム",
-      "visible": false,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "none",
-      "parentId": "n1_q6nc1mr6klj7",
-      "keyexp": "アディショナルテキスト"
+      "height": 23,
+      "keyexp": "アディショナルテキスト",
+      "parentId": "n1_zohnywhr352r"
     },
-    "n1_spfa7kl7merx": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_spfa7kl7merx",
+    "n1_pc2e8yel1so8": {
+      "id": "n1_pc2e8yel1so8",
       "type": "image",
       "x": 318,
       "y": 74,
@@ -162,29 +161,111 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 240,
-      "height": 42,
-      "assetId": "a1_14w6qugc6i4",
       "name": "アディショナル表示",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_q6nc1mr6klj7",
-      "keyexp": "アディショナル表示"
+      "assetId": "a1_wgit1088ksq",
+      "width": 240,
+      "height": 42,
+      "keyexp": "アディショナル表示",
+      "parentId": "n1_zohnywhr352r"
     }
   },
   "assets": {
-    "a1_14w6qugc6i4": {
-      "id": "a1_14w6qugc6i4",
+    "a1_0l9lyi7srapb": {
+      "id": "a1_0l9lyi7srapb",
+      "kind": "image",
+      "name": "LossSlide_8.png",
+      "src": "img/LossSlide_8.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_9zqg0561n2f2": {
+      "id": "a1_9zqg0561n2f2",
+      "kind": "image",
+      "name": "LossSlide_4.png",
+      "src": "img/LossSlide_4.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_hgdkyt7rtk9i": {
+      "id": "a1_hgdkyt7rtk9i",
       "kind": "image",
       "name": "LossSlide_5.png",
       "src": "img/LossSlide_5.png",
       "width": 240,
       "height": 42,
       "groupId": null,
-      "ownerId": "n1_q6nc1mr6klj7"
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_hl52rqwejmmm": {
+      "id": "a1_hl52rqwejmmm",
+      "kind": "image",
+      "name": "LossSlide_9.png",
+      "src": "img/LossSlide_9.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_nsq14tf4ddq3": {
+      "id": "a1_nsq14tf4ddq3",
+      "kind": "image",
+      "name": "LossSlide_7.png",
+      "src": "img/LossSlide_7.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_uslcdba5w9xo": {
+      "id": "a1_uslcdba5w9xo",
+      "kind": "image",
+      "name": "LossSlide_2.png",
+      "src": "img/LossSlide_2.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_v424ziz9po1o": {
+      "id": "a1_v424ziz9po1o",
+      "kind": "image",
+      "name": "LossSlide_6.png",
+      "src": "img/LossSlide_6.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_wgit1088ksq": {
+      "id": "a1_wgit1088ksq",
+      "kind": "image",
+      "name": "LossSlide_1.png",
+      "src": "img/LossSlide_1.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
+    },
+    "a1_z9mjf3akvv92": {
+      "id": "a1_z9mjf3akvv92",
+      "kind": "image",
+      "name": "LossSlide_3.png",
+      "src": "img/LossSlide_3.png",
+      "width": 240,
+      "height": 42,
+      "groupId": null,
+      "ownerId": "n1_zohnywhr352r"
     }
   },
   "assetGroups": {

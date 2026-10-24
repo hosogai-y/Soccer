@@ -7,16 +7,24 @@ window._pendingRenderableObject = null;
 window._pendingShow = false;
 window._currentLossTimeData = null;
 
+// ノードIDは TelopEditor の保存や telopkit push で振り直されるため、keyExp / ノード名から毎回引く
+function nodeSel(key) {
+    const doc = window.telopDoc;
+    const nodes = doc && doc.nodesById ? Object.values(doc.nodesById) : [];
+    const node = nodes.find(n => n.keyexp === key) || nodes.find(n => n.name === key);
+    return node ? '[data-node-id="' + node.id + '"]' : '[data-node-id="__none__"]';
+}
+
 function applyLossTimeCustom(rendarableObject) {
     const app = window.telopApp;
     if (!app || !rendarableObject) return;
 
     // テキストノードは確実に非表示
-    const textEl = app.querySelector('[data-node-id="n1_hcyjgb71okqe"]');
+    const textEl = app.querySelector(nodeSel('アディショナルテキスト'));
     if (textEl) textEl.style.display = 'none';
 
     // アディショナル表示画像ノード (ID: n1_spfa7kl7merx)
-    const imgNodeEl = app.querySelector('[data-node-id="n1_spfa7kl7merx"]');
+    const imgNodeEl = app.querySelector(nodeSel('アディショナル表示'));
     if (!imgNodeEl) return;
     const imgEl = imgNodeEl.querySelector('image');
     if (!imgEl) return;
@@ -37,6 +45,9 @@ function applyLossTimeCustom(rendarableObject) {
  */
 window.showTelop = function (rendarableObject) {
     if (rendarableObject !== undefined) {
+        // Hub が window.updateTelop を差し替えている場合でも、表示時に描く値を必ず選択中の値にする
+        // (古い値のまま描くと、どれを選んでも +1 で出てしまう)
+        window._currentLossTimeData = Object.assign({}, window._currentLossTimeData, rendarableObject);
         window.updateTelop(rendarableObject);
     }
 
@@ -152,8 +163,6 @@ window.addEventListener('load', async () => {
                     window._pendingRenderableObject = null;
                 } else if (window._currentLossTimeData) {
                     applyLossTimeCustom(window._currentLossTimeData);
-                } else {
-                    applyLossTimeCustom({ アディショナルタイム: '1' });
                 }
                 if (window._pendingShow) {
                     window.showTelop();

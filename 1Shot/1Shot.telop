@@ -23,7 +23,7 @@
       "opacity": 1,
       "children": [
         "n1_snjrojc330c4",
-        "n1_eakkafxoemo0",
+        "n1_wxom1jszypzd",
         "n1_zfmu8gveprox",
         "n1_vzkc1ci2otp9",
         "n1_6h3z6328z8je",
@@ -67,10 +67,10 @@
       "effects": [],
       "parentId": "n1_8f0rjfy62mao"
     },
-    "n1_eakkafxoemo0": {
+    "n1_wxom1jszypzd": {
       "skewX": 0,
       "skewY": 0,
-      "id": "n1_eakkafxoemo0",
+      "id": "n1_wxom1jszypzd",
       "type": "group",
       "x": 1336,
       "y": 957,
@@ -81,8 +81,8 @@
       "pivotY": 0,
       "opacity": 1,
       "children": [
-        "n1_abw7ds7q9ufd",
-        "n1_gmu92hoyed5h"
+        "n1_k3s20yvn76sp",
+        "n1_urrls9d3u7dj"
       ],
       "name": "チームカラー変更",
       "visible": true,
@@ -91,10 +91,10 @@
       "effects": [],
       "parentId": "n1_8f0rjfy62mao"
     },
-    "n1_abw7ds7q9ufd": {
+    "n1_k3s20yvn76sp": {
       "skewX": -14.524950658846302,
       "skewY": 0,
-      "id": "n1_abw7ds7q9ufd",
+      "id": "n1_k3s20yvn76sp",
       "type": "group",
       "x": 162,
       "y": -19,
@@ -105,30 +105,30 @@
       "pivotY": 0,
       "opacity": 1,
       "children": [
-        "n1_dtzo4qm9byal",
-        "n1_clv561eo6scp"
+        "n1_42p6aghbbfoy",
+        "n1_2fw1qvbh2c6v"
       ],
       "name": "チームカラーザブトン",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_eakkafxoemo0"
+      "parentId": "n1_wxom1jszypzd"
     },
-    "n1_dtzo4qm9byal": {
-      "skewX": 3,
-      "skewY": 3,
-      "id": "n1_dtzo4qm9byal",
+    "n1_42p6aghbbfoy": {
+      "skewX": 5,
+      "skewY": -2,
+      "id": "n1_42p6aghbbfoy",
       "type": "rect",
-      "x": -26,
+      "x": -28,
       "y": -2,
-      "rotation": -1,
+      "rotation": 1,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
       "opacity": 1,
-      "width": 38,
+      "width": 40,
       "height": 54,
       "style": {
         "appearances": [
@@ -140,7 +140,8 @@
             "color": "#000000",
             "thickness": 2,
             "lineJoin": "miter",
-            "miterLimit": 10
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect"
           }
         ],
         "cornerRadius": 0
@@ -150,23 +151,23 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_abw7ds7q9ufd",
+      "parentId": "n1_k3s20yvn76sp",
       "domId": "TeamColor"
     },
-    "n1_clv561eo6scp": {
-      "skewX": -1,
-      "skewY": 2,
-      "id": "n1_clv561eo6scp",
+    "n1_2fw1qvbh2c6v": {
+      "skewX": 5,
+      "skewY": -2,
+      "id": "n1_2fw1qvbh2c6v",
       "type": "rect",
-      "x": -26,
-      "y": -1,
-      "rotation": -3,
+      "x": -28,
+      "y": -2,
+      "rotation": 1,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
       "opacity": 1,
-      "width": 39,
+      "width": 40,
       "height": 54,
       "style": {
         "appearances": [
@@ -226,12 +227,12 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_abw7ds7q9ufd"
+      "parentId": "n1_k3s20yvn76sp"
     },
-    "n1_gmu92hoyed5h": {
+    "n1_urrls9d3u7dj": {
       "skewX": 0,
       "skewY": 0,
-      "id": "n1_gmu92hoyed5h",
+      "id": "n1_urrls9d3u7dj",
       "type": "text",
       "x": 149,
       "y": 22,
@@ -277,7 +278,7 @@
       "blendMode": "normal",
       "effects": [],
       "fitMode": "none",
-      "parentId": "n1_eakkafxoemo0",
+      "parentId": "n1_wxom1jszypzd",
       "keyexp": "TeamColor"
     },
     "n1_zfmu8gveprox": {
@@ -777,6 +778,22 @@
             "shadowAlpha": 1,
             "shadowOffsetX": 4,
             "shadowOffsetY": 4
+          },
+          {
+            "fillEnabled": false,
+            "fill": "#ffffff",
+            "strokeEnabled": true,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "enabled": true,
+            "shadowEnabled": false,
+            "shadowColor": "#000000",
+            "shadowBlur": 0,
+            "shadowAlpha": 1,
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 0
           }
         ],
         "letterSpacing": 0,

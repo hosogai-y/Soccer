@@ -6,6 +6,9 @@ export * from './timers';
 export * from './IDBStateStore';
 export * from './stateUtils';
 
+// Raw TCP / serial relay
+export * from './relay';
+
 // Core SDK Client
 export * from './TelopHubClient';
 

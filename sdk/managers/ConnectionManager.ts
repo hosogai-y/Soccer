@@ -5,6 +5,7 @@ export class ConnectionManager {
     private client: TelopHubSDK;
     private peer: Peer | null = null;
     private reconnectTimer: any = null;
+    private fallbackPeerPort: number | null = null;
 
     constructor(client: TelopHubSDK) {
         this.client = client;
@@ -24,11 +25,15 @@ export class ConnectionManager {
             } catch (e) {}
         }
 
+        const isHttps = window.location.protocol === 'https:' || this.client.config.socketUrl?.startsWith('https');
+        const useSocketIO = document.cookie.includes('TELOPHUB_SOCKET=true') || this.client.config.useSocket;
+        const peerPort = isHttps ? 443 : (this.fallbackPeerPort || (useSocketIO ? 9091 : port));
+
         this.peer = new (Peer as any)({
             path: '/api/peerjs',
             host: host,
-            port: port,
-            secure: window.location.protocol === 'https:' || this.client.config.socketUrl?.startsWith('https'),
+            port: peerPort,
+            secure: isHttps,
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
@@ -91,7 +96,11 @@ export class ConnectionManager {
                 return;
             }
             console.error(`[SDK] PeerJS Error:`, err);
-            if (err.type === 'server-error') {
+            if (err.type === 'server-error' || err.type === 'socket-error') {
+                if (peerPort === 9090 && !this.fallbackPeerPort) {
+                    console.warn(`[SDK] ⚠️ PeerJS connection on port 9090 failed. Switching to port 9091...`);
+                    this.fallbackPeerPort = 9091;
+                }
                 this.scheduleReconnect();
             }
         });
@@ -205,9 +214,13 @@ export class ConnectionManager {
             } catch (e) {}
         }, 5000);
 
-        if (this.client.pendingAppActions.length > 0) {
-            console.log(`[SDK] 🔄 Flushing ${this.client.pendingAppActions.length} pending actions to ${machineId}...`);
-            this.client.pendingAppActions.forEach(({ message, data }) => {
+        // 宛先指定の分は、このホストが宛先に入っているものだけ送る
+        const pending = this.client.pendingAppActions.filter(
+            (p) => !p.targets || p.targets.includes(machineId)
+        );
+        if (pending.length > 0) {
+            console.log(`[SDK] 🔄 Flushing ${pending.length} pending actions to ${machineId}...`);
+            pending.forEach(({ message, data }) => {
                 const payload = JSON.stringify({ type: 'app-action', message, data });
                 this.client.actionDispatcher.sendPayloadSafelyToConn(conn, payload);
             });

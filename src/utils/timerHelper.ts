@@ -64,12 +64,13 @@ export function buildTimerPayload(totalMs: number, period: string = '前半'): T
 
     let halfImg = 'img/HD2D_P01_Moji_1.png';
     const p = period || '前半';
-    if (p.includes('後半') || p === '2nd') {
-        halfImg = 'img/HD2D_P01_Moji_2.png';
+    // 「延長後半」は「後半」も含むため、延長の判定を先に行う
+    if (p.includes('延後') || p.includes('延長後半') || p === 'Ex2') {
+        halfImg = 'img/HD2D_P01_Moji_4.png';
     } else if (p.includes('延前') || p.includes('延長前半') || p === 'Ex1') {
         halfImg = 'img/HD2D_P01_Moji_3.png';
-    } else if (p.includes('延後') || p.includes('延長後半') || p === 'Ex2') {
-        halfImg = 'img/HD2D_P01_Moji_4.png';
+    } else if (p.includes('後半') || p === '2nd') {
+        halfImg = 'img/HD2D_P01_Moji_2.png';
     }
 
     return {

@@ -78,11 +78,30 @@ function ScoreControl() {
 |-------------|-------------------------------|----------------------------------------------------------|
 | `data`      | `T`                           | Current staged data (synced across all dashboards)       |
 | `setData`   | `(val \| fn) => void`         | Updates staged data and syncs to TelopHub server         |
-| `show`      | `(override?: T) => void`      | Sends ShowTelopOnAir with current (or override) data     |
+| `show`      | `(override?: T | (id) => T) => void` | Sends ShowTelopOnAir with current (or override) data |
 | `hide`      | `() => void`                  | Sends HideTelopOnAir (instant)                           |
 | `update`    | `(override?: T) => void`      | Sends UpdateTelopOnAir for a currently visible telop     |
 | `toggle`    | `(override?: T) => void`      | show if hidden, hide if visible                          |
 | `isVisible` | `boolean`                     | Whether the telop is currently shown                     |
+
+#### Different data per machine (e.g. Japanese / English outputs)
+
+When the dashboard is connected to several machine IDs, `show` / `update` / `toggle` also accept a function.
+It is called once per connected machine, and each result is sent only to that machine.
+
+```tsx
+const LANG: Record<string, 'ja' | 'en'> = { 'machine-ja': 'ja', 'machine-en': 'en' };
+
+const score = useTelop('Scoreboard', undefined, {
+    // optional: use a different telop per machine (e.g. an English layout)
+    resolveName: (machineId) => LANG[machineId] === 'en' ? 'Scoreboard_EN' : 'Scoreboard',
+});
+
+score.show((machineId) => ({ team: LANG[machineId] === 'en' ? 'Tokyo' : '東京', score: 3 }));
+score.hide(); // hides the resolved telop on every machine
+```
+
+With no machine ID configured, the function is called with `''` and the result is sent as usual.
 
 ---
 
@@ -141,6 +160,62 @@ Pass `null` as `delay` to pause the interval.
 
 ---
 
+## Raw TCP / Serial Relay
+
+Browsers cannot open raw TCP sockets, and Web Serial only reaches ports on the machine the browser runs on.
+The TelopHub server opens them instead and streams the received bytes to the dashboard
+(`POST /api/proxy/tcp`, `POST /api/proxy/serial`, `GET /api/proxy/serial/ports`; same-LAN requests only).
+
+- Bytes are relayed as-is, in arbitrary chunks. Framing (STX/ETX, XML documents, line breaks, ...) is up to the dashboard.
+- One upstream connection is shared by every dashboard that opens the same target. A serial port that is already
+  open with different settings is rejected (HTTP 409).
+- The stream reconnects on its own until the hook unmounts or `close()` is called, backing off after repeated failures (1 s, 2 s, 4 s ... up to 15 s; reset once a connection stays up for 10 s).
+- The server is gentle with the device: one connection per target shared by all dashboards, kept for 5 s after the last one leaves (a page reload reuses it), closed with a FIN rather than a reset, and closed when TelopHub shuts down.
+
+### `useTcpStream(target, handlers, options?)`
+
+```tsx
+import { useTcpStream } from '@sdk/TelopHubSDK';
+
+function TimingReceiver() {
+    const buffer = useRef('');
+    const { status, message } = useTcpStream({ host: '192.168.1.50', port: 6000 }, {
+        onText: (text) => {
+            buffer.current += text;
+            // extract complete documents from buffer.current here
+        },
+    }, { encoding: 'utf-8' });
+
+    return <div>{status}{message && ` (${message})`}</div>;
+}
+```
+
+Pass `null` as `target` to disconnect. Changing the target's settings reconnects; passing new handler functions does not.
+
+### `useSerialStream(target, handlers, options?)` / `useSerialPorts()`
+
+```tsx
+const { ports, refresh } = useSerialPorts();   // ports on the TelopHub machine: { path, friendlyName, inUse, ... }
+const { status } = useSerialStream(
+    { path: 'COM3', baudRate: 4800, dataBits: 7, parity: 'even', stopBits: 2 },
+    { onText: (text) => { /* ... */ } },
+    { encoding: 'windows-1252' },
+);
+```
+
+Serial options: `baudRate` (9600), `dataBits` (8), `parity` (`'none'`), `stopBits` (1), `rtscts` (false),
+`dtr` / `rts` (true: raised after opening, some devices only send while they are set).
+
+**Handlers:** `onData(chunk: Uint8Array)` for raw bytes, `onText(text)` for text decoded with `options.encoding`
+(a multi-byte character split across chunks is handled), `onStatus(status, message?)`.
+**Status:** `'connecting' | 'open' | 'reconnecting' | 'closed'`; `message` explains the last failure.
+**Options:** `encoding` (TextDecoder label, default `'utf-8'`), `reconnectMs` (first retry wait, default 1000), `maxReconnectMs` (default 15000).
+
+Outside React: `sdk.openTcpStream(target, handlers, options)` / `sdk.openSerialStream(...)` return `{ close() }`,
+and `sdk.listSerialPorts()` returns the port list.
+
+---
+
 ## Advanced: `TelopHubSDK` class
 
 The underlying class is also exported for non-React environments.
@@ -169,6 +244,11 @@ sdk.onConnectionChange((connected) => {
 // Send actions directly
 sdk.sendAction('ClearAllTelopOnAir', {});
 // → clears all telops on the On-Air player
+
+// Send to specific machines only (when connected to multiple machine IDs)
+sdk.sendAction('ShowTelopOnAir', { key: 'MyProject/Score', RenderableObject: dataEn }, { targets: ['machine-en'] });
+// → only the host 'machine-en' receives it. Omit targets to send to all hosts.
+//   Listeners in this dashboard and other tabs in the same browser still receive it regardless of targets.
 
 // Resolve asset paths served via TelopHub
 const url = sdk.resolveAssetPath('MyProject', 'images/logo.png');

@@ -1,9 +1,29 @@
 import { DataConnection } from 'peerjs';
-import { SDKConfig } from './types';
+import { SDKConfig, SendActionOptions } from './types';
 import { ConnectionManager } from './managers/ConnectionManager';
 import { StateManager } from './managers/StateManager';
 import { ActionDispatcher } from './managers/ActionDispatcher';
 import { AssetManager } from './managers/AssetManager';
+import {
+    openRelayStream, fetchSerialPorts,
+    RelayStream, RelayStreamHandlers, RelayStreamOptions, SerialPortInfo, SerialRelayTarget, TcpRelayTarget,
+} from './relay';
+
+/**
+ * この接続の ID（UUID v4 形式）。crypto.randomUUID は https か localhost のページでしか使えず、
+ * LAN の IP（http://192.168.x.x）で開くと無いので、そのときは getRandomValues で同じ形式を作る
+ */
+function createClientId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
 export class TelopHubSDK {
     public myId: string;
@@ -32,7 +52,7 @@ export class TelopHubSDK {
 
     constructor(config: SDKConfig) {
         this.config = config;
-        this.myId = crypto.randomUUID();
+        this.myId = createClientId();
         this.targetMachineIds = this.parseMachineIds(config.machineId || config.machineIds);
 
         this.connectionManager = new ConnectionManager(this);
@@ -155,22 +175,40 @@ export class TelopHubSDK {
         this.actionDispatcher.dispatchActionLocally(message, data);
     }
 
-    public async sendAction(message: string, data?: any) {
-        return this.actionDispatcher.sendAction(message, data);
+    public async sendAction(message: string, data?: any, options?: SendActionOptions) {
+        return this.actionDispatcher.sendAction(message, data, options);
     }
 
     public resolveAssetPath(projectName: string, relativePath: string): string {
         return `/telop-assets/${encodeURIComponent(projectName)}/${relativePath}`;
     }
 
+    /** Base URL of the TelopHub server (the configured hub, or this page's origin) */
+    public getHubBaseUrl(): string {
+        if (this.config && this.config.socketUrl) {
+            return this.config.socketUrl.replace(/\/$/, '');
+        }
+        return typeof window !== 'undefined' ? window.location.origin : '';
+    }
+
+    /** Streams the bytes received from a TCP server via the TelopHub server (reconnects until closed) */
+    public openTcpStream(target: TcpRelayTarget, handlers: RelayStreamHandlers, options?: RelayStreamOptions): RelayStream {
+        return openRelayStream(`${this.getHubBaseUrl()}/api/proxy/tcp`, target, handlers, options);
+    }
+
+    /** Streams the bytes received on a serial port of the TelopHub machine (reconnects until closed) */
+    public openSerialStream(target: SerialRelayTarget, handlers: RelayStreamHandlers, options?: RelayStreamOptions): RelayStream {
+        return openRelayStream(`${this.getHubBaseUrl()}/api/proxy/serial`, target, handlers, options);
+    }
+
+    /** Serial ports on the TelopHub machine */
+    public listSerialPorts(): Promise<SerialPortInfo[]> {
+        return fetchSerialPorts(this.getHubBaseUrl());
+    }
+
     public async fetchProxy(url: string, options?: { method?: string; headers?: Record<string, string> }): Promise<string> {
         try {
-            let baseUrl = '';
-            if (this.config && this.config.socketUrl) {
-                baseUrl = this.config.socketUrl.replace(/\/$/, '');
-            } else if (typeof window !== 'undefined') {
-                baseUrl = window.location.origin;
-            }
+            const baseUrl = this.getHubBaseUrl();
             const endpoint = `${baseUrl}/api/proxy/fetch`;
 
             console.log(`[SDK] Requesting proxy fetch via ${endpoint} for: ${url}`);
@@ -201,8 +239,8 @@ export class TelopHubSDK {
         return this.assetManager.uploadAsset(file, destPath);
     }
 
-    public gcAssets(activeUrls: string[]) {
-        this.assetManager.gcAssets(activeUrls);
+    public gcAssets(activeUrls: string[], options?: { dryRun?: boolean; timeoutMs?: number }) {
+        return this.assetManager.gcAssets(activeUrls, options);
     }
 
     public destroy() {

@@ -4,8 +4,69 @@ let projectData = null;
 let assetCache = {};
 
 // 2. Controller Logic (Editable)
-// @telop-editor-default-template: If you modify this file, remove this line to prevent TelopEditor from overwriting your changes.
 
+/**
+ * PSn_X / PSn_Y (プレート画像の左上, 1920x1080 座標) を受け取ったら、グループ "PSn" をその位置へ動かす。
+ * ダッシュボードの Lineups タブ「陣形フォーメーション」で調整した配置を反映するためのもの。
+ */
+function applyPlatePositions(values, docs) {
+    Object.keys(values).forEach(key => {
+        const m = /^(PS\d+)_X$/.exec(key);
+        if (!m) return;
+        const x = parseFloat(values[key]);
+        const y = parseFloat(values[m[1] + '_Y']);
+        if (!isFinite(x) || !isFinite(y)) return;
+        docs.forEach(d => {
+            if (!d || !d.nodesById) return;
+            const group = Object.values(d.nodesById).find(n => n.type === 'group' && n.name === m[1]);
+            if (!group) return;
+            const plate = (group.children || []).map(id => d.nodesById[id]).find(n => n && n.type === 'image');
+            group.x = x - (plate ? plate.x || 0 : 0);
+            group.y = y - (plate ? plate.y || 0 : 0);
+        });
+    });
+}
+
+
+/**
+ * TelopHub の OnAir / Preview は updateTelop を独自実装に差し替えるため、上の updateTelop は呼ばれない。
+ * 差し替え後も更新のたびに 'telopRendered'（detail = 受け取ったデータ）が届くので、ここで PSn グループを
+ * 指定位置へ動かし、位置が変わったグループだけ DOM を作り直す。
+ */
+window.addEventListener('telopRendered', (e) => {
+    const values = e && e.detail;
+    const doc = window.telopDoc;
+    const app = window.telopApp;
+    if (!values || !doc || !doc.nodesById || !app || !window.createNode) return;
+    const before = {};
+    Object.values(doc.nodesById).forEach(n => {
+        if (n.type === 'group' && /^PS[0-9]+$/.test(n.name)) before[n.id] = n.x + ',' + n.y;
+    });
+    applyPlatePositions(values, [doc]);
+    Object.keys(before).forEach(id => {
+        const node = doc.nodesById[id];
+        if (before[id] === node.x + ',' + node.y) return;
+        const map = window.nodeElementMap;
+        const oldEl = (map && map.get(id) && map.get(id).isConnected) ? map.get(id) : app.querySelector('[data-node-id="' + id + '"]');
+        if (!oldEl || !oldEl.parentNode) return;
+        try {
+            const parent = node.parentId ? doc.nodesById[node.parentId] : null;
+            const newEl = window.createNode(id, undefined, !!parent && parent.type === 'telop');
+            if (!newEl) return;
+            oldEl.parentNode.replaceChild(newEl, oldEl);
+            if (map) map.set(id, newEl);
+        } catch (err) {
+            console.warn('[PlatePositions] re-create failed for ' + node.name, err);
+        }
+    });
+    // 作り直した要素の古い keyExp 登録を外す（次の UPDATE で外れた要素を書き換えないように）
+    if (window.keyExpMap) {
+        window.keyExpMap.forEach((targets, key) => {
+            const live = targets.filter(t => !t.element || t.element.isConnected);
+            if (live.length !== targets.length) window.keyExpMap.set(key, live);
+        });
+    }
+});
 // --- External Control API ---
 window._pendingRenderableObject = null;
 window._pendingShow = false;
@@ -177,8 +238,13 @@ window.updateTelop = function (rendarableObject) {
         hasUpdates = true;
     }
 
+    if (Object.keys(rendarableObject).some(k => /^PS\d+_[XY]$/.test(k))) {
+        hasUpdates = true;
+    }
+
     if (hasUpdates) {
         const evaluatedDoc = resolveDynamicVisibility(doc, rendarableObject);
+        applyPlatePositions(rendarableObject, [doc, evaluatedDoc]);
 
         // In-place image reference & visibility condition updates (zero-flicker)
         for (const nodeId in evaluatedDoc.nodesById) {

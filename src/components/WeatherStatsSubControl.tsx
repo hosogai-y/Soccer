@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
 import { Player } from './PlayerRegistry';
+import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
+import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, formatGrade } from '../utils/lineup';
 
 export type StatsData = {
     leftShoot: string;
@@ -16,37 +18,9 @@ export type StatsData = {
 };
 
 export default function WeatherStatsSubControl() {
-    const [players] = useSyncedState<Player[]>('roster', []);
-
-    const weatherTelop = useTelop('気象');
-    const sub1Telop = useTelop('選手交代1枚');
-    const sub2Telop = useTelop('選手交代2枚');
     const statsTelop = useTelop('スタッツ');
     const smallScoreTelop = useTelop('小得点');
     const bigScoreTelop = useTelop('大得点');
-
-    // Weather state
-    const [weatherData, setWeatherData] = useState({
-        condition: '晴れ',
-        temp: '22.3',
-        humidity: '81'
-    });
-
-    // Sub 1 State
-    const [sub1Data, setSub1Data] = useState({
-        teamName: '帯広北',
-        outPlayerId: '',
-        inPlayerId: ''
-    });
-
-    // Sub 2 State
-    const [sub2Data, setSub2Data] = useState({
-        teamName: '帯広北',
-        outPlayerId1: '',
-        inPlayerId1: '',
-        outPlayerId2: '',
-        inPlayerId2: ''
-    });
 
     // Stats State (シュート、FK、CK、イエロー、レッド)
     const [statsData, setStatsData] = useSyncedState<StatsData>('match_stats_data', {
@@ -177,66 +151,11 @@ export default function WeatherStatsSubControl() {
         }
     };
 
-    // Send Weather
-    const sendWeather = () => {
-        const payload = {
-            '天候テキスト': weatherData.condition,
-            '気温テキスト': weatherData.temp,
-            '湿度テキスト': weatherData.humidity
-        };
-        weatherTelop.setData(payload);
-        weatherTelop.show(payload);
-    };
-
-    // Send Sub 1
-    const sendSub1 = () => {
-        const outPlayer = players?.find(p => p.id === sub1Data.outPlayerId);
-        const inPlayer = players?.find(p => p.id === sub1Data.inPlayerId);
-
-        const payload = {
-            '高校名テキスト': sub1Data.teamName,
-            'OUT背番号': outPlayer?.number || '',
-            'OUT選手名': outPlayer?.name || '',
-            'OUT学年': outPlayer ? `(${outPlayer.grade}年)` : '',
-            'IN背番号': inPlayer?.number || '',
-            'IN選手名': inPlayer?.name || '',
-            'IN学年': inPlayer ? `(${inPlayer.grade}年)` : ''
-        };
-        sub1Telop.setData(payload);
-        sub1Telop.show(payload);
-    };
-
-    // Send Sub 2
-    const sendSub2 = () => {
-        const outP1 = players?.find(p => p.id === sub2Data.outPlayerId1);
-        const inP1 = players?.find(p => p.id === sub2Data.inPlayerId1);
-        const outP2 = players?.find(p => p.id === sub2Data.outPlayerId2);
-        const inP2 = players?.find(p => p.id === sub2Data.inPlayerId2);
-
-        const payload = {
-            '高校名テキスト': sub2Data.teamName,
-            'OUT背番号1': outP1?.number || '',
-            'OUT選手名1': outP1?.name || '',
-            'OUT学年1': outP1 ? `(${outP1.grade}年)` : '',
-            'IN背番号1': inP1?.number || '',
-            'IN選手名1': inP1?.name || '',
-            'IN学年1': inP1 ? `(${inP1.grade}年)` : '',
-            'OUT背番号2': outP2?.number || '',
-            'OUT選手名2': outP2?.name || '',
-            'OUT学年2': outP2 ? `(${outP2.grade}年)` : '',
-            'IN背番号2': inP2?.number || '',
-            'IN選手名2': inP2?.name || '',
-            'IN学年2': inP2 ? `(${inP2.grade}年)` : ''
-        };
-        sub2Telop.setData(payload);
-        sub2Telop.show(payload);
-    };
-
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
-            
+        <div>
+
             {/* Stats Card (Enhanced with Side Change & Full Inputs) */}
-            <div className="glass-panel" style={{ padding: '16px', gridColumn: 'span 2' }}>
+            <div className="glass-panel" style={{ padding: '16px' }}>
                 <div className="flex-between" style={{ marginBottom: '12px', flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <h4 style={{ margin: 0, fontSize: '1.2rem', color: '#198754' }}>📊 スタッツ (Stats)</h4>
@@ -392,156 +311,311 @@ export default function WeatherStatsSubControl() {
                     </tbody>
                 </table>
             </div>
+        </div>
+    );
+}
 
-            {/* Weather Card */}
-            <div className="glass-panel" style={{ padding: '16px' }}>
-                <div className="flex-between" style={{ marginBottom: '12px' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', color: '#0dcaf0' }}>🌤️ 気象情報 (Weather)</h4>
-                    {weatherTelop.isVisible && <span className="status-badge status-connected">ON AIR</span>}
+// --------------------------------------------------------
+// 気象情報 (CG Operation「試合スコア & タイマー & 1Shot」タブで使用)
+// --------------------------------------------------------
+export function WeatherControl() {
+    const weatherTelop = useTelop('気象');
+
+    const [weatherData, setWeatherData] = useState({
+        condition: '晴れ',
+        temp: '22.3',
+        humidity: '81'
+    });
+
+    const sendWeather = () => {
+        const payload = {
+            '天候テキスト': weatherData.condition,
+            '気温テキスト': weatherData.temp,
+            '湿度テキスト': weatherData.humidity
+        };
+        weatherTelop.setData(payload);
+        weatherTelop.show(payload);
+    };
+
+    return (
+        <div className="glass-panel" style={{ padding: '16px' }}>
+            <div className="flex-between" style={{ marginBottom: '12px' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', color: '#0dcaf0' }}>🌤️ 気象情報 (Weather)</h4>
+                {weatherTelop.isVisible && <span className="status-badge status-connected">ON AIR</span>}
+            </div>
+            {/* 天候 / 気温 / 湿度 を3行で表示 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', alignItems: 'center', columnGap: '6px', rowGap: '6px', marginBottom: '12px' }}>
+                <label style={{ fontSize: '0.75rem', color: '#aaa', whiteSpace: 'nowrap' }}>天候</label>
+                {/* 最長の選択肢「くもり」+ ドロップダウン矢印が欠けない最小幅を確保 */}
+                <select
+                    className="form-select"
+                    value={weatherData.condition}
+                    onChange={e => setWeatherData({ ...weatherData, condition: e.target.value })}
+                    style={{ padding: '4px', minWidth: '7em' }}
+                >
+                    <option value="晴れ">晴れ</option>
+                    <option value="くもり">くもり</option>
+                    <option value="雨">雨</option>
+                    <option value="小雨">小雨</option>
+                    <option value="雪">雪</option>
+                </select>
+                <label style={{ fontSize: '0.75rem', color: '#aaa', whiteSpace: 'nowrap' }}>気温 (℃)</label>
+                <input
+                    type="text"
+                    className="form-input"
+                    value={weatherData.temp}
+                    onChange={e => setWeatherData({ ...weatherData, temp: e.target.value })}
+                    style={{ padding: '4px', minWidth: 0 }}
+                />
+                <label style={{ fontSize: '0.75rem', color: '#aaa', whiteSpace: 'nowrap' }}>湿度 (%)</label>
+                <input
+                    type="text"
+                    className="form-input"
+                    value={weatherData.humidity}
+                    onChange={e => setWeatherData({ ...weatherData, humidity: e.target.value })}
+                    style={{ padding: '4px', minWidth: 0 }}
+                />
+            </div>
+            {/* 湿度の下: TAKE / HIDE */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-success" style={{ flex: 1, padding: '6px', whiteSpace: 'nowrap' }} onClick={sendWeather}>TAKE 気象</button>
+                <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={weatherTelop.hide}>HIDE</button>
+            </div>
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// 選手交代 共通 (チームは Lineups の左右チームのみ・選手は Lineups 登録のスタメン → 控えの登録順)
+// --------------------------------------------------------
+type Side = 'left' | 'right';
+
+/** CG Queue List に積む項目。payload 付きの項目は TAKE NEXT でそのデータのまま送出する */
+export type CgQueueItem = {
+    id: string;
+    telopName: string;
+    label: string;
+    skipped: boolean;
+    played?: boolean;
+    payload?: Record<string, string>;
+};
+
+function useSubTeams() {
+    const [players] = useSyncedState<Player[]>('roster', []);
+    const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
+    const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+    const [teamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
+    const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
+
+    const schoolOf = (side: Side) => (side === 'left' ? oaLeftTeam : oaRightTeam);
+    const lineupOf = (side: Side) => teamLineups?.[schoolOf(side)];
+    const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
+
+    return {
+        schoolOf,
+        // TeamSettings のチームカラー（未設定時は画面の左右カラー）
+        colorOf: (side: Side) => teams.find(t => t.name === schoolOf(side))?.color || (side === 'right' ? '#0dcaf0' : '#198754'),
+        isRegistered: (side: Side) => hasRegistered(lineupOf(side)),
+        startersOf: (side: Side) => registeredStarters(lineupOf(side), players || []),
+        subsOf: (side: Side) => registeredSubs(lineupOf(side), players || []),
+        findPlayer: (id: string) => (id ? (players || []).find(p => p.id === id) : undefined)
+    };
+}
+
+function useCgQueueRegister() {
+    const [, setCgQueue] = useSyncedState<CgQueueItem[]>('cg_queue', []);
+    return (telopName: string, label: string, payload: Record<string, string>) => {
+        setCgQueue(prev => [...(prev || []), { id: Date.now().toString(), telopName, label, skipped: false, payload }]);
+    };
+}
+
+const playerLabel = (p?: Player) => (p ? `${p.number} ${p.name}` : '—');
+
+function SubTeamSelect({ side, onChange, teams }: { side: Side, onChange: (side: Side) => void, teams: ReturnType<typeof useSubTeams> }) {
+    return (
+        <div>
+            <label style={{ fontSize: '0.75rem', color: '#aaa' }}>チーム名 (Lineups)</label>
+            <select className="form-select" value={side} onChange={e => onChange(e.target.value as Side)} style={{ padding: '4px' }}>
+                <option value="left">{teams.schoolOf('left')} (左)</option>
+                <option value="right">{teams.schoolOf('right')} (右)</option>
+            </select>
+            {!teams.isRegistered(side) && (
+                <div style={{ fontSize: '0.7rem', color: '#ffca28', marginTop: 2 }}>
+                    {teams.schoolOf(side)} のメンバーが未登録です（Lineups タブで登録してください）
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '0.75rem', color: '#aaa' }}>天候</label>
-                            <select 
-                                className="form-select" 
-                                value={weatherData.condition} 
-                                onChange={e => setWeatherData({ ...weatherData, condition: e.target.value })}
-                                style={{ padding: '4px' }}
-                            >
-                                <option value="晴れ">晴れ</option>
-                                <option value="くもり">くもり</option>
-                                <option value="雨">雨</option>
-                                <option value="小雨">小雨</option>
-                                <option value="雪">雪</option>
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '0.75rem', color: '#aaa' }}>気温 (℃)</label>
-                            <input 
-                                type="text" 
-                                className="form-input" 
-                                value={weatherData.temp} 
-                                onChange={e => setWeatherData({ ...weatherData, temp: e.target.value })}
-                                style={{ padding: '4px' }}
-                            />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '0.75rem', color: '#aaa' }}>湿度 (%)</label>
-                            <input 
-                                type="text" 
-                                className="form-input" 
-                                value={weatherData.humidity} 
-                                onChange={e => setWeatherData({ ...weatherData, humidity: e.target.value })}
-                                style={{ padding: '4px' }}
-                            />
-                        </div>
-                    </div>
-                </div>
+            )}
+        </div>
+    );
+}
+
+function SubPlayerSelect({ side, value, onChange, placeholder, teams, style }: { side: Side, value: string, onChange: (id: string) => void, placeholder: string, teams: ReturnType<typeof useSubTeams>, style?: React.CSSProperties }) {
+    const starters = teams.startersOf(side);
+    const subs = teams.subsOf(side);
+    return (
+        <select className="form-select" value={value} onChange={e => onChange(e.target.value)} style={{ padding: '4px', ...style }}>
+            <option value="">{placeholder}</option>
+            {starters.length > 0 && (
+                <optgroup label="スタメン">
+                    {starters.map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
+                </optgroup>
+            )}
+            {subs.length > 0 && (
+                <optgroup label="控え">
+                    {subs.map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
+                </optgroup>
+            )}
+        </select>
+    );
+}
+
+// --------------------------------------------------------
+// 選手交代 1枚 (CG Operation「試合スコア & タイマー & 1Shot」タブで使用)
+// --------------------------------------------------------
+export function Sub1Control() {
+    const teams = useSubTeams();
+    const registerQueue = useCgQueueRegister();
+    const sub1Telop = useTelop('選手交代1枚');
+
+    const [sub1Data, setSub1Data] = useState<{ side: Side, outPlayerId: string, inPlayerId: string }>({
+        side: 'left',
+        outPlayerId: '',
+        inPlayerId: ''
+    });
+
+    const buildPayload = () => {
+        const outPlayer = teams.findPlayer(sub1Data.outPlayerId);
+        const inPlayer = teams.findPlayer(sub1Data.inPlayerId);
+        return {
+            '高校名テキスト': teams.schoolOf(sub1Data.side),
+            'ColorRect': teams.colorOf(sub1Data.side), // CG の チームカラーザブトン (KeyExp: ColorRect)
+            'OUT背番号': outPlayer?.number || '',
+            'OUT選手名': outPlayer?.name || '',
+            'OUT学年': formatGrade(outPlayer?.grade),
+            'IN背番号': inPlayer?.number || '',
+            'IN選手名': inPlayer?.name || '',
+            'IN学年': formatGrade(inPlayer?.grade)
+        };
+    };
+
+    const sendSub1 = () => {
+        const payload = buildPayload();
+        sub1Telop.setData(payload);
+        sub1Telop.show(payload);
+    };
+
+    const registerSub1 = () => {
+        if (!sub1Data.outPlayerId || !sub1Data.inPlayerId) {
+            alert('OUT 選手と IN 選手を選択してください。');
+            return;
+        }
+        const outPlayer = teams.findPlayer(sub1Data.outPlayerId);
+        const inPlayer = teams.findPlayer(sub1Data.inPlayerId);
+        registerQueue('選手交代1枚', `交代1枚 ${teams.schoolOf(sub1Data.side)} OUT ${playerLabel(outPlayer)} → IN ${playerLabel(inPlayer)}`, buildPayload());
+    };
+
+    return (
+        <div className="glass-panel" style={{ padding: '16px' }}>
+            <div className="flex-between" style={{ marginBottom: '12px' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', color: '#ffc107' }}>🔄 選手交代 1枚</h4>
+                {sub1Telop.isVisible && <span className="status-badge status-connected">ON AIR</span>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                <SubTeamSelect side={sub1Data.side} onChange={side => setSub1Data({ side, outPlayerId: '', inPlayerId: '' })} teams={teams} />
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendWeather}>TAKE 気象</button>
-                    <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={weatherTelop.hide}>HIDE</button>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ fontSize: '0.75rem', color: '#f44336' }}>OUT 選手</label>
+                        <SubPlayerSelect side={sub1Data.side} value={sub1Data.outPlayerId} onChange={id => setSub1Data({ ...sub1Data, outPlayerId: id })} placeholder="-- OUT 選択 --" teams={teams} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ fontSize: '0.75rem', color: '#4caf50' }}>IN 選手</label>
+                        <SubPlayerSelect side={sub1Data.side} value={sub1Data.inPlayerId} onChange={id => setSub1Data({ ...sub1Data, inPlayerId: id })} placeholder="-- IN 選択 --" teams={teams} />
+                    </div>
                 </div>
             </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub1}>TAKE 交代1枚</button>
+                <button className="btn btn-warning" style={{ padding: '6px 10px' }} onClick={registerSub1} title="CG Queue List にストック">Q登録</button>
+                <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub1Telop.hide}>HIDE</button>
+            </div>
+        </div>
+    );
+}
 
-            {/* Substitution 1 Player Card */}
-            <div className="glass-panel" style={{ padding: '16px' }}>
-                <div className="flex-between" style={{ marginBottom: '12px' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', color: '#ffc107' }}>🔄 選手交代 1枚</h4>
-                    {sub1Telop.isVisible && <span className="status-badge status-connected">ON AIR</span>}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-                    <div>
-                        <label style={{ fontSize: '0.75rem', color: '#aaa' }}>チーム名</label>
-                        <input 
-                            type="text" 
-                            className="form-input" 
-                            value={sub1Data.teamName} 
-                            onChange={e => setSub1Data({ ...sub1Data, teamName: e.target.value })}
-                            style={{ padding: '4px' }}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '0.75rem', color: '#f44336' }}>OUT 選手</label>
-                            <select 
-                                className="form-select" 
-                                value={sub1Data.outPlayerId} 
-                                onChange={e => setSub1Data({ ...sub1Data, outPlayerId: e.target.value })}
-                                style={{ padding: '4px' }}
-                            >
-                                <option value="">-- OUT 選択 --</option>
-                                {(players || []).map(p => (
-                                    <option key={p.id} value={p.id}>{p.number} - {p.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '0.75rem', color: '#4caf50' }}>IN 選手</label>
-                            <select 
-                                className="form-select" 
-                                value={sub1Data.inPlayerId} 
-                                onChange={e => setSub1Data({ ...sub1Data, inPlayerId: e.target.value })}
-                                style={{ padding: '4px' }}
-                            >
-                                <option value="">-- IN 選択 --</option>
-                                {(players || []).map(p => (
-                                    <option key={p.id} value={p.id}>{p.number} - {p.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+// --------------------------------------------------------
+// 選手交代 2枚同時 (CG Operation「試合スコア & タイマー & 1Shot」タブで使用)
+// --------------------------------------------------------
+export function Sub2Control() {
+    const teams = useSubTeams();
+    const registerQueue = useCgQueueRegister();
+    const sub2Telop = useTelop('選手交代2枚');
+
+    const emptyPicks = { outPlayerId1: '', inPlayerId1: '', outPlayerId2: '', inPlayerId2: '' };
+    const [sub2Data, setSub2Data] = useState<{ side: Side } & typeof emptyPicks>({ side: 'left', ...emptyPicks });
+
+    const buildPayload = () => {
+        const outP1 = teams.findPlayer(sub2Data.outPlayerId1);
+        const inP1 = teams.findPlayer(sub2Data.inPlayerId1);
+        const outP2 = teams.findPlayer(sub2Data.outPlayerId2);
+        const inP2 = teams.findPlayer(sub2Data.inPlayerId2);
+        return {
+            '高校名テキスト': teams.schoolOf(sub2Data.side),
+            'ColorRect': teams.colorOf(sub2Data.side), // CG の チームカラーザブトン (KeyExp: ColorRect)
+            'OUT背番号1': outP1?.number || '',
+            'OUT選手名1': outP1?.name || '',
+            'OUT学年1': formatGrade(outP1?.grade),
+            'IN背番号1': inP1?.number || '',
+            'IN選手名1': inP1?.name || '',
+            'IN学年1': formatGrade(inP1?.grade),
+            'OUT背番号2': outP2?.number || '',
+            'OUT選手名2': outP2?.name || '',
+            'OUT学年2': formatGrade(outP2?.grade),
+            'IN背番号2': inP2?.number || '',
+            'IN選手名2': inP2?.name || '',
+            'IN学年2': formatGrade(inP2?.grade)
+        };
+    };
+
+    const sendSub2 = () => {
+        const payload = buildPayload();
+        sub2Telop.setData(payload);
+        sub2Telop.show(payload);
+    };
+
+    const registerSub2 = () => {
+        if (!sub2Data.outPlayerId1 || !sub2Data.inPlayerId1 || !sub2Data.outPlayerId2 || !sub2Data.inPlayerId2) {
+            alert('OUT1 / IN1 / OUT2 / IN2 の選手をすべて選択してください。');
+            return;
+        }
+        const f = teams.findPlayer;
+        registerQueue('選手交代2枚', `交代2枚 ${teams.schoolOf(sub2Data.side)} OUT ${playerLabel(f(sub2Data.outPlayerId1))}・${playerLabel(f(sub2Data.outPlayerId2))} → IN ${playerLabel(f(sub2Data.inPlayerId1))}・${playerLabel(f(sub2Data.inPlayerId2))}`, buildPayload());
+    };
+
+    const pick = (key: keyof typeof emptyPicks, placeholder: string) => (
+        <SubPlayerSelect side={sub2Data.side} value={sub2Data[key]} onChange={id => setSub2Data({ ...sub2Data, [key]: id })} placeholder={placeholder} teams={teams} style={{ flex: 1 }} />
+    );
+
+    return (
+        <div className="glass-panel" style={{ padding: '16px' }}>
+            <div className="flex-between" style={{ marginBottom: '12px' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', color: '#ff9800' }}>🔄 選手交代 2枚同時</h4>
+                {sub2Telop.isVisible && <span className="status-badge status-connected">ON AIR</span>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+                <SubTeamSelect side={sub2Data.side} onChange={side => setSub2Data({ side, ...emptyPicks })} teams={teams} />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    {pick('outPlayerId1', 'OUT1 選択')}
+                    {pick('inPlayerId1', 'IN1 選択')}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub1}>TAKE 交代1枚</button>
-                    <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub1Telop.hide}>HIDE</button>
+                    {pick('outPlayerId2', 'OUT2 選択')}
+                    {pick('inPlayerId2', 'IN2 選択')}
                 </div>
             </div>
-
-            {/* Substitution 2 Players Card */}
-            <div className="glass-panel" style={{ padding: '16px' }}>
-                <div className="flex-between" style={{ marginBottom: '12px' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', color: '#ff9800' }}>🔄 選手交代 2枚同時</h4>
-                    {sub2Telop.isVisible && <span className="status-badge status-connected">ON AIR</span>}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
-                    <div>
-                        <label style={{ fontSize: '0.75rem', color: '#aaa' }}>チーム名</label>
-                        <input 
-                            type="text" 
-                            className="form-input" 
-                            value={sub2Data.teamName} 
-                            onChange={e => setSub2Data({ ...sub2Data, teamName: e.target.value })}
-                            style={{ padding: '4px' }}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <select className="form-select" value={sub2Data.outPlayerId1} onChange={e => setSub2Data({ ...sub2Data, outPlayerId1: e.target.value })} style={{ flex: 1, padding: '4px' }}>
-                            <option value="">OUT1 選択</option>
-                            {(players || []).map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
-                        </select>
-                        <select className="form-select" value={sub2Data.inPlayerId1} onChange={e => setSub2Data({ ...sub2Data, inPlayerId1: e.target.value })} style={{ flex: 1, padding: '4px' }}>
-                            <option value="">IN1 選択</option>
-                            {(players || []).map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
-                        </select>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <select className="form-select" value={sub2Data.outPlayerId2} onChange={e => setSub2Data({ ...sub2Data, outPlayerId2: e.target.value })} style={{ flex: 1, padding: '4px' }}>
-                            <option value="">OUT2 選択</option>
-                            {(players || []).map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
-                        </select>
-                        <select className="form-select" value={sub2Data.inPlayerId2} onChange={e => setSub2Data({ ...sub2Data, inPlayerId2: e.target.value })} style={{ flex: 1, padding: '4px' }}>
-                            <option value="">IN2 選択</option>
-                            {(players || []).map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
-                        </select>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub2}>TAKE 交代2枚</button>
-                    <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub2Telop.hide}>HIDE</button>
-                </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub2}>TAKE 交代2枚</button>
+                <button className="btn btn-warning" style={{ padding: '6px 10px' }} onClick={registerSub2} title="CG Queue List にストック">Q登録</button>
+                <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub2Telop.hide}>HIDE</button>
             </div>
-
         </div>
     );
 }
@@ -576,3 +650,4 @@ function StatCounterRow({ value, onChange, onDelta, accentColor }: { value: stri
         </div>
     );
 }
+

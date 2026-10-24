@@ -56,6 +56,7 @@
       "opacity": 1,
       "children": [
         "n1_m02ad964h7oh",
+        "n1_2c67gcp53ito",
         "n1_le20dj3fr3k4",
         "n1_zih04xfgw89n",
         "n1_iroauw715ead"
@@ -89,6 +90,144 @@
       "blendMode": "normal",
       "effects": [],
       "parentId": "n1_sffvki13p74k"
+    },
+    "n1_2c67gcp53ito": {
+      "skewX": -12.556492647850591,
+      "skewY": 0,
+      "id": "n1_2c67gcp53ito",
+      "type": "group",
+      "x": 207,
+      "y": 11,
+      "rotation": 0,
+      "scaleX": 1.2312344648066182,
+      "scaleY": 1.1749999999999874,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "children": [
+        "n1_np0hadatqeny",
+        "n1_fh754llipeey"
+      ],
+      "name": "チームカラーザブトン",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_sffvki13p74k"
+    },
+    "n1_np0hadatqeny": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_np0hadatqeny",
+      "type": "rect",
+      "x": -27,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "ベースカラー",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_2c67gcp53ito",
+      "domId": "TeamColor"
+    },
+    "n1_fh754llipeey": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_fh754llipeey",
+      "type": "rect",
+      "x": -27,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": [
+              "#00000073",
+              "#00000078",
+              "#ffffff29",
+              "#00000075",
+              "#0000001a",
+              "#000000a1"
+            ],
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "gradientConfig": {
+              "type": "linear",
+              "angle": 90,
+              "units": "objectBoundingBox",
+              "stops": [
+                {
+                  "offset": 0.05,
+                  "color": "#00000073"
+                },
+                {
+                  "offset": 0.05,
+                  "color": "#00000078"
+                },
+                {
+                  "offset": 0.5,
+                  "color": "#ffffff29"
+                },
+                {
+                  "offset": 0.51,
+                  "color": "#00000075"
+                },
+                {
+                  "offset": 0.95,
+                  "color": "#0000001a"
+                },
+                {
+                  "offset": 1,
+                  "color": "#000000a1"
+                }
+              ]
+            }
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "グラデーションマット",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_2c67gcp53ito"
     },
     "n1_le20dj3fr3k4": {
       "skewX": 0,
@@ -261,6 +400,7 @@
       "opacity": 1,
       "children": [
         "n1_21abppqlrxjt",
+        "n1_9gbm9igchehq",
         "n1_ljlfjiobu999",
         "n1_905x63tde9vo",
         "n1_6omx09y348j0"
@@ -294,6 +434,144 @@
       "blendMode": "normal",
       "effects": [],
       "parentId": "n1_pewlcbfjt1g2"
+    },
+    "n1_9gbm9igchehq": {
+      "skewX": -12.556492647850591,
+      "skewY": 0,
+      "id": "n1_9gbm9igchehq",
+      "type": "group",
+      "x": 207,
+      "y": 12,
+      "rotation": 0,
+      "scaleX": 1.2312344648066182,
+      "scaleY": 1.1749999999999874,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "children": [
+        "n1_i9ntdkuo46ar",
+        "n1_jj3afqwnrk9l"
+      ],
+      "name": "チームカラーザブトン",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_pewlcbfjt1g2"
+    },
+    "n1_i9ntdkuo46ar": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_i9ntdkuo46ar",
+      "type": "rect",
+      "x": -27,
+      "y": -4,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 52,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "ベースカラー",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_9gbm9igchehq",
+      "domId": "TeamColor"
+    },
+    "n1_jj3afqwnrk9l": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_jj3afqwnrk9l",
+      "type": "rect",
+      "x": -27,
+      "y": -4,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 52,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": [
+              "#00000073",
+              "#00000078",
+              "#ffffff29",
+              "#00000075",
+              "#0000001a",
+              "#000000a1"
+            ],
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "gradientConfig": {
+              "type": "linear",
+              "angle": 90,
+              "units": "objectBoundingBox",
+              "stops": [
+                {
+                  "offset": 0.05,
+                  "color": "#00000073"
+                },
+                {
+                  "offset": 0.05,
+                  "color": "#00000078"
+                },
+                {
+                  "offset": 0.5,
+                  "color": "#ffffff29"
+                },
+                {
+                  "offset": 0.51,
+                  "color": "#00000075"
+                },
+                {
+                  "offset": 0.95,
+                  "color": "#0000001a"
+                },
+                {
+                  "offset": 1,
+                  "color": "#000000a1"
+                }
+              ]
+            }
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "グラデーションマット",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_9gbm9igchehq"
     },
     "n1_ljlfjiobu999": {
       "skewX": 0,
@@ -466,6 +744,7 @@
       "opacity": 1,
       "children": [
         "n1_clygi4ionbuv",
+        "n1_aqf73r5fwqon",
         "n1_xz0qb1ul565h",
         "n1_jx2jnahatcfk",
         "n1_bj460fi1dppg"
@@ -499,6 +778,144 @@
       "blendMode": "normal",
       "effects": [],
       "parentId": "n1_up337e2h5flb"
+    },
+    "n1_aqf73r5fwqon": {
+      "skewX": -12.7613741187012,
+      "skewY": 0,
+      "id": "n1_aqf73r5fwqon",
+      "type": "group",
+      "x": 207,
+      "y": 11,
+      "rotation": 0,
+      "scaleX": 1.2519988254701775,
+      "scaleY": 1.1749999999999876,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "children": [
+        "n1_sj18nmy00laf",
+        "n1_pq531eepsmec"
+      ],
+      "name": "チームカラーザブトン",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_up337e2h5flb"
+    },
+    "n1_sj18nmy00laf": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_sj18nmy00laf",
+      "type": "rect",
+      "x": -27,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "ベースカラー",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_aqf73r5fwqon",
+      "domId": "TeamColor"
+    },
+    "n1_pq531eepsmec": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_pq531eepsmec",
+      "type": "rect",
+      "x": -27,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": [
+              "#00000073",
+              "#00000078",
+              "#ffffff29",
+              "#00000075",
+              "#0000001a",
+              "#000000a1"
+            ],
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "gradientConfig": {
+              "type": "linear",
+              "angle": 90,
+              "units": "objectBoundingBox",
+              "stops": [
+                {
+                  "offset": 0.05,
+                  "color": "#00000073"
+                },
+                {
+                  "offset": 0.05,
+                  "color": "#00000078"
+                },
+                {
+                  "offset": 0.5,
+                  "color": "#ffffff29"
+                },
+                {
+                  "offset": 0.51,
+                  "color": "#00000075"
+                },
+                {
+                  "offset": 0.95,
+                  "color": "#0000001a"
+                },
+                {
+                  "offset": 1,
+                  "color": "#000000a1"
+                }
+              ]
+            }
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "グラデーションマット",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_aqf73r5fwqon"
     },
     "n1_xz0qb1ul565h": {
       "skewX": 0,
@@ -661,7 +1078,7 @@
       "skewY": 0,
       "id": "n1_zyqe7hq0m2q4",
       "type": "group",
-      "x": 1000,
+      "x": 1001,
       "y": 908,
       "rotation": 0,
       "scaleX": 0.9834150318345855,
@@ -671,6 +1088,7 @@
       "opacity": 1,
       "children": [
         "n1_ywca1gw8pbs5",
+        "n1_5jaoodbjdjdf",
         "n1_qdm8r6ketqdo",
         "n1_fsbi8rraot9l",
         "n1_jvfodenme70w"
@@ -704,6 +1122,144 @@
       "blendMode": "normal",
       "effects": [],
       "parentId": "n1_zyqe7hq0m2q4"
+    },
+    "n1_5jaoodbjdjdf": {
+      "skewX": -12.7613741187012,
+      "skewY": 0,
+      "id": "n1_5jaoodbjdjdf",
+      "type": "group",
+      "x": 207,
+      "y": 8,
+      "rotation": 0,
+      "scaleX": 1.2519988254701775,
+      "scaleY": 1.1749999999999876,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "children": [
+        "n1_hj3mywcqlhk7",
+        "n1_3pmmv8dd0x41"
+      ],
+      "name": "チームカラーザブトン",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_zyqe7hq0m2q4"
+    },
+    "n1_hj3mywcqlhk7": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_hj3mywcqlhk7",
+      "type": "rect",
+      "x": -27,
+      "y": -1,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "ベースカラー",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_5jaoodbjdjdf",
+      "domId": "TeamColor"
+    },
+    "n1_3pmmv8dd0x41": {
+      "skewX": -1,
+      "skewY": 1,
+      "id": "n1_3pmmv8dd0x41",
+      "type": "rect",
+      "x": -27,
+      "y": -1,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "opacity": 1,
+      "width": 45,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": [
+              "#00000073",
+              "#00000078",
+              "#ffffff29",
+              "#00000075",
+              "#0000001a",
+              "#000000a1"
+            ],
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "gradientConfig": {
+              "type": "linear",
+              "angle": 90,
+              "units": "objectBoundingBox",
+              "stops": [
+                {
+                  "offset": 0.05,
+                  "color": "#00000073"
+                },
+                {
+                  "offset": 0.05,
+                  "color": "#00000078"
+                },
+                {
+                  "offset": 0.5,
+                  "color": "#ffffff29"
+                },
+                {
+                  "offset": 0.51,
+                  "color": "#00000075"
+                },
+                {
+                  "offset": 0.95,
+                  "color": "#0000001a"
+                },
+                {
+                  "offset": 1,
+                  "color": "#000000a1"
+                }
+              ]
+            }
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "name": "グラデーションマット",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "parentId": "n1_5jaoodbjdjdf"
     },
     "n1_qdm8r6ketqdo": {
       "skewX": 0,
@@ -912,8 +1468,8 @@
       "skewY": 0,
       "id": "n1_b87hflziqz9g",
       "type": "image",
-      "x": 315,
-      "y": 858,
+      "x": 314,
+      "y": 859,
       "rotation": 0,
       "scaleX": 1,
       "scaleY": 1,

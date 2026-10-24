@@ -7,31 +7,40 @@ window._pendingRenderableObject = null;
 window._pendingShow = false;
 window._currentTimerData = { 時刻: '0:00', 前後半: '前半' };
 
+// ノードIDは TelopEditor の保存や telopkit push で振り直されるため、keyExp / ノード名から毎回引く
+function nodeSel(key) {
+    const doc = window.telopDoc;
+    const nodes = doc && doc.nodesById ? Object.values(doc.nodesById) : [];
+    const node = nodes.find(n => n.keyexp === key) || nodes.find(n => n.name === key);
+    return node ? '[data-node-id="' + node.id + '"]' : '[data-node-id="__none__"]';
+}
+
 function applyTimerCustom(rendarableObject) {
     const app = window.telopApp;
     if (!app || !rendarableObject) return;
 
     // 1. テキストノードは確実に非表示
-    const t1 = app.querySelector('[data-node-id="n1_5pc2hjabc5xl"]');
-    const t2 = app.querySelector('[data-node-id="n1_66hw2eamp9rh"]');
+    const t1 = app.querySelector(nodeSel('時刻'));
+    const t2 = app.querySelector(nodeSel('前後半'));
     if (t1) { t1.style.display = 'none'; t1.setAttribute('visibility', 'hidden'); }
     if (t2) { t2.style.display = 'none'; t2.setAttribute('visibility', 'hidden'); }
 
     // 2. 前後半延長画像の切り替え (ID: n1_koxd84ybqjfc)
     // ※ setAttribute('transform', ...) は絶対に行わず、SVGの元配置 matrix(1, 0, 0, 1, 72, 74) を維持！
-    const halfNode = app.querySelector('[data-node-id="n1_koxd84ybqjfc"]');
+    const halfNode = app.querySelector(nodeSel('前半後半延長'));
     const halfImg = halfNode ? halfNode.querySelector('image') : null;
     const halfText = String(rendarableObject['前後半'] || '前半').trim();
 
     if (halfImg) {
         let halfSrc = rendarableObject['前半後半延長'] || 'img/HD2D_P01_Moji_1.png';
         if (!rendarableObject['前半後半延長']) {
-            if (halfText.includes('後半') || halfText === '2nd') {
-                halfSrc = 'img/HD2D_P01_Moji_2.png';
+            // 「延長後半」は「後半」も含むため、延長の判定を先に行う
+            if (halfText.includes('延後') || halfText.includes('延長後半') || halfText === 'Ex2') {
+                halfSrc = 'img/HD2D_P01_Moji_4.png';
             } else if (halfText.includes('延前') || halfText.includes('延長前半') || halfText === 'Ex1') {
                 halfSrc = 'img/HD2D_P01_Moji_3.png';
-            } else if (halfText.includes('延後') || halfText.includes('延長後半') || halfText === 'Ex2') {
-                halfSrc = 'img/HD2D_P01_Moji_4.png';
+            } else if (halfText.includes('後半') || halfText === '2nd') {
+                halfSrc = 'img/HD2D_P01_Moji_2.png';
             }
         }
         halfImg.setAttribute('href', halfSrc);
@@ -47,20 +56,29 @@ function applyTimerCustom(rendarableObject) {
 
     // 3桁（100分以上）時のみCSS transformで-22pxシフトし、0〜99分の時は空文字にして完璧に板と合わせる！
     if (halfNode) {
-        halfNode.style.transform = minVal >= 100 ? 'translateX(-22px)' : '';
+        // CSS transform は SVG の配置(transform属性)を上書きして (0,0) に飛ぶため translate を使う
+        halfNode.style.transform = '';
+        halfNode.style.translate = minVal >= 100 ? '-22px 0' : '';
     }
 
     // 数字・セミコロン画像ノード取得
-    const min3Node = app.querySelector('[data-node-id="n1_min3_digit"]');
-    const min2Node = app.querySelector('[data-node-id="n1_yaim7su84jo4"]');
-    const min1Node = app.querySelector('[data-node-id="n1_qu5aasrymrmr"]');
-    const colonNode = app.querySelector('[data-node-id="n1_akuhmwzx6qav"]');
-    const sec2Node = app.querySelector('[data-node-id="n1_in96ttdhj5gp"]');
-    const sec1Node = app.querySelector('[data-node-id="n1_o9cc95zefec6"]');
+    const min3Node = app.querySelector(nodeSel('分３桁'));
+    const min2Node = app.querySelector(nodeSel('分２桁'));
+    const min1Node = app.querySelector(nodeSel('分１桁'));
+    const colonNode = app.querySelector(nodeSel('セミコロン'));
+    const sec2Node = app.querySelector(nodeSel('秒２桁'));
+    const sec1Node = app.querySelector(nodeSel('秒１桁'));
 
     const setNodeVisible = (node, visible) => {
         if (!node) return;
-        node.style.display = visible ? '' : 'none';
+        if (visible) {
+            // エディタで非表示のノード(分３桁)はプレイヤーが !important で隠しているので外す
+            ['display', 'visibility', 'opacity', 'animation'].forEach(prop => node.style.removeProperty(prop));
+            node.removeAttribute('display');
+            node.classList.remove('is-invisible');
+        } else {
+            node.style.display = 'none';
+        }
         node.setAttribute('visibility', visible ? 'visible' : 'hidden');
     };
 
@@ -88,12 +106,14 @@ function applyTimerCustom(rendarableObject) {
         }
     };
 
-    // keyExp からの画像指定を取得 (全角・半角両対応)
-    const min3Custom = rendarableObject['分３桁'] || rendarableObject['分3桁'];
-    const min2Custom = rendarableObject['分２桁'] || rendarableObject['分2桁'];
-    const min1Custom = rendarableObject['分１桁'] || rendarableObject['分1桁'];
-    const sec2Custom = rendarableObject['秒２桁'] || rendarableObject['秒2桁'];
-    const sec1Custom = rendarableObject['秒１桁'] || rendarableObject['秒1桁'];
+    // 分秒の各桁は毎回届く「時刻」から求める。
+    // 桁ごとの画像キー(分１桁 など)は値が変わった時しか届かないことがあり、
+    // 古い値が残ると HIDE→ON で 0:00 から桁が変わるまで表示がずれるため使わない。
+    const min3Custom = '';
+    const min2Custom = '';
+    const min1Custom = '';
+    const sec2Custom = '';
+    const sec1Custom = '';
     const colonCustom = rendarableObject['セミコロン'] || 'img/Time_10.png';
 
     // コロンと秒は常に表示
@@ -143,6 +163,9 @@ function applyTimerCustom(rendarableObject) {
  */
 window.showTelop = function (rendarableObject) {
     if (rendarableObject !== undefined) {
+        // Hub が window.updateTelop を差し替えている場合でも、表示時に描く値を必ず最新にする
+        // (古い _currentTimerData のまま描くと HIDE→ON で 0:00 に戻ってしまう)
+        window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
         window.updateTelop(rendarableObject);
     }
 
@@ -182,7 +205,7 @@ window.showTelop = function (rendarableObject) {
 /**
  * テロップの内容を更新する関数 (毎秒のカウントアップを高速・低負荷で反映)
  */
-window.updateTelop = function (rendarableObject) {
+function timerUpdateTelop(rendarableObject) {
     if (!rendarableObject) return;
     window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
 
@@ -196,7 +219,32 @@ window.updateTelop = function (rendarableObject) {
 
     // Direct, zero-flicker SVG attribute update for every tick
     applyTimerCustom(window._currentTimerData);
-};
+}
+
+// TelopHub は window.updateTelop を自前の汎用処理に差し替え、ON 時は showTelop を引数なしで呼ぶ。
+// そのままだと _currentTimerData が古いまま(0:00・前半)で描かれ、以後は値の変わった桁しか描き直されない。
+// 差し替えられても受け取った値を必ず記録し、汎用処理のあとに分秒・前後半を描き直す。
+(function () {
+    let hubUpdateTelop = null;
+    const wrappedUpdateTelop = function (rendarableObject) {
+        if (rendarableObject) {
+            window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
+        }
+        const result = hubUpdateTelop.apply(window, arguments);
+        const redraw = () => { if (window.telopApp) applyTimerCustom(window._currentTimerData); };
+        if (result && typeof result.then === 'function') {
+            result.then(redraw, redraw);
+        } else {
+            redraw();
+        }
+        return result;
+    };
+    Object.defineProperty(window, 'updateTelop', {
+        configurable: true,
+        get: function () { return hubUpdateTelop ? wrappedUpdateTelop : timerUpdateTelop; },
+        set: function (fn) { hubUpdateTelop = (fn === wrappedUpdateTelop || fn === timerUpdateTelop) ? null : fn; }
+    });
+})();
 
 /**
  * テロップを非表示にする関数

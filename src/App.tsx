@@ -7,6 +7,7 @@ import PlayerRegistry from './components/PlayerRegistry';
 import LineupEditor from './components/LineupEditor';
 import TeamSettings from './components/TeamSettings';
 import GlobalTimerManager from './components/GlobalTimerManager';
+import DataManager from './components/DataManager';
 
 const PROJECT_NAME = "Telops/soccer";
 
@@ -26,6 +27,7 @@ export default function App() {
                                 <NavLink to="/players" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Player Registry</NavLink>
                                 <NavLink to="/lineup" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Lineups</NavLink>
                                 <NavLink to="/teams" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Team Settings</NavLink>
+                                <NavLink to="/data" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Data</NavLink>
                             </div>
                         </div>
                         <ConnectionBadge />
@@ -36,6 +38,7 @@ export default function App() {
                             <Route path="/players" element={<PlayerRegistry />} />
                             <Route path="/lineup" element={<LineupEditor />} />
                             <Route path="/teams" element={<TeamSettings />} />
+                            <Route path="/data" element={<DataManager />} />
                             <Route path="*" element={<CGOperator />} />
                         </Routes>
                     </main>

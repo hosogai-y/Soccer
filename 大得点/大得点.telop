@@ -397,7 +397,8 @@
             "color": "#000000",
             "thickness": 2,
             "lineJoin": "miter",
-            "miterLimit": 10
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRectL"
           }
         ],
         "cornerRadius": 0
@@ -534,7 +535,8 @@
             "color": "#000000",
             "thickness": 2,
             "lineJoin": "miter",
-            "miterLimit": 10
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRectR"
           }
         ],
         "cornerRadius": 0

@@ -3,6 +3,8 @@
   "右チーム得点": "11",
   "左チーム名": "札幌大谷",
   "右チーム名": "札幌大谷",
+  "ColorRectL": "#bd39fb",
+  "ColorRectR": "#bd39fb",
   "LeftTeamColor": "#bd39fb",
   "RigtTeamColor": "#bd39fb"
 }

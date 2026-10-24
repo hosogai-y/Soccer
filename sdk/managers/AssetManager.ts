@@ -1,5 +1,14 @@
 import { TelopHubSDK } from '../TelopHubClient';
 
+export interface GcAssetsResult {
+    project: string;
+    /** Unused files, as paths under assets/ (e.g. face/7_a.jpg) */
+    unused: string[];
+    /** Files actually deleted (empty on a dry run) */
+    deleted: string[];
+    error?: string;
+}
+
 export class AssetManager {
     private client: TelopHubSDK;
 
@@ -95,10 +104,28 @@ export class AssetManager {
         });
     }
 
-    public gcAssets(activeUrls: string[]) {
-        if (this.client.isConnected()) {
-            console.log(`[SDK] 🧹 Requesting asset garbage collection for ${activeUrls.length} active URLs`);
-            this.client.actionDispatcher.sendAction('project:gc-assets', { activeUrls });
-        }
+    /**
+     * Remove assets under this project's assets/ folder that none of activeUrls refer to.
+     * With { dryRun: true } nothing is deleted; the result just lists what would be.
+     * Resolves with the host's result, or null when not connected / no answer within timeoutMs.
+     */
+    public gcAssets(activeUrls: string[], options: { dryRun?: boolean; timeoutMs?: number } = {}): Promise<GcAssetsResult | null> {
+        if (!this.client.isConnected()) return Promise.resolve(null);
+        const projName = this.client.currentProject || 'default';
+        // Same folder name as uploadAsset uses: <root>/<project>/assets
+        const project = projName.replace(/^Telops\//, '');
+        const requestId = `gc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        console.log(`[SDK] 🧹 Requesting asset garbage collection for ${project} (${activeUrls.length} active URLs${options.dryRun ? ', dry run' : ''})`);
+        return new Promise(resolve => {
+            let off: () => void = () => {};
+            const timer = setTimeout(() => { off(); resolve(null); }, options.timeoutMs ?? 10000);
+            off = this.client.actionDispatcher.onAction('project:gc-assets-result', (data: any) => {
+                if (!data || data.requestId !== requestId) return;
+                clearTimeout(timer);
+                off();
+                resolve({ project: data.project, unused: data.unused || [], deleted: data.deleted || [], error: data.error });
+            });
+            this.client.actionDispatcher.sendAction('project:gc-assets', { project, activeUrls, dryRun: !!options.dryRun, requestId });
+        });
     }
 }

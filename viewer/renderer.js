@@ -887,6 +887,58 @@ function getValueByPath(obj, path) {
 let _rdv_lastInputDoc = null;
 let _rdv_lastOutputDoc = null;
 let _rdv_lastKeyexpSummary = "";
+/**
+ * The text a condition on `targetKeyexp` compares against, or undefined when the key resolves to nothing.
+ * Lookup order: external values, the node itself, text nodes in the same telop, then text nodes anywhere.
+ */
+function resolveConditionText(targetKeyexp, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node) {
+    let textValue = undefined;
+    // 1. External key values
+    if (externalKeyValues) {
+        if (targetKeyexp) {
+            const externalVal = getValueByPath(externalKeyValues, targetKeyexp);
+            if (externalVal !== undefined && externalVal !== null) {
+                textValue = String(externalVal).trim();
+            }
+        }
+        else if (node && node.keyexp) {
+            const externalVal = getValueByPath(externalKeyValues, node.keyexp);
+            if (externalVal !== undefined && externalVal !== null) {
+                textValue = String(externalVal).trim();
+            }
+        }
+    }
+    // 2. Self node context resolution (priority over remote map when rule targets this node)
+    // If targetKeyexp is empty, or matches node.keyexp, node.name, "this", "self"
+    if (textValue === undefined && node) {
+        const isSelf = !targetKeyexp
+            || targetKeyexp === node.keyexp
+            || targetKeyexp === node.name
+            || targetKeyexp.toLowerCase() === "this"
+            || targetKeyexp.toLowerCase() === "self";
+        if (isSelf) {
+            if (node.type === "text" && node.text !== undefined && node.text !== null && String(node.text).trim() !== "") {
+                textValue = String(node.text).trim();
+            }
+            else if (node.keyexp) {
+                textValue = String(node.keyexp).trim();
+            }
+        }
+    }
+    // 3. Telop scope text node mappings
+    if (textValue === undefined && telopId && telopToKeyexpMap[telopId] && targetKeyexp) {
+        if (telopToKeyexpMap[telopId][targetKeyexp] !== undefined) {
+            textValue = String(telopToKeyexpMap[telopId][targetKeyexp] ?? "").trim();
+        }
+    }
+    // 4. Global text node mappings
+    if (textValue === undefined && globalKeyexpMap && targetKeyexp) {
+        if (globalKeyexpMap[targetKeyexp] !== undefined) {
+            textValue = String(globalKeyexpMap[targetKeyexp] ?? "").trim();
+        }
+    }
+    return textValue;
+}
 function evaluateConditionLogic(condition, telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node) {
     if (condition.useExpression && condition.expression) {
         try {
@@ -919,52 +971,7 @@ function evaluateConditionLogic(condition, telopId, telopToKeyexpMap, externalKe
         }
     }
     else {
-        const targetKeyexp = (condition.targetKeyexp || "").trim();
-        let textValue = undefined;
-        // 1. External key values
-        if (externalKeyValues) {
-            if (targetKeyexp) {
-                const externalVal = getValueByPath(externalKeyValues, targetKeyexp);
-                if (externalVal !== undefined && externalVal !== null) {
-                    textValue = String(externalVal).trim();
-                }
-            }
-            else if (node && node.keyexp) {
-                const externalVal = getValueByPath(externalKeyValues, node.keyexp);
-                if (externalVal !== undefined && externalVal !== null) {
-                    textValue = String(externalVal).trim();
-                }
-            }
-        }
-        // 2. Self node context resolution (priority over remote map when rule targets this node)
-        // If targetKeyexp is empty, or matches node.keyexp, node.name, "this", "self"
-        if (textValue === undefined && node) {
-            const isSelf = !targetKeyexp
-                || targetKeyexp === node.keyexp
-                || targetKeyexp === node.name
-                || targetKeyexp.toLowerCase() === "this"
-                || targetKeyexp.toLowerCase() === "self";
-            if (isSelf) {
-                if (node.type === "text" && node.text !== undefined && node.text !== null && String(node.text).trim() !== "") {
-                    textValue = String(node.text).trim();
-                }
-                else if (node.keyexp) {
-                    textValue = String(node.keyexp).trim();
-                }
-            }
-        }
-        // 3. Telop scope text node mappings
-        if (textValue === undefined && telopId && telopToKeyexpMap[telopId] && targetKeyexp) {
-            if (telopToKeyexpMap[telopId][targetKeyexp] !== undefined) {
-                textValue = String(telopToKeyexpMap[telopId][targetKeyexp] ?? "").trim();
-            }
-        }
-        // 4. Global text node mappings
-        if (textValue === undefined && globalKeyexpMap && targetKeyexp) {
-            if (globalKeyexpMap[targetKeyexp] !== undefined) {
-                textValue = String(globalKeyexpMap[targetKeyexp] ?? "").trim();
-            }
-        }
+        const textValue = resolveConditionText((condition.targetKeyexp || "").trim(), telopId, telopToKeyexpMap, externalKeyValues, globalKeyexpMap, node);
         const resolvedText = textValue ?? "";
         const compVal = String(condition.value ?? "").trim();
         const matchVal = (v) => {
@@ -1101,12 +1108,8 @@ function evaluateAppearanceColorRules(app, telopId, telopToKeyexpMap, externalKe
     }
     return currentApp;
 }
-function resolveDynamicVisibility(doc, externalKeyValues) {
-    // 0. Immediate short-circuit: If externalKeyValues is not passed and doc reference has not changed,
-    // nothing inside has changed (vital for 60fps pan/zoom performance in editor).
-    if (!externalKeyValues && doc === _rdv_lastInputDoc && _rdv_lastOutputDoc !== null) {
-        return _rdv_lastOutputDoc;
-    }
+/** keyexp / name -> text content of every text node, per telop and globally */
+function collectKeyexpMaps(doc) {
     let currentKeyexpSummary = "";
     const telopToKeyexpMap = {};
     const globalKeyexpMap = {};
@@ -1159,6 +1162,31 @@ function resolveDynamicVisibility(doc, externalKeyValues) {
             }
         }
     }
+    return { telopToKeyexpMap, globalKeyexpMap, getTelopId, summary: currentKeyexpSummary };
+}
+/**
+ * Editor diagnostics: how `condition` evaluates for `nodeId` in an (already repeat-expanded) doc.
+ * Uses the same lookup as resolveDynamicVisibility (without external values).
+ * `selfAware: false` matches image-switch evaluation, which does not resolve keys against the node itself.
+ */
+function traceCondition(doc, nodeId, condition, selfAware = true) {
+    const { telopToKeyexpMap, globalKeyexpMap, getTelopId } = collectKeyexpMaps(doc);
+    const node = selfAware ? doc.nodesById[nodeId] : undefined;
+    const telopId = getTelopId(nodeId);
+    const result = evaluateConditionLogic(condition, telopId, telopToKeyexpMap, undefined, globalKeyexpMap, node);
+    if (condition.useExpression && condition.expression) {
+        return { key: String(condition.expression), value: undefined, result };
+    }
+    const key = (condition.targetKeyexp || "").trim();
+    return { key, value: resolveConditionText(key, telopId, telopToKeyexpMap, undefined, globalKeyexpMap, node), result };
+}
+function resolveDynamicVisibility(doc, externalKeyValues) {
+    // 0. Immediate short-circuit: If externalKeyValues is not passed and doc reference has not changed,
+    // nothing inside has changed (vital for 60fps pan/zoom performance in editor).
+    if (!externalKeyValues && doc === _rdv_lastInputDoc && _rdv_lastOutputDoc !== null) {
+        return _rdv_lastOutputDoc;
+    }
+    const { telopToKeyexpMap, globalKeyexpMap, getTelopId, summary: currentKeyexpSummary } = collectKeyexpMaps(doc);
     // 2nd pass: Resolve visibility, image reference, and color condition rules
     const visibilityOverrides = {};
     const assetOverrides = {};
@@ -1380,40 +1408,66 @@ function resolveDynamicVisibility(doc, externalKeyValues) {
  *
  * A group with `autoLayout.enabled && repeat.enabled` holds exactly one child (the template).
  * At render / export time the template subtree is deep-copied `repeat.count` times:
- * - node ids become `{originalId}~{i}` (1-based, deterministic)
- * - every string value containing `{i}` gets the row number, except `id` / `parentId` / `children` / `assetId`
+ * - node ids become `{originalId}~{n}` (1-based, deterministic)
+ * - every string value containing `{var}` gets the row number, except `id` / `parentId` / `children` / `assetId`.
+ *   `var` is the group's `repeat.var` (default "i")
+ *
+ * Repeat groups can be nested (a list of lists). Each group's variable works anywhere inside its template,
+ * including nested templates, so `score{player}_{hole}` works regardless of depth.
+ * Ids get one `~{n}` per level, outermost first: `n1_cell~2~3` = outer row 2, inner row 3.
  *
  * The saved doc always keeps the template form; only the rendered doc is expanded.
  * This file is dependency-free (type imports only) because scripts/sync-logic.cjs embeds it into the player.
  */
 const REPEAT_ID_SEPARATOR = "~";
-const REPEAT_INDEX_TOKEN = "{i}";
+const DEFAULT_REPEAT_VAR = "i";
+const REPEAT_VAR_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const REPEAT_VAR_TOKEN = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 const NON_SUBSTITUTED_KEYS = new Set(["id", "parentId", "children", "assetId"]);
-const REPEAT_ID_SUFFIX = /~\d+$/;
+const REPEAT_ID_SUFFIX = /(~\d+)+$/;
 function isRepeatGroup(node) {
     return !!node && node.type === "group" && !!node.autoLayout?.enabled && !!node.repeat?.enabled;
 }
-/** `n1_card~12` -> `n1_card`. Ids without a repeat suffix are returned unchanged. */
+function isValidRepeatVar(name) {
+    return typeof name === "string" && REPEAT_VAR_NAME.test(name);
+}
+/** The group's row-number variable name, e.g. "i" or "player" */
+function getRepeatVar(group) {
+    const name = group?.repeat?.var;
+    return isValidRepeatVar(name) ? name : DEFAULT_REPEAT_VAR;
+}
+/** `n1_card~12` / `n1_cell~2~3` -> template id. Ids without a repeat suffix are returned unchanged. */
 function toTemplateNodeId(nodeId) {
     return nodeId.replace(REPEAT_ID_SUFFIX, "");
 }
-/** Row number encoded in an expanded id, or null for template / ordinary ids. */
-function getRepeatRowIndex(nodeId) {
+/** Row numbers encoded in an expanded id, outermost first (`n1_cell~2~3` -> [2, 3]), or null for template / ordinary ids. */
+function getRepeatRowIndices(nodeId) {
     const m = REPEAT_ID_SUFFIX.exec(nodeId);
-    return m ? Number(m[0].slice(REPEAT_ID_SEPARATOR.length)) : null;
+    return m ? m[0].split(REPEAT_ID_SEPARATOR).slice(1).map(Number) : null;
 }
-/** Nearest repeat group above the node (the node is then part of a repeat template), or null. */
-function findRepeatAncestor(doc, nodeId) {
+/** Innermost row number encoded in an expanded id, or null for template / ordinary ids. */
+function getRepeatRowIndex(nodeId) {
+    const rows = getRepeatRowIndices(nodeId);
+    return rows ? rows[rows.length - 1] : null;
+}
+/** Repeat groups above the node, outermost first (the node is part of each one's template). Empty when none. */
+function findRepeatAncestors(doc, nodeId) {
+    const out = [];
     let parentId = doc.nodesById[nodeId]?.parentId;
     while (parentId) {
         const parent = doc.nodesById[parentId];
         if (!parent)
-            return null;
+            break;
         if (isRepeatGroup(parent))
-            return parent;
+            out.unshift(parent);
         parentId = parent.parentId;
     }
-    return null;
+    return out;
+}
+/** Nearest repeat group above the node (the node is then part of a repeat template), or null. */
+function findRepeatAncestor(doc, nodeId) {
+    const ancestors = findRepeatAncestors(doc, nodeId);
+    return ancestors.length > 0 ? ancestors[ancestors.length - 1] : null;
 }
 function collectSubtree(doc, rootId, out) {
     const node = doc.nodesById[rootId];
@@ -1429,36 +1483,39 @@ function analyzeRepeatGroup(doc, group) {
     const rawCount = Math.floor(Number(group.repeat?.count));
     const count = isFinite(rawCount) && rawCount > 0 ? rawCount : 0;
     const children = Array.isArray(group.children) ? group.children : [];
+    const ancestors = findRepeatAncestors(doc, group.id);
+    const depth = ancestors.length;
+    const varName = getRepeatVar(group);
+    const rawVar = group.repeat?.var;
+    if (rawVar !== undefined && rawVar !== "" && !isValidRepeatVar(rawVar)) {
+        warnings.push(`Invalid variable name "${rawVar}" (letters, digits and _ only, not starting with a digit). Using {${DEFAULT_REPEAT_VAR}}`);
+    }
+    const shadowed = ancestors.find(a => getRepeatVar(a) === varName);
+    if (shadowed) {
+        warnings.push(`Variable {${varName}} is also used by the outer repeat (${shadowed.name || shadowed.id}). Inside this template it means this group's row`);
+    }
     if (children.length === 0) {
-        return { templateId: null, count, expandable: false, warnings: ["Repeat group has no child (template)"] };
+        return { templateId: null, count, depth, varName, expandable: false, warnings: [...warnings, "Repeat group has no child (template)"] };
     }
     if (children.length > 1) {
         warnings.push(`Repeat group has ${children.length} children. Only the first one is used as the template`);
     }
-    const templateId = children[0];
-    if (findRepeatAncestor(doc, group.id)) {
-        warnings.push("Nested repeat is not supported (not expanded)");
-        return { templateId, count, expandable: false, warnings };
-    }
-    const subtree = [];
-    collectSubtree(doc, templateId, subtree);
-    if (subtree.some(id => isRepeatGroup(doc.nodesById[id]))) {
-        warnings.push("The template contains a repeat group. Nested repeat is not supported (not expanded)");
-        return { templateId, count, expandable: false, warnings };
-    }
-    return { templateId, count, expandable: true, warnings };
+    return { templateId: children[0], count, depth, varName, expandable: true, warnings };
 }
-function substituteRowIndex(value, rowText) {
+/** Replaces `{name}` with vars[name]; unknown names are left as-is */
+function substituteRowVars(value, vars) {
     if (typeof value === "string") {
-        return value.includes(REPEAT_INDEX_TOKEN) ? value.split(REPEAT_INDEX_TOKEN).join(rowText) : value;
+        if (!value.includes("{"))
+            return value;
+        return value.replace(REPEAT_VAR_TOKEN, (token, name) => Object.prototype.hasOwnProperty.call(vars, name) ? vars[name] : token);
     }
     if (Array.isArray(value)) {
-        return value.map(v => substituteRowIndex(v, rowText));
+        return value.map(v => substituteRowVars(v, vars));
     }
     if (value && typeof value === "object") {
         const out = {};
         for (const key of Object.keys(value)) {
-            out[key] = NON_SUBSTITUTED_KEYS.has(key) ? value[key] : substituteRowIndex(value[key], rowText);
+            out[key] = NON_SUBSTITUTED_KEYS.has(key) ? value[key] : substituteRowVars(value[key], vars);
         }
         return out;
     }
@@ -1478,46 +1535,69 @@ function expandRepeats(doc, options = {}) {
         console.warn(`[repeat] ${groupId}: ${message}`);
     });
     const nodesById = { ...doc.nodesById };
+    const infoById = new Map();
     for (const group of groups) {
         const info = analyzeRepeatGroup(doc, group);
         info.warnings.forEach(message => warn(group.id, message));
-        if (!info.expandable || !info.templateId)
+        infoById.set(group.id, info);
+    }
+    const rowCountOf = (info) => options.maxCount !== undefined ? Math.min(info.count, Math.max(0, options.maxCount)) : info.count;
+    // `rows` is the row number per enclosing repeat level, outermost first.
+    // Only the editor's all-row-1 path keeps the template's own ids.
+    const idFor = (id, rows) => rows.length === 0 || (options.keepFirstRowIds === true && rows.every(r => r === 1))
+        ? id
+        : `${id}${REPEAT_ID_SEPARATOR}${rows.join(REPEAT_ID_SEPARATOR)}`;
+    // Children of a (copied) node: a repeat group gets one template copy per row, others are copied 1:1
+    const expandChildren = (source, newId, rows, vars) => {
+        const info = infoById.get(source.id);
+        if (info && info.expandable && info.templateId) {
+            const out = [];
+            const count = rowCountOf(info);
+            for (let r = 1; r <= count; r++) {
+                out.push(copySubtree(info.templateId, newId, [...rows, r], { ...vars, [info.varName]: String(r) }));
+            }
+            return out;
+        }
+        return source.children
+            .filter((childId) => doc.nodesById[childId])
+            .map((childId) => copySubtree(childId, newId, rows, vars));
+    };
+    // Copies the source node `id` (and its subtree) for the given row path; returns the copy's id
+    const copySubtree = (id, parentId, rows, vars) => {
+        const source = doc.nodesById[id];
+        const copy = substituteRowVars(source, vars);
+        copy.id = idFor(id, rows);
+        copy.parentId = parentId;
+        if (Array.isArray(source.children)) {
+            copy.children = expandChildren(source, copy.id, rows, vars);
+        }
+        nodesById[copy.id] = copy;
+        return copy.id;
+    };
+    // Start from the outermost repeat groups; nested ones are expanded while their outer template is copied
+    for (const group of groups) {
+        const info = infoById.get(group.id);
+        if (info.depth !== 0 || !info.expandable || !info.templateId)
             continue;
-        const rows = options.maxCount !== undefined ? Math.min(info.count, Math.max(0, options.maxCount)) : info.count;
+        // The template subtree is replaced by its copies (the editor's all-row-1 path rewrites it with the same ids)
         const subtree = [];
         collectSubtree(doc, info.templateId, subtree);
-        // The template itself is replaced by its copies (unless row 1 keeps its ids, which overwrites it below)
         subtree.forEach(id => { delete nodesById[id]; });
-        const expandedChildren = [];
-        for (let i = 1; i <= rows; i++) {
-            const keepIds = options.keepFirstRowIds === true && i === 1;
-            const idFor = (id) => keepIds ? id : `${id}${REPEAT_ID_SEPARATOR}${i}`;
-            const rowText = String(i);
-            for (const id of subtree) {
-                const source = doc.nodesById[id];
-                const copy = substituteRowIndex(source, rowText);
-                copy.id = idFor(id);
-                copy.parentId = id === info.templateId ? group.id : idFor(source.parentId);
-                if (Array.isArray(source.children)) {
-                    copy.children = source.children.map(idFor);
-                }
-                nodesById[copy.id] = copy;
-            }
-            expandedChildren.push(idFor(info.templateId));
-        }
-        nodesById[group.id] = { ...group, children: expandedChildren };
+        nodesById[group.id] = { ...group, children: expandChildren(group, group.id, [], {}) };
     }
     return { ...doc, nodesById };
 }
 
 
     // Text Measurement Utility (Standalone Canvas-based)
+    const fontSpecOf = (style) => `${style.fontStyle || 'normal'} ${style.fontWeight || 'normal'} ${style.fontSize || 24}px "${style.fontFamily || 'Arial'}"`;
+
     const TextMeasurer = {
         canvas: document.createElement('canvas'),
         measure(text, style) {
             const ctx = this.canvas.getContext('2d');
             const fontSize = style.fontSize || 24;
-            ctx.font = `${style.fontStyle || 'normal'} ${style.fontWeight || 'normal'} ${fontSize}px "${style.fontFamily || 'Arial'}"`;
+            ctx.font = fontSpecOf(style);
             const metrics = ctx.measureText(text);
             let width = metrics.width;
             if (style.letterSpacing && text.length > 0) {
@@ -1526,6 +1606,85 @@ function expandRepeats(doc, options = {}) {
             return { width, height: fontSize * 1.25 };
         }
     };
+
+    // Canvas の measureText は読み込み前の Web フォントを待たず、代わりのフォントで測ってしまう。
+    // @font-face は文字を描くまで読み込まれないので、fitMode の縮小率を測る前にテキストが使うフォントを読み込んでおく。
+    // 読み込むものがなければ null を返す（呼び出し側は同期のまま進める）。
+    const FONT_LOAD_TIMEOUT_MS = 3000;
+    window.ensureFontsLoaded = function (doc) {
+        if (typeof document === 'undefined' || !document.fonts || !doc || !doc.nodesById) return null;
+        const specs = new Set();
+        Object.keys(doc.nodesById).forEach(id => {
+            const n = doc.nodesById[id];
+            if (n && n.type === 'text') specs.add(fontSpecOf(n.style || {}));
+        });
+        const pending = [];
+        specs.forEach(spec => {
+            try {
+                if (!document.fonts.check(spec)) pending.push(document.fonts.load(spec).catch(() => {}));
+            } catch (e) { /* 不正なフォント指定は無視 */ }
+        });
+        if (pending.length === 0) return null;
+        return Promise.race([
+            Promise.all(pending),
+            new Promise(resolve => setTimeout(resolve, FONT_LOAD_TIMEOUT_MS))
+        ]).then(() => {});
+    };
+
+    // テキストの縮小率と配置（wrapper の transform）を計算する
+    function layoutTextFit(node) {
+        const fitMode = node.fitMode || "none";
+        const targetWidth = node.width || 0;
+        const targetHeight = node.height || 0;
+        const pad = node.padding || 0;
+        const availW = Math.max(0, (targetWidth || 0) - pad * 2);
+        const availH = Math.max(0, (targetHeight || 0) - pad * 2);
+
+        const { width: contentW, height: contentH } = TextMeasurer.measure(node.text || "", node.style || {});
+
+        let sx = 1, sy = 1;
+        if (fitMode === 'shrink_x' && contentW > availW && availW > 0) sx = availW / contentW;
+        else if (fitMode === 'shrink_font' && contentW > availW && availW > 0) { sx = sy = availW / contentW; }
+        else if (fitMode === 'expand_xy' && availW > 0 && availH > 0) { sx = availW / (contentW || 1); sy = availH / (contentH || 1); }
+        else if (fitMode === 'scale_to_fit' && availW > 0 && availH > 0) { const s = Math.min(availW / (contentW || 1), availH / (contentH || 1)); sx = sy = s; }
+
+        const effH = contentH * sy;
+        const align = node.align || 'left';
+        const vAlign = node.verticalAlign || 'top';
+        const effectivePadX = (targetWidth > 0) ? Math.min(pad, targetWidth / 2) : pad;
+        const effectivePadY = (targetHeight > 0) ? Math.min(pad, targetHeight / 2) : pad;
+
+        let tx = effectivePadX, ty = effectivePadY;
+        if (targetWidth > 0) {
+            if (align === 'center') tx = targetWidth / 2;
+            else if (align === 'right') tx = targetWidth - effectivePadX;
+        }
+        if (targetHeight > 0) {
+            if (vAlign === 'middle') ty = targetHeight / 2 - effH / 2;
+            else if (vAlign === 'bottom') ty = targetHeight - effectivePadY - effH;
+        }
+
+        return { fitMode, contentW, contentH, transform: `translate(${tx}, ${ty}) scale(${sx}, ${sy})` };
+    }
+
+    // それでも測った後にフォントが届いた場合（カスタム JS の updateTelop など）は、縮小率を測り直して transform だけ差し替える。
+    // 要素は作り直さないので、表示中のアニメーションは途切れない。
+    window.refitTextNodes = function () {
+        const doc = window.telopDoc;
+        if (!doc || !doc.nodesById || !window.nodeElementMap) return;
+        window.nodeElementMap.forEach((el, id) => {
+            const node = doc.nodesById[id];
+            if (!node || node.type !== 'text' || (node.fitMode || 'none') === 'none') return;
+            if (!el || !el.isConnected) return;
+            const wrapper = el.querySelector('.text-fit-wrapper');
+            if (!wrapper) return;
+            const { transform } = layoutTextFit(node);
+            if (wrapper.getAttribute('transform') !== transform) wrapper.setAttribute('transform', transform);
+        });
+    };
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.addEventListener) {
+        document.fonts.addEventListener('loadingdone', () => window.refitTextNodes());
+    }
 
     // 9-slice SVG Image Generator for background
     function createNineSliceImage(src, width, height, ns, assetWidth, assetHeight) {
@@ -1577,7 +1736,12 @@ function expandRepeats(doc, options = {}) {
     window.resolveDynamicVisibility = resolveDynamicVisibility;
     window.initPlayer = async function (containerId, projectData, assetCache) {
         window.containerId = containerId;
-        
+
+        // 縮小率を正しく測るため、最初の描画の前にフォントを読み込む。
+        // createNode などのグローバルを公開する前に待つので、待っている間に Hub の updateTelop が動き出すことはない。
+        const fontsLoading = window.ensureFontsLoaded(projectData);
+        if (fontsLoading) await fontsLoading;
+
         // Fallback for asset mapping (backwards compatibility for custom JS)
         if (!projectData.assets && window.assetMapping) {
             projectData.assets = window.assetMapping;
@@ -1645,7 +1809,7 @@ function expandRepeats(doc, options = {}) {
                 }
                 if (node.domId) content.setAttribute("id", node.domId);
                 if (node.domClass) {
-                    const classes = node.domClass.trim().split(/s+/).filter(Boolean);
+                    const classes = node.domClass.trim().split(/\s+/).filter(Boolean);
                     if (classes.length) content.classList.add(...classes);
                 }
             } else {
@@ -1654,7 +1818,7 @@ function expandRepeats(doc, options = {}) {
                 }
                 if (node.domId) root.setAttribute("id", node.domId);
                 if (node.domClass) {
-                    const classes = node.domClass.trim().split(/s+/).filter(Boolean);
+                    const classes = node.domClass.trim().split(/\s+/).filter(Boolean);
                     if (classes.length) root.classList.add(...classes);
                 }
             }
@@ -1705,41 +1869,11 @@ function expandRepeats(doc, options = {}) {
 
             if (node.type === 'text') {
                 const wrapper = createSVGElement("g");
+                wrapper.classList.add("text-fit-wrapper");
                 content.appendChild(wrapper);
 
-                const fitMode = node.fitMode || "none";
-                const targetWidth = node.width || 0;
-                const targetHeight = node.height || 0;
-                const pad = node.padding || 0;
-                const availW = Math.max(0, (targetWidth || 0) - pad * 2);
-                const availH = Math.max(0, (targetHeight || 0) - pad * 2);
-
-                const { width: contentW, height: contentH } = TextMeasurer.measure(node.text || "", node.style || {});
-
-                let sx = 1, sy = 1;
-                if (fitMode === 'shrink_x' && contentW > availW && availW > 0) sx = availW / contentW;
-                else if (fitMode === 'shrink_font' && contentW > availW && availW > 0) { sx = sy = availW / contentW; }
-                else if (fitMode === 'expand_xy' && availW > 0 && availH > 0) { sx = availW / (contentW || 1); sy = availH / (contentH || 1); }
-                else if (fitMode === 'scale_to_fit' && availW > 0 && availH > 0) { const s = Math.min(availW / (contentW || 1), availH / (contentH || 1)); sx = sy = s; }
-
-                const effW = contentW * sx;
-                const effH = contentH * sy;
-                const align = node.align || 'left';
-                const vAlign = node.verticalAlign || 'top';
-                const effectivePadX = (targetWidth > 0) ? Math.min(pad, targetWidth / 2) : pad;
-                const effectivePadY = (targetHeight > 0) ? Math.min(pad, targetHeight / 2) : pad;
-
-                let tx = effectivePadX, ty = effectivePadY;
-                if (targetWidth > 0) {
-                    if (align === 'center') tx = targetWidth / 2;
-                    else if (align === 'right') tx = targetWidth - effectivePadX;
-                }
-                if (targetHeight > 0) {
-                    if (vAlign === 'middle') ty = targetHeight / 2 - effH / 2;
-                    else if (vAlign === 'bottom') ty = targetHeight - effectivePadY - effH;
-                }
-
-                wrapper.setAttribute("transform", `translate(${tx}, ${ty}) scale(${sx}, ${sy})`);
+                const { fitMode, contentW, contentH, transform } = layoutTextFit(node);
+                wrapper.setAttribute("transform", transform);
 
                 const apps = (node.style?.appearances || []).filter(a => a.enabled);
                 

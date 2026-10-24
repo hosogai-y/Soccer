@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useSyncedState } from '@sdk/TelopHubSDK';
-import { matchPlayerPhoto, getPhotosBySchool, normalizePhotoUrl, fetchPhotoList, PhotoItem } from '../utils/photoMatcher';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
+import { matchPlayerPhoto, toPhotoFile, faceAssetPath, toPhotoAssetUrl, encodePhotoUrl, isImageFile, PhotoFile } from '../utils/photoMatcher';
 
 export interface Pro2CommentItem {
     text: string;
@@ -44,13 +44,11 @@ export default function PlayerRegistry() {
     const [globalPhotoEnabled, setGlobalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
-    const [photos, setPhotos] = useState<PhotoItem[]>([]);
-
-    useEffect(() => {
-        fetchPhotoList().then(list => {
-            if (list && list.length > 0) setPhotos(list);
-        });
-    }, []);
+    const { uploadAsset, gcAssets, isConnected } = useTelopHub();
+    const bulkFilesRef = useRef<HTMLInputElement | null>(null);
+    const bulkFolderRef = useRef<HTMLInputElement | null>(null);
+    const formPhotoRef = useRef<HTMLInputElement | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     
     // Currently selected school filter in player list
     const [selectedSchool, setSelectedSchool] = useState<string>('札幌創成');
@@ -92,36 +90,94 @@ export default function PlayerRegistry() {
 
     const activeSchools = Array.from(new Set([...(schools || DEFAULT_SCHOOLS)]));
 
-    // Scan Photo folder and match with players
-    const handleAutoMatchPhotos = async () => {
-        setMatchingStatus('Photoフォルダをスキャン中...');
-        try {
-            const list = await fetchPhotoList();
-            if (!list || list.length === 0) {
-                setMatchingStatus('Photoフォルダ内に写真が見つかりませんでした。');
-                return;
-            }
-            setPhotos(list);
-            
-            let matchedCount = 0;
-            setPlayers(prev => (prev || []).map(p => {
-                const matched = matchPlayerPhoto(p, list, p.schoolName || selectedSchool);
-                if (matched) {
-                    matchedCount++;
-                    return {
-                        ...p,
-                        photoUrl: `/Photo/${matched.school}/${matched.filename}`,
-                        photoEnabled: p.photoEnabled !== false
-                    };
-                }
-                return p;
-            }));
+    const showStatus = (message: string, clearAfterMs?: number) => {
+        setMatchingStatus(message);
+        if (clearAfterMs) setTimeout(() => setMatchingStatus(''), clearAfterMs);
+    };
 
-            setMatchingStatus(`完了: ${matchedCount}名の顔写真をPhotoフォルダから登録しました！`);
-            setTimeout(() => setMatchingStatus(''), 5000);
-        } catch (e: any) {
-            setMatchingStatus(`スキャンエラー: ${e.message}`);
+    // 選んだ写真を背番号・氏名で選手に割り当て、割り当て先のある写真だけ TelopHub にアップロード
+    const handleBulkPhotoFiles = async (fileList: FileList | null) => {
+        const files = Array.from(fileList || []).filter(f => isImageFile(f.name));
+        if (files.length === 0) {
+            showStatus('画像ファイルが見つかりませんでした。', 5000);
+            return;
         }
+        if (!isConnected) {
+            showStatus('TelopHubに接続されていないため、写真をアップロードできません。', 5000);
+            return;
+        }
+
+        const photoFiles = files.map(f => toPhotoFile(f, selectedSchool));
+        const assignments = new Map<string, PhotoFile>();
+        (players || []).forEach(p => {
+            const matched = matchPlayerPhoto(p, photoFiles, p.schoolName || selectedSchool);
+            if (matched) assignments.set(p.id, matched);
+        });
+        if (assignments.size === 0) {
+            showStatus(`${files.length}枚の写真に合う選手が見つかりませんでした（ファイル名は「背番号 氏名.png」）。`, 8000);
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const toUpload = Array.from(new Set(assignments.values()));
+            const urls = new Map<PhotoFile, string>();
+            for (let i = 0; i < toUpload.length; i++) {
+                const ph = toUpload[i];
+                setMatchingStatus(`写真をアップロード中... (${i + 1}/${toUpload.length})`);
+                urls.set(ph, await uploadAsset(ph.file, faceAssetPath(ph.school, ph.filename)));
+            }
+            setPlayers(prev => (prev || []).map(p => {
+                const ph = assignments.get(p.id);
+                const url = ph && urls.get(ph);
+                return url ? { ...p, photoUrl: url, photoEnabled: p.photoEnabled !== false } : p;
+            }));
+            showStatus(`完了: ${assignments.size}名の顔写真を登録しました！`, 5000);
+        } catch (e: any) {
+            showStatus(`アップロードエラー: ${e.message}`);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // フォームの選手1人分の写真をアップロード
+    const handleFormPhotoFile = async (file: File | undefined, school: string) => {
+        if (!file) return;
+        if (!isConnected) {
+            showStatus('TelopHubに接続されていないため、写真をアップロードできません。', 5000);
+            return;
+        }
+        setIsUploading(true);
+        try {
+            const url = await uploadAsset(file, faceAssetPath(school, file.name.normalize('NFC')));
+            setForm(prev => ({ ...prev, photoUrl: url }));
+        } catch (e: any) {
+            showStatus(`アップロードエラー: ${e.message}`);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // どの選手も使っていない写真を assets/ から削除（先に一覧を見せて確認する）
+    const handleCleanupPhotos = async () => {
+        const activeUrls = Array.from(new Set((players || []).map(p => toPhotoAssetUrl(p.photoUrl)).filter(Boolean)));
+        const preview = await gcAssets(activeUrls, { dryRun: true });
+        if (!preview) {
+            showStatus('TelopHubから応答がないため、整理できませんでした。', 5000);
+            return;
+        }
+        if (preview.error) {
+            showStatus(`整理エラー: ${preview.error}`);
+            return;
+        }
+        if (preview.unused.length === 0) {
+            showStatus('使っていない写真はありません。', 5000);
+            return;
+        }
+        const list = preview.unused.slice(0, 20).join('\n') + (preview.unused.length > 20 ? `\n...ほか${preview.unused.length - 20}枚` : '');
+        if (!confirm(`どの選手も使っていない写真が${preview.unused.length}枚あります。削除しますか？\n\n${list}`)) return;
+        const result = await gcAssets(activeUrls);
+        showStatus(result ? `${result.deleted.length}枚の写真を削除しました。` : 'TelopHubから応答がありませんでした。', 5000);
     };
 
     // Add new school
@@ -204,7 +260,7 @@ export default function PlayerRegistry() {
         const cleanHeight = toHalfWidthNum(form.height || '');
         const cleanWeight = toHalfWidthNum(form.weight || '');
         const targetSchool = form.schoolName || selectedSchool || '札幌創成';
-        const targetPhotoUrl = normalizePhotoUrl(form.photoUrl, targetSchool, photos);
+        const targetPhotoUrl = toPhotoAssetUrl(form.photoUrl);
 
         // 5スロットのコメントを整形
         const rawList = form.pro2List || [];
@@ -384,7 +440,7 @@ export default function PlayerRegistry() {
                 <div>
                     <h2 style={{ margin: 0 }}>⚽ 選手登録 & 高校名・顔写真管理 (Player Registry)</h2>
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#aaa' }}>
-                        Photoフォルダ（高校名別フォルダ）の顔写真と選手の紐付け・ゴール数・イエローカード管理
+                        顔写真のアップロードと選手の紐付け・ゴール数・イエローカード管理
                     </p>
                 </div>
                 
@@ -401,13 +457,51 @@ export default function PlayerRegistry() {
                         </span>
                     </label>
 
-                    {/* Auto-match photos button */}
+                    {/* 写真の一括登録（ファイル名「背番号 氏名.png」で自動割り当て） */}
+                    <input
+                        ref={bulkFilesRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        style={{ display: 'none' }}
+                        onChange={e => { handleBulkPhotoFiles(e.target.files); e.target.value = ''; }}
+                    />
+                    <input
+                        ref={(el) => {
+                            bulkFolderRef.current = el;
+                            if (el) el.setAttribute('webkitdirectory', '');
+                        }}
+                        type="file"
+                        multiple
+                        style={{ display: 'none' }}
+                        onChange={e => { handleBulkPhotoFiles(e.target.files); e.target.value = ''; }}
+                    />
                     <button 
                         className="btn btn-primary" 
-                        onClick={handleAutoMatchPhotos}
+                        onClick={() => bulkFilesRef.current?.click()}
+                        disabled={isUploading}
+                        title={`選んだ写真を「${selectedSchool}」の選手に背番号・氏名で割り当てます`}
                         style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}
                     >
-                        📁 Photoフォルダから自動マッチング
+                        🖼️ 写真をまとめて登録
+                    </button>
+                    <button 
+                        className="btn btn-primary" 
+                        onClick={() => bulkFolderRef.current?.click()}
+                        disabled={isUploading}
+                        title="高校名のフォルダ（またはそれをまとめた親フォルダ）を選ぶと、フォルダ名を高校名として割り当てます"
+                        style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                        📁 フォルダごと登録
+                    </button>
+                    <button 
+                        className="btn btn-secondary" 
+                        onClick={handleCleanupPhotos}
+                        disabled={isUploading}
+                        title="どの選手にも使われていない写真をTelopHubから削除します"
+                        style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                        🧹 使っていない写真を整理
                     </button>
 
                     {/* Add New School Inline Form */}
@@ -604,7 +698,6 @@ export default function PlayerRegistry() {
                         {/* Photo URL & Individual Toggle */}
                         {(() => {
                             const currentSchool = form.schoolName || selectedSchool || '北海';
-                            const schoolPhotos = getPhotosBySchool(photos, currentSchool);
                             return (
                                 <div className="form-group" style={{ background: 'rgba(0,0,0,0.25)', padding: 10, borderRadius: 8, marginBottom: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
                                     <div className="flex-between" style={{ marginBottom: 6 }}>
@@ -620,53 +713,54 @@ export default function PlayerRegistry() {
                                     </div>
                                     
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                        <input
+                                            ref={formPhotoRef}
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={e => { handleFormPhotoFile(e.target.files?.[0], currentSchool); e.target.value = ''; }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            onClick={() => formPhotoRef.current?.click()}
+                                            disabled={isUploading}
+                                            style={{ padding: '4px 10px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                                        >
+                                            {isUploading ? 'アップロード中...' : '📁 画像を選ぶ'}
+                                        </button>
                                         <input 
                                             className="form-input" 
-                                            placeholder="例: /Photo/北海/14 菅野桜抜き.png または 14 菅野桜抜き.png" 
+                                            placeholder="画像を選ぶとURLが入ります（直接入力も可）" 
                                             value={form.photoUrl || ''} 
                                             onChange={e => setForm({...form, photoUrl: e.target.value})} 
                                             onBlur={e => {
                                                 const val = e.target.value.trim();
-                                                if (val) {
-                                                    setForm(prev => ({ ...prev, photoUrl: normalizePhotoUrl(val, currentSchool, photos) }));
-                                                }
+                                                setForm(prev => ({ ...prev, photoUrl: toPhotoAssetUrl(val) }));
                                             }}
                                             style={{ flex: 1, fontSize: '0.8rem' }}
                                         />
                                         {form.photoUrl && (
-                                            <img 
-                                                src={encodeURI(form.photoUrl.trim())} 
-                                                alt="preview" 
-                                                style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 4, background: '#333' }} 
-                                                onError={(e: any) => { e.target.style.display = 'none'; }} 
-                                            />
+                                            <>
+                                                <img 
+                                                    key={form.photoUrl}
+                                                    src={encodePhotoUrl(form.photoUrl)} 
+                                                    alt="preview" 
+                                                    style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 4, background: '#333' }} 
+                                                    onError={(e: any) => { e.target.style.display = 'none'; }} 
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary"
+                                                    onClick={() => setForm(prev => ({ ...prev, photoUrl: '' }))}
+                                                    title="写真を外す"
+                                                    style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </>
                                         )}
                                     </div>
-
-                                    {/* 高校別写真クイック選択ドロップダウン */}
-                                    {schoolPhotos.length > 0 && (
-                                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,202,40,0.08)', padding: '6px 8px', borderRadius: 6, border: '1px solid rgba(255,202,40,0.2)' }}>
-                                            <span style={{ fontSize: '0.75rem', color: '#ffca28', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                                                📁 {currentSchool}の写真から選択:
-                                            </span>
-                                            <select 
-                                                className="form-select" 
-                                                style={{ flex: 1, padding: '2px 6px', fontSize: '0.75rem' }}
-                                                value={form.photoUrl || ''}
-                                                onChange={e => setForm(prev => ({ ...prev, photoUrl: e.target.value }))}
-                                            >
-                                                <option value="">-- {currentSchool}の写真一覧 ({schoolPhotos.length}件) --</option>
-                                                {schoolPhotos.map(ph => {
-                                                    const pathValue = `/Photo/${ph.school}/${ph.filename}`;
-                                                    return (
-                                                        <option key={ph.filename} value={pathValue}>
-                                                            {ph.filename} {ph.number ? `(#${ph.number} ${ph.name})` : ''}
-                                                        </option>
-                                                    );
-                                                })}
-                                            </select>
-                                        </div>
-                                    )}
                                 </div>
                             );
                         })()}
@@ -796,7 +890,7 @@ export default function PlayerRegistry() {
                                         <td>
                                             {p.photoUrl ? (
                                                 <img 
-                                                    src={encodeURI(p.photoUrl.trim())} 
+                                                    src={encodePhotoUrl(p.photoUrl)} 
                                                     alt={p.name} 
                                                     style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%', background: '#222' }} 
                                                     onError={(e: any) => { e.target.style.opacity = '0.3'; }}

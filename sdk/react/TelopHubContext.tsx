@@ -16,7 +16,7 @@ export const TelopHubContext = createContext<TelopHubContextType>({
     targetMachineIds: [],
     isSyncingSnapshot: false,
     uploadAsset: () => Promise.resolve(''),
-    gcAssets: () => {}
+    gcAssets: () => Promise.resolve(null)
 });
 
 export const TelopHubProvider: React.FC<{ 
@@ -247,8 +247,8 @@ export const TelopHubProvider: React.FC<{
     const uploadAsset = useCallback((file: Blob | File, destPath: string) => {
         return sdk ? sdk.uploadAsset(file, destPath) : Promise.resolve('');
     }, [sdk]);
-    const gcAssets = useCallback((activeUrls: string[]) => {
-        if (sdk) sdk.gcAssets(activeUrls);
+    const gcAssets = useCallback((activeUrls: string[], options?: { dryRun?: boolean; timeoutMs?: number }) => {
+        return sdk ? sdk.gcAssets(activeUrls, options) : Promise.resolve(null);
     }, [sdk]);
 
     return (
