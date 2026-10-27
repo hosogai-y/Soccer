@@ -3,6 +3,7 @@ import { useSyncedState, useTelop } from '@sdk/TelopHubSDK';
 import { Player } from './PlayerRegistry';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS, FORMATION_OPTIONS } from './TeamSettings';
 import FormationBoard, { BoardPlate } from './FormationBoard';
+import MatchLog from './MatchLog';
 import {
     FORMATION_SLOTS, SUB_SLOT_COUNT, TEAM_LINEUPS_KEY, TeamLineup,
     emptyLineup, migrateStarters, buildFormationPayload
@@ -266,6 +267,8 @@ export default function LineupEditor() {
                 </div>
             </div>
 
+            <MatchLog oaLeftTeam={oaLeftTeam} oaRightTeam={oaRightTeam} />
+
             <div className="flex-between" style={{ marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', gap: 8 }}>
                     <button className={`btn ${teamMode === 'left' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => switchTeam('left')} style={{ padding: '8px 16px', fontWeight: 'bold' }}>
@@ -296,29 +299,50 @@ export default function LineupEditor() {
                 </div>
             </div>
 
-            <div className="glass-panel">
-                <div className="flex-between" style={{ marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <h3 style={{ margin: 0, color: teamColor }}>
-                            {targetSchool} スターティングメンバー ({starterCount}/{FORMATION_SLOTS.length})
-                        </h3>
-                        <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 4 }}>
+            {/* スタメン（2/3）と控え（1/3）を横並びにし、それぞれ見出しクリックで畳める */}
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <CollapsiblePanel
+                    flex="2 1 520px"
+                    color={teamColor}
+                    title={`${targetSchool} スターティングメンバー (${starterCount}/${FORMATION_SLOTS.length})`}
+                    badges={<>
+                        <span style={badgeStyle}>
                             送出CG: <strong style={{ color: '#0dcaf0' }}>{teamMode === 'left' ? 'フォーメーション左' : 'フォーメーション右'}</strong>
                         </span>
-                        <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 4 }}>
+                        <span style={badgeStyle}>
                             送出表記: <strong style={{ color: '#ffca28' }}>{formationSchoolName}</strong>
                         </span>
+                    </>}
+                >
+                    <div style={{ ...compactGrid, gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+                        {FORMATION_SLOTS.map(slot => (
+                            <div key={slot.id} style={slotCardStyle}>
+                                <label className="form-label" style={{ fontWeight: 'bold' }}>{slotLabel(slot)}</label>
+                                {renderPlayerSelect(draft.starters[slot.id], { kind: 'starter', slotId: slot.id })}
+                            </div>
+                        ))}
                     </div>
-                </div>
+                </CollapsiblePanel>
 
-                <div className="grid-cards">
-                    {FORMATION_SLOTS.map(slot => (
-                        <div key={slot.id} style={{ background: 'rgba(0,0,0,0.2)', padding: 12, borderRadius: 8, borderLeft: '3px solid rgba(255,255,255,0.1)' }}>
-                            <label className="form-label" style={{ fontWeight: 'bold' }}>{slotLabel(slot)}</label>
-                            {renderPlayerSelect(draft.starters[slot.id], { kind: 'starter', slotId: slot.id })}
-                        </div>
-                    ))}
-                </div>
+                <CollapsiblePanel
+                    flex="1 1 260px"
+                    color={teamColor}
+                    title={`${targetSchool} 控え選手 (${subCount}/${SUB_SLOT_COUNT})`}
+                    badges={
+                        <span style={badgeStyle}>
+                            送出CG: <strong style={{ color: '#0dcaf0' }}>サブ下位置左</strong>
+                        </span>
+                    }
+                >
+                    <div style={{ ...compactGrid, gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+                        {draft.subs.map((playerId, idx) => (
+                            <div key={idx} style={slotCardStyle}>
+                                <label className="form-label" style={{ fontWeight: 'bold' }}>控え {idx + 1}</label>
+                                {renderPlayerSelect(playerId, { kind: 'sub', index: idx })}
+                            </div>
+                        ))}
+                    </div>
+                </CollapsiblePanel>
             </div>
 
             <div className="glass-panel" style={{ marginTop: 16 }}>
@@ -353,28 +377,34 @@ export default function LineupEditor() {
                     onResetPositions={handleResetPositions}
                 />
             </div>
+        </div>
+    );
+}
 
-            <div className="glass-panel" style={{ marginTop: 16 }}>
-                <div className="flex-between" style={{ marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <h3 style={{ margin: 0, color: teamColor }}>
-                            {targetSchool} 控え選手 ({subCount}/{SUB_SLOT_COUNT})
-                        </h3>
-                        <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 4 }}>
-                            送出CG: <strong style={{ color: '#0dcaf0' }}>サブ下位置左</strong>
-                        </span>
-                    </div>
-                </div>
+const badgeStyle: React.CSSProperties = { fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 4 };
+const compactGrid: React.CSSProperties = { display: 'grid', gap: 10 };
+const slotCardStyle: React.CSSProperties = { background: 'rgba(0,0,0,0.2)', padding: 8, borderRadius: 8, borderLeft: '3px solid rgba(255,255,255,0.1)' };
 
-                <div className="grid-cards">
-                    {draft.subs.map((playerId, idx) => (
-                        <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', padding: 12, borderRadius: 8, borderLeft: '3px solid rgba(255,255,255,0.1)' }}>
-                            <label className="form-label" style={{ fontWeight: 'bold' }}>控え {idx + 1}</label>
-                            {renderPlayerSelect(playerId, { kind: 'sub', index: idx })}
-                        </div>
-                    ))}
-                </div>
+// 見出しクリックで開閉するパネル（CGOperation の Subs と同じ ▼/▶ 操作）
+function CollapsiblePanel({ flex, color, title, badges, children }: {
+    flex: string,
+    color: string,
+    title: string,
+    badges?: React.ReactNode,
+    children: React.ReactNode
+}) {
+    const [isOpen, setIsOpen] = useState(true);
+    return (
+        <div className="glass-panel" style={{ flex, minWidth: 0 }}>
+            <div
+                style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: isOpen ? 12 : 0, cursor: 'pointer', userSelect: 'none' }}
+                onClick={() => setIsOpen(o => !o)}
+                title={isOpen ? 'クリックで畳む' : 'クリックで開く'}
+            >
+                <h3 style={{ margin: 0, color }}>{isOpen ? '▼' : '▶'} {title}</h3>
+                {badges}
             </div>
+            {isOpen && children}
         </div>
     );
 }
