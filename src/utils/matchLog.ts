@@ -1,9 +1,10 @@
 import { Player } from '../components/PlayerRegistry';
 
-// 当日の操作ログ（Lineups 画面で入力し、得点・選手のゴール数の元データになる）
-export const MATCH_LOG_KEY = 'match_log';
+// 当日の操作ログ（Lineups 画面と CGOperation の操作で記録し、得点・選手のゴール数の元データになる）
+// SDK の状態マージは空配列で既存の配列を上書きしないため、キューと同じく JSON 文字列で保存する
+export const MATCH_LOG_KEY = 'match_log_json';
 // 「初期状態にする」で退避した過去のログ（新しい順）
-export const MATCH_LOG_ARCHIVE_KEY = 'match_log_archive';
+export const MATCH_LOG_ARCHIVE_KEY = 'match_log_archive_json';
 export const MATCH_LOG_ARCHIVE_LIMIT = 20;
 
 export type MatchLogType = 'goal' | 'yellow' | 'red' | 'sub' | 'period';
@@ -22,7 +23,30 @@ export type MatchLogEntry = {
     inPlayerName?: string;
     inPlayerNumber?: string;
     event?: string;       // period のときの内容 (例: "後半開始")
+    note?: string;        // 補足 (例: イエローの "2枚目")
 };
+
+/** 記録する内容（id・日時・前後半・時刻は記録時に入る） */
+export type MatchLogDraft = Omit<MatchLogEntry, 'id' | 'at' | 'period' | 'time'> & { time?: string, period?: string };
+
+/**
+ * CG の出し直し・キューからの再送出で同じ記録が重ならないよう、同じ出来事かを見るキー。
+ * ゴールは同じ選手が何度も決めるので重複扱いしない（null）
+ */
+export function dedupeKey(e: MatchLogDraft): string | null {
+    if (e.type === 'goal') return null;
+    return [e.type, e.team || '', e.playerId || '', e.inPlayerId || '', e.event || '', e.note || ''].join('|');
+}
+
+export function parseLogJson<T>(json: unknown): T[] {
+    if (typeof json !== 'string') return [];
+    try {
+        const parsed = JSON.parse(json);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
 
 export type MatchLogArchive = {
     savedAt: number;

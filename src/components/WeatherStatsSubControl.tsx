@@ -4,6 +4,8 @@ import { Player } from './PlayerRegistry';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { useCgQueueRegister } from '../utils/cgQueue';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, formatGrade, subChangeBaseImage } from '../utils/lineup';
+import { MatchLogDraft } from '../utils/matchLog';
+import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 
 export type StatsData = {
     leftShoot: string;
@@ -417,6 +419,14 @@ function useSubTeams() {
 
 const playerLabel = (p?: Player) => (p ? `${p.number} ${p.name}` : '—');
 
+/** 交代の組（OUT, IN）から当日操作ログの記録を作る。片方が未選択の組は記録しない */
+function subLogDrafts(teams: ReturnType<typeof useSubTeams>, side: Side, pairs: [string, string][]): MatchLogDraft[] {
+    return pairs
+        .map(([outId, inId]) => [teams.findPlayer(outId), teams.findPlayer(inId)] as const)
+        .filter(([out, inP]) => out && inP)
+        .map(([out, inP]) => ({ type: 'sub' as const, team: teams.schoolOf(side), ...playerFields(out), ...inPlayerFields(inP) }));
+}
+
 function SubTeamSelect({ side, onChange, teams }: { side: Side, onChange: (side: Side) => void, teams: ReturnType<typeof useSubTeams> }) {
     return (
         <div>
@@ -461,6 +471,7 @@ export function Sub1Control() {
     const teams = useSubTeams();
     const registerQueue = useCgQueueRegister();
     const sub1Telop = useTelop('選手交代1枚');
+    const { record: recordLog } = useMatchLog();
 
     const [sub1Data, setSub1Data] = useState<{ side: Side, outPlayerId: string, inPlayerId: string }>({
         side: 'left',
@@ -485,10 +496,14 @@ export function Sub1Control() {
         };
     };
 
+    // 当日操作ログに残す交代（OUT・IN の両方が選ばれているときだけ）
+    const logDrafts = (): MatchLogDraft[] => subLogDrafts(teams, sub1Data.side, [[sub1Data.outPlayerId, sub1Data.inPlayerId]]);
+
     const sendSub1 = () => {
         const payload = buildPayload();
         sub1Telop.setData(payload);
         sub1Telop.show(payload);
+        recordLog(logDrafts());
     };
 
     const registerSub1 = () => {
@@ -498,7 +513,7 @@ export function Sub1Control() {
         }
         const outPlayer = teams.findPlayer(sub1Data.outPlayerId);
         const inPlayer = teams.findPlayer(sub1Data.inPlayerId);
-        registerQueue('選手交代1枚', `交代1枚 ${teams.schoolOf(sub1Data.side)} OUT ${playerLabel(outPlayer)} → IN ${playerLabel(inPlayer)}`, buildPayload());
+        registerQueue('選手交代1枚', `交代1枚 ${teams.schoolOf(sub1Data.side)} OUT ${playerLabel(outPlayer)} → IN ${playerLabel(inPlayer)}`, buildPayload(), logDrafts());
     };
 
     return (
@@ -536,6 +551,7 @@ export function Sub2Control() {
     const teams = useSubTeams();
     const registerQueue = useCgQueueRegister();
     const sub2Telop = useTelop('選手交代2枚');
+    const { record: recordLog } = useMatchLog();
 
     const emptyPicks = { outPlayerId1: '', inPlayerId1: '', outPlayerId2: '', inPlayerId2: '' };
     const [sub2Data, setSub2Data] = useState<{ side: Side } & typeof emptyPicks>({ side: 'left', ...emptyPicks });
@@ -563,10 +579,16 @@ export function Sub2Control() {
         return payload;
     };
 
+    const logDrafts = (): MatchLogDraft[] => subLogDrafts(teams, sub2Data.side, [
+        [sub2Data.outPlayerId1, sub2Data.inPlayerId1],
+        [sub2Data.outPlayerId2, sub2Data.inPlayerId2]
+    ]);
+
     const sendSub2 = () => {
         const payload = buildPayload();
         sub2Telop.setData(payload);
         sub2Telop.show(payload);
+        recordLog(logDrafts());
     };
 
     const registerSub2 = () => {
@@ -575,7 +597,7 @@ export function Sub2Control() {
             return;
         }
         const f = teams.findPlayer;
-        registerQueue('選手交代2枚', `交代2枚 ${teams.schoolOf(sub2Data.side)} OUT ${playerLabel(f(sub2Data.outPlayerId1))}・${playerLabel(f(sub2Data.outPlayerId2))} → IN ${playerLabel(f(sub2Data.inPlayerId1))}・${playerLabel(f(sub2Data.inPlayerId2))}`, buildPayload());
+        registerQueue('選手交代2枚', `交代2枚 ${teams.schoolOf(sub2Data.side)} OUT ${playerLabel(f(sub2Data.outPlayerId1))}・${playerLabel(f(sub2Data.outPlayerId2))} → IN ${playerLabel(f(sub2Data.inPlayerId1))}・${playerLabel(f(sub2Data.inPlayerId2))}`, buildPayload(), logDrafts());
     };
 
     const pick = (key: keyof typeof emptyPicks, placeholder: string) => (

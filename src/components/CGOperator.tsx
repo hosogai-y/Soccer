@@ -10,6 +10,8 @@ import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload } from '../utils/lineup';
+import { MatchLogDraft } from '../utils/matchLog';
+import { useMatchLog, playerFields } from '../utils/useMatchLog';
 
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
@@ -66,6 +68,7 @@ export default function CGOperator() {
 
     // CG Queue State
     const [cgQueue, setCgQueue] = useCgQueue();
+    const { record: recordLog } = useMatchLog();
     const [queueMode, setQueueMode] = useState(false);
     // マウスクリックで選択したキュー項目（TAKE NEXT はこれを優先して送出）
     const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
@@ -128,6 +131,8 @@ export default function CGOperator() {
         setCgQueue(prev => (prev || []).map(q => q.id === item.id ? { ...q, played: true } : q));
         setSelectedQueueId(null);
         setQueueOnAir({ telopName: item.telopName, label: item.label });
+        // 交代・カードは送出時に当日操作ログへ（再送出では同じ内容を重ねない）
+        if (item.logEntries && item.logEntries.length > 0) recordLog(item.logEntries);
 
         const payloadTelop = item.payload ? payloadTelops[item.telopName] : undefined;
         if (payloadTelop && item.payload) {
@@ -383,6 +388,8 @@ function OneShotPlayerControl({
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+    const { record: recordLog } = useMatchLog();
+    const [goalBusy, setGoalBusy] = useState(false);
 
     // 選手ごとの登録コメント配列を取得
     const comments = (player?.pro2List && player.pro2List.length > 0)
@@ -519,6 +526,22 @@ function OneShotPlayerControl({
         const payload = buildCardPayload(cardType);
         oneShotCard.setData(payload);
         oneShotCard.show(payload);
+        recordLog(cardLogDraft(cardType));
+    };
+
+    // 当日操作ログ: カード送出は自動で記録（同じ選手・同じカードは1回だけ）
+    const cardLogDraft = (cardType: CardType): MatchLogDraft => ({
+        type: cardType === 'red' ? 'red' : 'yellow',
+        team: rawSchool,
+        ...playerFields(player),
+        ...(cardType === 'yellow2' ? { note: '2枚目' } : {})
+    });
+
+    // ゴール記録: ログに追加すると、チーム得点と Today/Total ゴールがログから数え直される（連打で二重にならないよう少し止める）
+    const handleRecordGoal = () => {
+        setGoalBusy(true);
+        recordLog({ type: 'goal', team: rawSchool, ...playerFields(player) });
+        setTimeout(() => setGoalBusy(false), 1000);
     };
 
     // CG Queue List にストック（送出時は登録時点のデータで出す）
@@ -527,7 +550,7 @@ function OneShotPlayerControl({
         registerQueue('1Shot', `1Shot ${ONE_SHOT_MODE_LABELS[mode]} ${playerTag}`, buildBasePayload(mode));
     };
     const registerCard = (cardType: CardType) => {
-        registerQueue('1Shotカード', `${CARD_LABELS[cardType]} ${playerTag}`, buildCardPayload(cardType));
+        registerQueue('1Shotカード', `${CARD_LABELS[cardType]} ${playerTag}`, buildCardPayload(cardType), [cardLogDraft(cardType)]);
     };
 
     return (
@@ -677,6 +700,15 @@ function OneShotPlayerControl({
                         value={player.todayGoals || '0'} 
                         onChange={e => handleTodayGoalsUpdate(e.target.value)}
                     />
+                    <button
+                        className="btn btn-success"
+                        style={{ padding: '2px 10px', fontSize: '0.8rem', fontWeight: 'bold' }}
+                        onClick={handleRecordGoal}
+                        disabled={goalBusy}
+                        title="当日操作ログにゴールを記録し、チーム得点と Today/Total ゴールを +1 します"
+                    >
+                        ⚽ ゴール記録
+                    </button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: '0.8rem', color: '#4caf50', fontWeight: 'bold' }}>今大会通算(Total):</span>
@@ -1384,6 +1416,7 @@ function MatchTimerPanel() {
 
     // 前後半の選択ステート (GlobalTimerManagerと完全連動！)
     const [timerPeriod, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
+    const { record: recordLog } = useMatchLog();
 
     const [presetVal, setPresetVal] = useState("0");
     const [displayMs, setDisplayMs] = useState(0);
@@ -1415,6 +1448,8 @@ function MatchTimerPanel() {
     // 前後半セレクト変更時 (ON AIR中なら即時 UpdateLIVE 送信！)
     const handlePeriodChange = (newPeriod: string) => {
         setTimerPeriod(newPeriod);
+        // 当日操作ログに「後半開始」などを記録（同じ前後半の開始は1回だけ）
+        recordLog({ type: 'period', event: `${newPeriod}開始`, period: newPeriod });
         if (timer.isVisible) {
             timer.update(buildTimerPayload(displayMs, newPeriod));
         }

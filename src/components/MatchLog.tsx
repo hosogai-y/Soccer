@@ -4,32 +4,26 @@ import { Player } from './PlayerRegistry';
 import { TimerState, getTimerMs } from './GlobalTimerManager';
 import { buildTimerPayload } from '../utils/timerHelper';
 import {
-    MATCH_LOG_KEY, MATCH_LOG_ARCHIVE_KEY, MATCH_LOG_ARCHIVE_LIMIT, MatchLogEntry, MatchLogArchive, MatchLogType,
-    LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals,
-    normalizeMatchTime, formatMatchTime
+    MATCH_LOG_ARCHIVE_LIMIT, MatchLogEntry, MatchLogType,
+    LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals
 } from '../utils/matchLog';
+import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 
 const LOG_ROW_HEIGHT = 30;
 const LOG_VISIBLE_ROWS = 5;
 
 /**
  * 当日の操作ログ（ゴール・カード・交代・前後半）。
- * ゴールを記録・削除すると、小得点/大得点のチーム得点と選手の Today/Total ゴールをログから数え直す。
+ * CGOperation の送出操作でも自動で記録される（useMatchLog）。
  * 「ログから復元」「初期状態にする」で CGOperation の得点・ゴール数・前後半をそろえる。
  */
 export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: string, oaRightTeam: string }) {
     const { syncedStateRef } = useTelopHub();
-    const [log, setLog] = useSyncedState<MatchLogEntry[]>(MATCH_LOG_KEY, []);
-    const [archive, setArchive] = useSyncedState<MatchLogArchive[]>(MATCH_LOG_ARCHIVE_KEY, []);
+    const { entries, archives, record, remove, saveEntries, saveArchives, writeScores } = useMatchLog();
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [, setTimerState] = useSyncedState<TimerState | null>('match_timer_state', null);
-    const [timerPeriod, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
-    const smallScore = useTelop('小得点');
-    const bigScore = useTelop('大得点');
+    const [, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
     const timer = useTelop('タイマー');
-
-    const entries = Array.isArray(log) ? log : [];
-    const archives = Array.isArray(archive) ? archive : [];
 
     // 入力フォーム
     const [type, setType] = useState<MatchLogType>('goal');
@@ -47,30 +41,6 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         .sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
     const findPlayer = (id: string) => (players || []).find(p => p.id === id);
 
-    // 小得点・大得点のチーム得点をログのゴール数にそろえる（ON AIR 中ならその場で UPDATE）
-    const writeScores = (left: number, right: number) => {
-        const scores = { '左チーム得点': String(left), '右チーム得点': String(right) };
-        [smallScore, bigScore].forEach(t => {
-            t.setData((prev: any) => ({ ...prev, ...scores }));
-            if (t.isVisible) t.update({ ...(t.data || {}), ...scores });
-        });
-    };
-    const writeScoresFromLog = (next: MatchLogEntry[]) =>
-        writeScores(teamGoals(next, oaLeftTeam), teamGoals(next, oaRightTeam));
-
-    // ゴールの追加・削除: その選手の Today/Total ゴールとチーム得点を数え直す
-    const commitLog = (next: MatchLogEntry[], changed?: MatchLogEntry) => {
-        setLog(next);
-        if (changed?.type !== 'goal') return;
-        if (changed.playerId) setPlayers(prev => applyLogGoals(prev || [], next, new Set([changed.playerId!])));
-        writeScoresFromLog(next);
-    };
-
-    const currentTime = () => {
-        const state = syncedStateRef.current?.match_timer_state as TimerState | undefined;
-        return formatMatchTime(getTimerMs(state));
-    };
-
     const handleAdd = () => {
         if (type === 'sub' && (!playerId || !inPlayerId)) {
             alert('交代は OUT と IN の選手を選んでください。');
@@ -80,23 +50,17 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             alert('カードの選手を選んでください。');
             return;
         }
-        const out = findPlayer(playerId);
-        const inP = findPlayer(inPlayerId);
-        const entry: MatchLogEntry = {
-            id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            at: Date.now(),
-            period: timerPeriod || '前半',
-            time: normalizeMatchTime(timeInput) || currentTime(),
+        const added = record({
             type,
+            time: timeInput,
             ...(type === 'period'
                 ? { event: periodEvent }
-                : {
-                    team,
-                    ...(out ? { playerId: out.id, playerName: out.name, playerNumber: out.number } : {}),
-                    ...(type === 'sub' && inP ? { inPlayerId: inP.id, inPlayerName: inP.name, inPlayerNumber: inP.number } : {})
-                })
-        };
-        commitLog([...entries, entry], entry);
+                : { team, ...playerFields(findPlayer(playerId)), ...(type === 'sub' ? inPlayerFields(findPlayer(inPlayerId)) : {}) })
+        });
+        if (added === 0) {
+            alert('同じ内容がすでに記録されています。');
+            return;
+        }
         setPlayerId('');
         setInPlayerId('');
         setTimeInput('');
@@ -104,7 +68,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
 
     const handleDelete = (entry: MatchLogEntry) => {
         if (!window.confirm(`この記録を削除しますか？\n${describe(entry)}`)) return;
-        commitLog(entries.filter(e => e.id !== entry.id), entry);
+        remove(entry);
     };
 
     // ログから復元: 全選手の Today/Total ゴール・チーム得点・前後半をログの内容にそろえる（タイマーはそのまま）
@@ -138,8 +102,8 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         )) return;
         if (entries.length > 0) {
             const title = `${oaLeftTeam} vs ${oaRightTeam}`;
-            setArchive(prev => [{ savedAt: Date.now(), title, entries }, ...(Array.isArray(prev) ? prev : [])].slice(0, MATCH_LOG_ARCHIVE_LIMIT));
-            setLog([]);
+            saveArchives([{ savedAt: Date.now(), title, entries }, ...archives].slice(0, MATCH_LOG_ARCHIVE_LIMIT));
+            saveEntries([]);
         }
         setPlayers(prev => resetTodayGoals(prev || []));
         writeScores(0, 0);
@@ -162,7 +126,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         if (e.type === 'period') return `${head} ${e.event}`;
         const who = e.playerName ? `#${e.playerNumber} ${e.playerName}` : (e.type === 'goal' ? '(選手不明・OG)' : '');
         if (e.type === 'sub') return `${head} ${e.team} OUT #${e.playerNumber} ${e.playerName} → IN #${e.inPlayerNumber} ${e.inPlayerName}`;
-        return `${head} ${e.team} ${who}`;
+        return `${head}${e.note ? `(${e.note})` : ''} ${e.team} ${who}`;
     };
 
     // ゴール行には、その時点のスコアを添える

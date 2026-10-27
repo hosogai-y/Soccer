@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSyncedState } from '@sdk/TelopHubSDK';
+import { MatchLogDraft } from './matchLog';
 
 /** CG Queue List に積む項目。payload 付きの項目は TAKE NEXT でそのデータのまま送出する */
 export type CgQueueItem = {
@@ -9,6 +10,7 @@ export type CgQueueItem = {
     skipped: boolean;
     played?: boolean;
     payload?: Record<string, any>;
+    logEntries?: MatchLogDraft[]; // 送出したときに当日操作ログへ記録する内容（交代・カード）
 };
 
 /**
@@ -49,8 +51,8 @@ export function useCgQueue(): [CgQueueItem[], (next: CgQueueItem[] | ((prev: CgQ
 /** payload 付きでキューに積む関数を返す */
 export function useCgQueueRegister() {
     const [, setQueue] = useCgQueue();
-    return useCallback((telopName: string, label: string, payload: Record<string, any>) => {
+    return useCallback((telopName: string, label: string, payload: Record<string, any>, logEntries?: MatchLogDraft[]) => {
         const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        setQueue(prev => [...prev, { id, telopName, label, skipped: false, payload }]);
+        setQueue(prev => [...prev, { id, telopName, label, skipped: false, payload, ...(logEntries ? { logEntries } : {}) }]);
     }, [setQueue]);
 }
