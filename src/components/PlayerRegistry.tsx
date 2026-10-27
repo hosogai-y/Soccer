@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
+import { useSyncedState, useTelopHub, useFullSyncedState } from '@sdk/TelopHubSDK';
 import StaffRegistry from './StaffRegistry';
+import RosterImportExport from './RosterImportExport';
 import { matchPlayerPhoto, toPhotoFile, faceAssetPath, toPhotoAssetUrl, encodePhotoUrl, isImageFile, PhotoFile } from '../utils/photoMatcher';
 
 export interface Pro2CommentItem {
@@ -45,7 +46,8 @@ export default function PlayerRegistry() {
     const [globalPhotoEnabled, setGlobalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
-    const { uploadAsset, gcAssets, isConnected } = useTelopHub();
+    const { uploadAsset, gcAssets, isConnected, syncedStateRef } = useTelopHub();
+    const fullSyncState = useFullSyncedState();
     const bulkFilesRef = useRef<HTMLInputElement | null>(null);
     const bulkFolderRef = useRef<HTMLInputElement | null>(null);
     const formPhotoRef = useRef<HTMLInputElement | null>(null);
@@ -397,9 +399,19 @@ export default function PlayerRegistry() {
         setNumberSelectMode('1');
     };
 
+    // 選手を消した一覧を保存する。SDK の状態マージは空配列で既存の配列を上書きしないので、
+    // 全員いなくなるときだけ状態全体を書き直す
+    const saveRemainingPlayers = (remaining: Player[]) => {
+        if (remaining.length > 0) {
+            setPlayers(remaining);
+            return;
+        }
+        fullSyncState({ ...(syncedStateRef.current || {}), roster: [] });
+    };
+
     const handleDelete = (id: string) => {
         if (confirm('この選手を削除しますか？')) {
-            setPlayers(prev => (prev || []).filter(p => p.id !== id));
+            saveRemainingPlayers((players || []).filter(p => p.id !== id));
             if (editingPlayerId === id) {
                 setEditingPlayerId(null);
                 resetForm(selectedSchool);
@@ -417,10 +429,24 @@ export default function PlayerRegistry() {
         }));
     };
 
-    const filteredPlayers = (players || []).filter(p => {
-        const school = p.schoolName || (p.teamId === 'right' ? '札幌大谷' : '札幌創成');
-        return school === selectedSchool;
-    });
+    const schoolOfPlayer = (p: Player) => p.schoolName || (p.teamId === 'right' ? '札幌大谷' : '札幌創成');
+    const filteredPlayers = (players || []).filter(p => schoolOfPlayer(p) === selectedSchool);
+
+    // 選択中の高校の選手を一括削除（監督・コーチ、高校名、顔写真のファイルは残す）
+    const handleDeleteSchoolPlayers = () => {
+        const count = filteredPlayers.length;
+        if (count === 0) return;
+        if (!confirm(
+            `「${selectedSchool}」の選手 ${count} 人をすべて削除しますか？\n` +
+            `・元に戻せません。必要なら先に「📤 CSV 書き出し」などで保存してください。\n` +
+            `・監督・コーチ、高校名、アップロード済みの顔写真ファイルは残ります。`
+        )) return;
+        saveRemainingPlayers((players || []).filter(p => schoolOfPlayer(p) !== selectedSchool));
+        if (editingPlayerId && filteredPlayers.some(p => p.id === editingPlayerId)) {
+            setEditingPlayerId(null);
+            resetForm(selectedSchool);
+        }
+    };
 
     return (
         <div>
@@ -457,6 +483,9 @@ export default function PlayerRegistry() {
                             顔写真送出: {globalPhotoEnabled !== false ? '一括 ON' : '一括 OFF'}
                         </span>
                     </label>
+
+                    {/* 登録選手一覧（選手・監督・コーチ）の CSV / JSON 書き出し・読み込み */}
+                    <RosterImportExport schools={activeSchools} />
 
                     {/* 写真の一括登録（ファイル名「背番号 氏名.png」で自動割り当て） */}
                     <input
@@ -836,7 +865,18 @@ export default function PlayerRegistry() {
                 {/* Player List Filtered by High School Name */}
                 <div className="glass-panel" style={{ flex: 1 }}>
                     <div className="flex-between" style={{ marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-                        <h3 style={{ margin: 0 }}>登録選手一覧 ({selectedSchool})</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                            <h3 style={{ margin: 0 }}>登録選手一覧 ({selectedSchool})</h3>
+                            <button
+                                className="btn btn-danger"
+                                style={{ padding: '3px 10px', fontSize: '0.8rem' }}
+                                onClick={handleDeleteSchoolPlayers}
+                                disabled={filteredPlayers.length === 0}
+                                title={`${selectedSchool} の選手をすべて削除します（監督・コーチは残ります）`}
+                            >
+                                🗑️ {selectedSchool} の選手を一括削除 ({filteredPlayers.length}人)
+                            </button>
+                        </div>
                         
                         {/* School Selection Tabs */}
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
