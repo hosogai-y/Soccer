@@ -1,29 +1,60 @@
 import React from 'react';
 import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
 
+type Side = 'left' | 'right';
+
 export interface PKState {
-    teamFirst: string;
+    teamFirst: string;     // 旧形式（自由入力のチーム名）。firstSide が無いときに先攻側を推定するだけに使う
     teamSecond: string;
+    firstSide?: Side;      // 先攻が Lineups の OA 左チームか右チームか（チーム名は Lineups の OA 設定から）
     kicksFirst: string[];  // 10 elements: 'goal' | 'miss' | ''
     kicksSecond: string[]; // 10 elements: 'goal' | 'miss' | ''
     manualUnlock: boolean;
 }
 
 const DEFAULT_PK_STATE: PKState = {
-    teamFirst: '札幌創成',
-    teamSecond: '札幌大谷',
+    teamFirst: '',
+    teamSecond: '',
+    firstSide: 'left',
     kicksFirst: Array(10).fill(''),
     kicksSecond: Array(10).fill(''),
     manualUnlock: false
 };
 
+/**
+ * TelopHub は前回送った値と同じキーを描き直さないことがあり、テロップを作り直した後などに初期値が残る。
+ * 送るたびに見た目の変わらない書き方を交互に使い（画像 'img/…' ⇔ './img/…'、文字の末尾にゼロ幅スペース）、全キーを必ず描き直させる
+ */
+const sendParity: Record<string, boolean> = {};
+function varyPayload(telop: string, payload: Record<string, string>): Record<string, string> {
+    sendParity[telop] = !sendParity[telop];
+    if (!sendParity[telop]) return payload;
+    const out: Record<string, string> = {};
+    Object.entries(payload).forEach(([key, val]) => {
+        if (val.startsWith('img/')) out[key] = `./${val}`;
+        else if (val !== '') out[key] = `${val}​`;
+        else out[key] = val; // 空は showIf (6回目表示) の判定に使うので変えない
+    });
+    return out;
+}
+
 export default function PKControl() {
     const [pkState, setPkState] = useSyncedState<PKState>('pk_shootout_state', DEFAULT_PK_STATE);
-    
+    const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
+    const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+
     const pkCenter = useTelop('PK');
     const pkTopLeft = useTelop('左上PK');
 
     const state = pkState || DEFAULT_PK_STATE;
+
+    // 先攻・後攻のチーム名は Lineups の OA チーム（先攻がどちら側かだけを PK の状態に持つ）
+    const sideOf = (s: PKState): Side => s.firstSide || (s.teamFirst && s.teamFirst === oaRightTeam ? 'right' : 'left');
+    const teamNamesOf = (s: PKState) => {
+        const firstIsLeft = sideOf(s) === 'left';
+        return { first: firstIsLeft ? oaLeftTeam : oaRightTeam, second: firstIsLeft ? oaRightTeam : oaLeftTeam };
+    };
+    const { first: teamFirst, second: teamSecond } = teamNamesOf(state);
 
     // Calculate score up to round 5 and total
     const scoreFirst = state.kicksFirst.filter(k => k === 'goal').length;
@@ -93,11 +124,28 @@ export default function PKControl() {
         }
     };
 
+    // 先攻・後攻（上下の段）をチーム名・キック結果ごと入れ替える。ON AIR 中ならその場で UPDATE
+    const swapTeams = () => {
+        const swapped: PKState = {
+            ...state,
+            firstSide: sideOf(state) === 'left' ? 'right' : 'left',
+            kicksFirst: [...state.kicksSecond],
+            kicksSecond: [...state.kicksFirst]
+        };
+        setPkState(swapped);
+        if (pkCenter.isVisible) pkCenter.update(buildPayload('PK', swapped));
+        if (pkTopLeft.isVisible) pkTopLeft.update(buildPayload('左上PK', swapped));
+    };
+
     // Prepare data payload for CG Telop
-    const buildPayload = (type: 'PK' | '左上PK') => {
-        const goalImg = type === 'PK' ? 'img/HD2D_P07_Parts1.png' : 'img/HD2D_P09_Parts1.png';
-        const missImg = type === 'PK' ? 'img/HD2D_P07_Parts2.png' : 'img/HD2D_P09_Parts2.png';
-        const blankImg = 'img/HD2D_P09_Parts3.png';
+    // テロップ側のキー: 先攻/後攻学校名、先攻/後攻得点(センター)・合計得点(左上)、先攻1〜6/後攻1〜6(画像)、6回目表示('1' で6本目を表示)
+    const buildPayload = (type: 'PK' | '左上PK', s: PKState = state) => {
+        const parts = type === 'PK' ? 'img/HD2D_P07_Parts' : 'img/HD2D_P09_Parts';
+        const goalImg = `${parts}1.png`;
+        const missImg = `${parts}2.png`;
+        // 未入力は透明な空欄画像（テロップの初期状態と同じ）
+        const blankImg = `${parts}3.png`;
+        const names = teamNamesOf(s);
 
         const mapKickImg = (val: string) => {
             if (val === 'goal') return goalImg;
@@ -105,39 +153,41 @@ export default function PKControl() {
             return blankImg;
         };
 
-        const payload: any = {
-            '先攻学校名': state.teamFirst,
-            '後攻学校名': state.teamSecond,
-            '先攻得点': String(scoreFirst),
-            '後攻得点': String(scoreSecond),
-            '先攻合計得点': String(scoreFirst),
-            '後攻合計得点': String(scoreSecond),
-            'showInning6': showInning6,
-            '6回目表示': showInning6
+        const first = s.kicksFirst.filter(k => k === 'goal').length;
+        const second = s.kicksSecond.filter(k => k === 'goal').length;
+        // 入れ替えでは先攻・後攻が対称に入れ替わるだけなので、6本目の表示判定は今の状態のものを使う
+        const payload: Record<string, string> = {
+            '先攻学校名': names.first,
+            '後攻学校名': names.second,
+            '先攻得点': String(first),
+            '後攻得点': String(second),
+            '先攻合計得点': String(first),
+            '後攻合計得点': String(second),
+            '6回目表示': showInning6 ? '1' : ''
         };
 
         // Kicks 1 to 5
         for (let i = 0; i < 5; i++) {
-            payload[`先攻${i + 1}`] = mapKickImg(state.kicksFirst[i]);
-            payload[`後攻${i + 1}`] = mapKickImg(state.kicksSecond[i]);
+            payload[`先攻${i + 1}`] = mapKickImg(s.kicksFirst[i]);
+            payload[`後攻${i + 1}`] = mapKickImg(s.kicksSecond[i]);
         }
 
         // Kick 6 (or current active sudden death kick)
         // Find if there is an active kick in rounds 6-10
-        let sdFirst = state.kicksFirst[5];
-        let sdSecond = state.kicksSecond[5];
+        let sdFirst = s.kicksFirst[5];
+        let sdSecond = s.kicksSecond[5];
 
         for (let r = 5; r < 10; r++) {
-            if (state.kicksFirst[r] || state.kicksSecond[r]) {
-                sdFirst = state.kicksFirst[r];
-                sdSecond = state.kicksSecond[r];
+            if (s.kicksFirst[r] || s.kicksSecond[r]) {
+                sdFirst = s.kicksFirst[r];
+                sdSecond = s.kicksSecond[r];
             }
         }
 
         payload['先攻6'] = mapKickImg(sdFirst);
         payload['後攻6'] = mapKickImg(sdSecond);
 
-        return payload;
+        return varyPayload(type, payload);
     };
 
     const sendToCenterPK = () => {
@@ -150,6 +200,12 @@ export default function PKControl() {
         const payload = buildPayload('左上PK');
         pkTopLeft.setData(payload);
         pkTopLeft.show(payload);
+    };
+
+    // HIDE は左上PK・センターPK の両方を消す
+    const hideAllPK = () => {
+        pkTopLeft.hide();
+        pkCenter.hide();
     };
 
     const updateLivePK = () => {
@@ -178,6 +234,20 @@ export default function PKControl() {
             sendToTopLeftPK();
         }
     };
+
+    // チーム名は Lineups の OA 設定を表示するだけ（変更は Lineups、上下は「上下入れ替え」）
+    const renderTeamName = (label: string, name: string, side: Side) => (
+        <div>
+            <label style={{ fontSize: '0.75rem', color: '#aaa', display: 'block', marginBottom: '4px' }}>{label}</label>
+            <div
+                className="form-input"
+                style={{ fontWeight: 'bold', fontSize: '1rem', color: side === 'left' ? '#198754' : '#0dcaf0', cursor: 'default' }}
+                title="チーム名は Lineups の当日OAチーム設定から反映されます"
+            >
+                {side === 'left' ? '⬅️' : '➡️'} {name}
+            </div>
+        </div>
+    );
 
     return (
         <div className="glass-panel" style={{ padding: '20px', borderColor: 'var(--accent-primary)' }}>
@@ -211,34 +281,24 @@ export default function PKControl() {
 
             {/* Team Names Input & Scoreboard Display */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '16px', marginBottom: '16px', alignItems: 'center', background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '10px' }}>
-                <div>
-                    <label style={{ fontSize: '0.75rem', color: '#aaa', display: 'block', marginBottom: '4px' }}>先攻チーム</label>
-                    <input 
-                        type="text" 
-                        className="form-input" 
-                        value={state.teamFirst} 
-                        onChange={e => setPkState(prev => ({ ...(prev || DEFAULT_PK_STATE), teamFirst: e.target.value }))}
-                        style={{ fontWeight: 'bold', fontSize: '1rem' }}
-                    />
-                </div>
+                {renderTeamName('先攻チーム（上段）', teamFirst, sideOf(state))}
 
                 <div style={{ textAlign: 'center', padding: '0 12px' }}>
                     <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>PK SCORE</div>
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '4px', color: '#ffca28' }}>
                         {scoreFirst} - {scoreSecond}
                     </div>
+                    <button
+                        className="btn btn-warning"
+                        style={{ marginTop: '4px', padding: '3px 10px', fontSize: '0.8rem', fontWeight: 'bold' }}
+                        onClick={swapTeams}
+                        title="先攻・後攻（上下の段）をチーム名・キック結果ごと入れ替えます。ON AIR 中はその場で反映します"
+                    >
+                        ⇅ 上下入れ替え
+                    </button>
                 </div>
 
-                <div>
-                    <label style={{ fontSize: '0.75rem', color: '#aaa', display: 'block', marginBottom: '4px' }}>後攻チーム</label>
-                    <input 
-                        type="text" 
-                        className="form-input" 
-                        value={state.teamSecond} 
-                        onChange={e => setPkState(prev => ({ ...(prev || DEFAULT_PK_STATE), teamSecond: e.target.value }))}
-                        style={{ fontWeight: 'bold', fontSize: '1rem' }}
-                    />
-                </div>
+                {renderTeamName('後攻チーム（下段）', teamSecond, sideOf(state) === 'left' ? 'right' : 'left')}
             </div>
 
             {/* Manual Unlock Checkbox */}
@@ -273,7 +333,7 @@ export default function PKControl() {
                         {/* 先攻 Row */}
                         <tr>
                             <td style={{ fontWeight: 'bold', textAlign: 'left', color: '#198754' }}>
-                                先攻: {state.teamFirst}
+                                先攻: {teamFirst}
                             </td>
                             {[...Array(10)].map((_, i) => {
                                 const isUnlocked = getRoundUnlocked(i);
@@ -307,7 +367,7 @@ export default function PKControl() {
                         {/* 後攻 Row */}
                         <tr>
                             <td style={{ fontWeight: 'bold', textAlign: 'left', color: '#0dcaf0' }}>
-                                後攻: {state.teamSecond}
+                                後攻: {teamSecond}
                             </td>
                             {[...Array(10)].map((_, i) => {
                                 const isUnlocked = getRoundUnlocked(i);
@@ -348,10 +408,7 @@ export default function PKControl() {
                         <strong style={{ fontSize: '0.9rem' }}>左上PK (Top-Left Scoreboard)</strong>
                         {pkTopLeft.isVisible && <span className="status-badge status-connected" style={{ fontSize: '0.65rem' }}>ON AIR</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        <button className="btn btn-success" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={sendToTopLeftPK}>TAKE 左上PK</button>
-                        <button className="btn btn-danger" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={pkTopLeft.hide}>HIDE</button>
-                    </div>
+                    <button className="btn btn-success" style={{ width: '100%', padding: '4px', fontSize: '0.8rem' }} onClick={sendToTopLeftPK}>TAKE 左上PK</button>
                 </div>
 
                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', borderLeft: pkCenter.isVisible ? '4px solid var(--accent-success)' : '4px solid transparent' }}>
@@ -359,12 +416,17 @@ export default function PKControl() {
                         <strong style={{ fontSize: '0.9rem' }}>PK (Center Screen)</strong>
                         {pkCenter.isVisible && <span className="status-badge status-connected" style={{ fontSize: '0.65rem' }}>ON AIR</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        <button className="btn btn-success" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={sendToCenterPK}>TAKE センターPK</button>
-                        <button className="btn btn-danger" style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }} onClick={pkCenter.hide}>HIDE</button>
-                    </div>
+                    <button className="btn btn-success" style={{ width: '100%', padding: '4px', fontSize: '0.8rem' }} onClick={sendToCenterPK}>TAKE センターPK</button>
                 </div>
             </div>
+            <button
+                className="btn btn-danger"
+                style={{ width: '100%', marginTop: '12px', padding: '6px', fontSize: '0.9rem', fontWeight: 'bold' }}
+                onClick={hideAllPK}
+                title="左上PK・センターPK の両方を消します"
+            >
+                HIDE (左上PK・センターPK)
+            </button>
 
         </div>
     );

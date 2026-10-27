@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_h589vdlhhm9k",
+  "rootId": "n1_th7m2emte73c",
   "nodesById": {
-    "n1_h589vdlhhm9k": {
-      "id": "n1_h589vdlhhm9k",
+    "n1_th7m2emte73c": {
+      "id": "n1_th7m2emte73c",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,13 +24,16 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_26q58cjxs31p",
-        "n1_ivx74jr4irm1",
-        "n1_k94esp7tf9mn",
-        "n1_lrgn62z1pyqu",
-        "n1_cs76xirdqeds",
-        "n1_09suq40dx8ae",
-        "n1_bo0gaqrtkjdm"
+        "n1_o8a4irdp2kn5",
+        "n1_fk29mha4t3i1",
+        "n1_er5qeo2tj579",
+        "n1_o2u9v8v0dx4j",
+        "n1_6qqsv5m6ttmd",
+        "n1_586l39uho1ms",
+        "n1_xdt7ai48shrq",
+        "n1_z9q81p2sevcz",
+        "n1_8mgj1yn0uj3m",
+        "n1_tqm6kzsql5gr"
       ],
       "name": "PK",
       "visible": true,
@@ -39,8 +42,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_26q58cjxs31p": {
-      "id": "n1_26q58cjxs31p",
+    "n1_o8a4irdp2kn5": {
+      "id": "n1_o8a4irdp2kn5",
       "type": "group",
       "x": 437,
       "y": 861,
@@ -52,24 +55,22 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_njnhqdl9uw58",
-        "n1_g86up4yj8e5r",
-        "n1_6ivtiw2j52o8",
-        "n1_ech4bal7ohdq",
-        "n1_ihxtio8o18ai"
-      ],
       "name": "6回目バージョン",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "children": [
+        "n1_w3dzjqtydep5",
+        "n1_t6bq8q5xiwb6",
+        "n1_wcd97mmuxwge",
+        "n1_iufv3klstymh",
+        "n1_doqbk4lx9eev"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_njnhqdl9uw58": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_njnhqdl9uw58",
+    "n1_w3dzjqtydep5": {
+      "id": "n1_w3dzjqtydep5",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -78,21 +79,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 928,
-      "height": 220,
-      "assetId": "a1_6z2l2a7rhpfr",
       "name": "PK用ベース",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_26q58cjxs31p"
+      "assetId": "a1_mmw3ttgmvgso",
+      "width": 928,
+      "height": 220,
+      "parentId": "n1_o8a4irdp2kn5"
     },
-    "n1_g86up4yj8e5r": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_g86up4yj8e5r",
+    "n1_t6bq8q5xiwb6": {
+      "id": "n1_t6bq8q5xiwb6",
       "type": "text",
       "x": 46,
       "y": 126,
@@ -101,10 +102,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
+      "name": "後攻学校名",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "text": "",
       "width": 280,
-      "height": 43,
-      "text": "札幌大谷",
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -130,21 +141,12 @@
         "letterSpacing": 8,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "後攻学校名",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_26q58cjxs31p"
+      "height": 43,
+      "keyexp": "後攻学校名",
+      "parentId": "n1_o8a4irdp2kn5"
     },
-    "n1_6ivtiw2j52o8": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_6ivtiw2j52o8",
+    "n1_wcd97mmuxwge": {
+      "id": "n1_wcd97mmuxwge",
       "type": "text",
       "x": 46,
       "y": 67,
@@ -153,10 +155,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
+      "name": "先攻学校名",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "text": "",
       "width": 280,
-      "height": 43,
-      "text": "札幌創成",
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -182,21 +194,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "先攻学校名",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_26q58cjxs31p"
+      "height": 43,
+      "keyexp": "先攻学校名",
+      "parentId": "n1_o8a4irdp2kn5"
     },
-    "n1_ech4bal7ohdq": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_ech4bal7ohdq",
+    "n1_iufv3klstymh": {
+      "id": "n1_iufv3klstymh",
       "type": "text",
       "x": 827,
       "y": 124,
@@ -205,10 +208,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
+      "name": "後攻得点",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "text": "0",
       "width": 55,
-      "height": 45,
-      "text": "６",
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 45,
@@ -234,21 +247,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "後攻得点",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_26q58cjxs31p"
+      "height": 45,
+      "keyexp": "後攻得点",
+      "parentId": "n1_o8a4irdp2kn5"
     },
-    "n1_ihxtio8o18ai": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_ihxtio8o18ai",
+    "n1_doqbk4lx9eev": {
+      "id": "n1_doqbk4lx9eev",
       "type": "text",
       "x": 827,
       "y": 67,
@@ -257,10 +261,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
+      "name": "先攻得点",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "text": "0",
       "width": 55,
-      "height": 45,
-      "text": "６",
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 45,
@@ -286,19 +300,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "先攻得点",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_26q58cjxs31p"
+      "height": 45,
+      "keyexp": "先攻得点",
+      "parentId": "n1_o8a4irdp2kn5"
     },
-    "n1_ivx74jr4irm1": {
-      "id": "n1_ivx74jr4irm1",
+    "n1_fk29mha4t3i1": {
+      "id": "n1_fk29mha4t3i1",
       "type": "group",
       "x": 787,
       "y": 983,
@@ -310,22 +317,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_ic4ivt162hox",
-        "n1_as3tyn1s31ca",
-        "n1_1avwzmb63eo8"
-      ],
       "name": "1回目",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "children": [
+        "n1_45a0p5vcnz6c",
+        "n1_p0lb0fli51bn",
+        "n1_y36u9npqzhef"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_ic4ivt162hox": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_ic4ivt162hox",
+    "n1_45a0p5vcnz6c": {
+      "id": "n1_45a0p5vcnz6c",
       "type": "text",
       "x": 27,
       "y": -108,
@@ -334,10 +339,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 35,
-      "height": 35,
+      "name": "イニング",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "1",
+      "width": 35,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -363,21 +378,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "イニング",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 35,
       "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_ivx74jr4irm1"
+      "parentId": "n1_fk29mha4t3i1"
     },
-    "n1_as3tyn1s31ca": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_as3tyn1s31ca",
+    "n1_p0lb0fli51bn": {
+      "id": "n1_p0lb0fli51bn",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -386,21 +392,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_3ncurwryx1kc",
       "name": "後攻1",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_ivx74jr4irm1"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "後攻1",
+      "parentId": "n1_fk29mha4t3i1"
     },
-    "n1_1avwzmb63eo8": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_1avwzmb63eo8",
+    "n1_y36u9npqzhef": {
+      "id": "n1_y36u9npqzhef",
       "type": "image",
       "x": 0,
       "y": -57,
@@ -409,19 +416,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_rn1du0vu5bbk",
       "name": "先攻1",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_ivx74jr4irm1"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "先攻1",
+      "parentId": "n1_fk29mha4t3i1"
     },
-    "n1_k94esp7tf9mn": {
-      "id": "n1_k94esp7tf9mn",
+    "n1_er5qeo2tj579": {
+      "id": "n1_er5qeo2tj579",
       "type": "group",
       "x": 863,
       "y": 983,
@@ -433,22 +443,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_t3ftfu2gpfa7",
-        "n1_fr1q751cd0sm",
-        "n1_l3xvndl4zwzf"
-      ],
       "name": "2回目",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "children": [
+        "n1_db2fyjjhi919",
+        "n1_orkwffgllcok",
+        "n1_4ojk6tcxodtd"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_t3ftfu2gpfa7": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_t3ftfu2gpfa7",
+    "n1_db2fyjjhi919": {
+      "id": "n1_db2fyjjhi919",
       "type": "text",
       "x": 29,
       "y": -108,
@@ -457,10 +465,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 35,
-      "height": 35,
+      "name": "イニング",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "2",
+      "width": 35,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -486,21 +504,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "イニング",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 35,
       "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_k94esp7tf9mn"
+      "parentId": "n1_er5qeo2tj579"
     },
-    "n1_fr1q751cd0sm": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_fr1q751cd0sm",
+    "n1_orkwffgllcok": {
+      "id": "n1_orkwffgllcok",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -509,21 +518,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_3ncurwryx1kc",
       "name": "後攻2",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_k94esp7tf9mn"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "後攻2",
+      "parentId": "n1_er5qeo2tj579"
     },
-    "n1_l3xvndl4zwzf": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_l3xvndl4zwzf",
+    "n1_4ojk6tcxodtd": {
+      "id": "n1_4ojk6tcxodtd",
       "type": "image",
       "x": 0,
       "y": -57,
@@ -532,19 +542,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_rn1du0vu5bbk",
       "name": "先攻2",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_k94esp7tf9mn"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "先攻2",
+      "parentId": "n1_er5qeo2tj579"
     },
-    "n1_lrgn62z1pyqu": {
-      "id": "n1_lrgn62z1pyqu",
+    "n1_o2u9v8v0dx4j": {
+      "id": "n1_o2u9v8v0dx4j",
       "type": "group",
       "x": 939,
       "y": 983,
@@ -556,22 +569,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_sujlzwrxc7vz",
-        "n1_82x9uxz56t66",
-        "n1_390tnjriiyr9"
-      ],
       "name": "3回目",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "children": [
+        "n1_j5u6yjbff1rj",
+        "n1_9w60h67yd2qd",
+        "n1_7vd3frm84se5"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_sujlzwrxc7vz": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_sujlzwrxc7vz",
+    "n1_j5u6yjbff1rj": {
+      "id": "n1_j5u6yjbff1rj",
       "type": "text",
       "x": 27,
       "y": -108,
@@ -580,10 +591,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 35,
-      "height": 35,
+      "name": "イニング",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "3",
+      "width": 35,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -609,21 +630,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "イニング",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 35,
       "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_lrgn62z1pyqu"
+      "parentId": "n1_o2u9v8v0dx4j"
     },
-    "n1_82x9uxz56t66": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_82x9uxz56t66",
+    "n1_9w60h67yd2qd": {
+      "id": "n1_9w60h67yd2qd",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -632,21 +644,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_3ncurwryx1kc",
       "name": "後攻3",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_lrgn62z1pyqu"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "後攻3",
+      "parentId": "n1_o2u9v8v0dx4j"
     },
-    "n1_390tnjriiyr9": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_390tnjriiyr9",
+    "n1_7vd3frm84se5": {
+      "id": "n1_7vd3frm84se5",
       "type": "image",
       "x": 0,
       "y": -57,
@@ -655,19 +668,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_rn1du0vu5bbk",
       "name": "先攻3",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_lrgn62z1pyqu"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "先攻3",
+      "parentId": "n1_o2u9v8v0dx4j"
     },
-    "n1_cs76xirdqeds": {
-      "id": "n1_cs76xirdqeds",
+    "n1_6qqsv5m6ttmd": {
+      "id": "n1_6qqsv5m6ttmd",
       "type": "group",
       "x": 1015,
       "y": 983,
@@ -679,22 +695,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_l1ohs4dz9on5",
-        "n1_wjz27p6niw8y",
-        "n1_m51xwt8msq2o"
-      ],
       "name": "4回目",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "children": [
+        "n1_l9a5m5zomqu4",
+        "n1_uk17gw70axkm",
+        "n1_cx7bevw3qgue"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_l1ohs4dz9on5": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_l1ohs4dz9on5",
+    "n1_l9a5m5zomqu4": {
+      "id": "n1_l9a5m5zomqu4",
       "type": "text",
       "x": 26,
       "y": -108,
@@ -703,10 +717,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 35,
-      "height": 35,
+      "name": "イニング",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "4",
+      "width": 35,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -732,21 +756,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "イニング",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 35,
       "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_cs76xirdqeds"
+      "parentId": "n1_6qqsv5m6ttmd"
     },
-    "n1_wjz27p6niw8y": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_wjz27p6niw8y",
+    "n1_uk17gw70axkm": {
+      "id": "n1_uk17gw70axkm",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -755,21 +770,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_3ncurwryx1kc",
       "name": "後攻4",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_cs76xirdqeds"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "後攻4",
+      "parentId": "n1_6qqsv5m6ttmd"
     },
-    "n1_m51xwt8msq2o": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_m51xwt8msq2o",
+    "n1_cx7bevw3qgue": {
+      "id": "n1_cx7bevw3qgue",
       "type": "image",
       "x": 0,
       "y": -57,
@@ -778,19 +794,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_rn1du0vu5bbk",
       "name": "先攻4",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_cs76xirdqeds"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "先攻4",
+      "parentId": "n1_6qqsv5m6ttmd"
     },
-    "n1_09suq40dx8ae": {
-      "id": "n1_09suq40dx8ae",
+    "n1_586l39uho1ms": {
+      "id": "n1_586l39uho1ms",
       "type": "group",
       "x": 1091,
       "y": 983,
@@ -802,22 +821,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_dbmc564ysz7p",
-        "n1_spplmnmnh5s2",
-        "n1_710gi45huutr"
-      ],
       "name": "5回目",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "children": [
+        "n1_mdivcilcaeo1",
+        "n1_3xp6ypgghaqf",
+        "n1_x4bwsc1svrvd"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_dbmc564ysz7p": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_dbmc564ysz7p",
+    "n1_mdivcilcaeo1": {
+      "id": "n1_mdivcilcaeo1",
       "type": "text",
       "x": 26,
       "y": -108,
@@ -826,10 +843,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 35,
-      "height": 35,
+      "name": "イニング",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "5",
+      "width": 35,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -855,21 +882,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "イニング",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 35,
       "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_09suq40dx8ae"
+      "parentId": "n1_586l39uho1ms"
     },
-    "n1_spplmnmnh5s2": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_spplmnmnh5s2",
+    "n1_3xp6ypgghaqf": {
+      "id": "n1_3xp6ypgghaqf",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -878,21 +896,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_3ncurwryx1kc",
       "name": "後攻5",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_09suq40dx8ae"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "後攻5",
+      "parentId": "n1_586l39uho1ms"
     },
-    "n1_710gi45huutr": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_710gi45huutr",
+    "n1_x4bwsc1svrvd": {
+      "id": "n1_x4bwsc1svrvd",
       "type": "image",
       "x": 0,
       "y": -57,
@@ -901,19 +920,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_rn1du0vu5bbk",
       "name": "先攻5",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_09suq40dx8ae"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "先攻5",
+      "parentId": "n1_586l39uho1ms"
     },
-    "n1_bo0gaqrtkjdm": {
-      "id": "n1_bo0gaqrtkjdm",
+    "n1_xdt7ai48shrq": {
+      "id": "n1_xdt7ai48shrq",
       "type": "group",
       "x": 1167,
       "y": 983,
@@ -925,22 +947,25 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_8d4fps2kyxdn",
-        "n1_zc3o5y6dwise",
-        "n1_ossdg3m1u2rj"
-      ],
       "name": "6回目",
-      "visible": false,
+      "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_h589vdlhhm9k"
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "6回目表示",
+        "operator": "not_empty"
+      },
+      "children": [
+        "n1_rn5k8atrlhpu",
+        "n1_9iodstri5jkr",
+        "n1_4u0ah8nyk38w"
+      ],
+      "parentId": "n1_th7m2emte73c"
     },
-    "n1_8d4fps2kyxdn": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_8d4fps2kyxdn",
+    "n1_rn5k8atrlhpu": {
+      "id": "n1_rn5k8atrlhpu",
       "type": "text",
       "x": 27,
       "y": -108,
@@ -949,10 +974,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 35,
-      "height": 35,
+      "name": "イニング",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "6",
+      "width": 35,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -978,21 +1013,12 @@
         "letterSpacing": 15,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "イニング",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 35,
       "keyexp": "",
-      "fitMode": "shrink_x",
-      "parentId": "n1_bo0gaqrtkjdm"
+      "parentId": "n1_xdt7ai48shrq"
     },
-    "n1_zc3o5y6dwise": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_zc3o5y6dwise",
+    "n1_9iodstri5jkr": {
+      "id": "n1_9iodstri5jkr",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1001,21 +1027,22 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_3ncurwryx1kc",
       "name": "後攻6",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_bo0gaqrtkjdm"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "後攻6",
+      "parentId": "n1_xdt7ai48shrq"
     },
-    "n1_ossdg3m1u2rj": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_ossdg3m1u2rj",
+    "n1_4u0ah8nyk38w": {
+      "id": "n1_4u0ah8nyk38w",
       "type": "image",
       "x": 0,
       "y": -57,
@@ -1024,97 +1051,151 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 76,
-      "height": 50,
-      "assetId": "a1_rn1du0vu5bbk",
       "name": "先攻6",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_bo0gaqrtkjdm"
+      "assetId": "a1_ok5eg4gkypfd",
+      "width": 76,
+      "height": 50,
+      "keyexp": "先攻6",
+      "parentId": "n1_xdt7ai48shrq"
+    },
+    "n1_z9q81p2sevcz": {
+      "id": "n1_z9q81p2sevcz",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "6回目表示",
+      "visible": false,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "text": "",
+      "keyexp": "6回目表示",
+      "width": 40,
+      "padding": 0,
+      "align": "left",
+      "verticalAlign": "top",
+      "fitMode": "none",
+      "style": {
+        "fontFamily": "Noto Sans JP",
+        "fontSize": 48,
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 0,
+            "lineJoin": "round",
+            "miterLimit": 10
+          }
+        ]
+      },
+      "parentId": "n1_th7m2emte73c"
+    },
+    "n1_8mgj1yn0uj3m": {
+      "id": "n1_8mgj1yn0uj3m",
+      "type": "image",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "○画像",
+      "visible": false,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "assetId": "a1_ilg5dqdrpzhl",
+      "width": 10,
+      "height": 10,
+      "parentId": "n1_th7m2emte73c"
+    },
+    "n1_tqm6kzsql5gr": {
+      "id": "n1_tqm6kzsql5gr",
+      "type": "image",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "×画像",
+      "visible": false,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "assetId": "a1_0xg07pi2zitl",
+      "width": 10,
+      "height": 10,
+      "parentId": "n1_th7m2emte73c"
     }
   },
   "assets": {
-    "a1_3ncurwryx1kc": {
-      "id": "a1_3ncurwryx1kc",
+    "a1_0xg07pi2zitl": {
+      "id": "a1_0xg07pi2zitl",
       "kind": "image",
       "name": "HD2D_P07_Parts2.png",
       "src": "img/HD2D_P07_Parts2.png",
       "width": 76,
       "height": 50,
       "groupId": null,
-      "ownerId": "n1_h589vdlhhm9k"
+      "ownerId": "n1_th7m2emte73c"
     },
-    "a1_6z2l2a7rhpfr": {
-      "id": "a1_6z2l2a7rhpfr",
-      "kind": "image",
-      "name": "HD2D_P07_PKBase_06.png",
-      "src": "img/HD2D_P07_PKBase_06.png",
-      "width": 928,
-      "height": 220,
-      "groupId": null,
-      "ownerId": "n1_h589vdlhhm9k"
-    },
-    "a1_rn1du0vu5bbk": {
-      "id": "a1_rn1du0vu5bbk",
+    "a1_ilg5dqdrpzhl": {
+      "id": "a1_ilg5dqdrpzhl",
       "kind": "image",
       "name": "HD2D_P07_Parts1.png",
       "src": "img/HD2D_P07_Parts1.png",
       "width": 76,
       "height": 50,
       "groupId": null,
-      "ownerId": "n1_h589vdlhhm9k"
+      "ownerId": "n1_th7m2emte73c"
+    },
+    "a1_mmw3ttgmvgso": {
+      "id": "a1_mmw3ttgmvgso",
+      "kind": "image",
+      "name": "HD2D_P07_PKBase_06.png",
+      "src": "img/HD2D_P07_PKBase_06.png",
+      "width": 928,
+      "height": 220,
+      "groupId": null,
+      "ownerId": "n1_th7m2emte73c"
+    },
+    "a1_ok5eg4gkypfd": {
+      "id": "a1_ok5eg4gkypfd",
+      "kind": "image",
+      "name": "HD2D_P07_Parts3.png",
+      "src": "img/HD2D_P07_Parts3.png",
+      "width": 76,
+      "height": 50,
+      "groupId": null,
+      "ownerId": "n1_th7m2emte73c"
     }
   },
-  "assetGroups": {
-    "ag_2tp9vr7rgjrm": {
-      "id": "ag_2tp9vr7rgjrm",
-      "name": "顔写真",
-      "order": 1,
-      "ownerId": "n1_es2xfsdwu7af"
-    },
-    "ag_5oyeyvh9": {
-      "id": "ag_5oyeyvh9",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_h34l97040ncv"
-    },
-    "ag_5p3jtppl49e4": {
-      "id": "ag_5p3jtppl49e4",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_nqlp71a7dlfe"
-    },
-    "ag_8cjhkps1gbgl": {
-      "id": "ag_8cjhkps1gbgl",
-      "name": "チーム名ベース左",
-      "order": 2,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_gmje0s0j5rh2": {
-      "id": "ag_gmje0s0j5rh2",
-      "name": "顔写真",
-      "order": 0
-    },
-    "ag_kp1ed02zjofg": {
-      "id": "ag_kp1ed02zjofg",
-      "name": "チーム名ベース右",
-      "order": 3,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_linnjxg7vpc8": {
-      "id": "ag_linnjxg7vpc8",
-      "name": "チーム名ベース左",
-      "order": 4,
-      "ownerId": "n1_6ua9hzcbdxox"
-    },
-    "ag_t8m4emyvjyk3": {
-      "id": "ag_t8m4emyvjyk3",
-      "name": "チーム名ベース右",
-      "order": 5,
-      "ownerId": "n1_6ua9hzcbdxox"
-    }
-  }
+  "assetGroups": {}
 }

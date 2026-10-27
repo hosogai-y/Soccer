@@ -1954,11 +1954,15 @@ function expandRepeats(doc, options = {}) {
                 const img = createSVGElement("image");
                 const asset = (activeDoc.assets && activeDoc.assets[node.assetId]) || (projectData.assets ? projectData.assets[node.assetId] : null);
                 const src = asset ? asset.src : null;
-                setAttributes(img, { 
-                    width: node.width || 100, 
-                    height: node.height || 100, 
-                    href: (src && assetCache[src]) ? assetCache[src] : (src || ""), 
-                    preserveAspectRatio: "none" 
+                // 合わせ方（domain/projectdoc/imageFit.ts の imagePreserveAspectRatio と同じ）
+                const fit = node.imageFit || "fill";
+                const fitX = node.imageAlign === "left" ? "xMin" : node.imageAlign === "right" ? "xMax" : "xMid";
+                const fitY = node.imageVAlign === "top" ? "YMin" : node.imageVAlign === "bottom" ? "YMax" : "YMid";
+                setAttributes(img, {
+                    width: node.width || 100,
+                    height: node.height || 100,
+                    href: (src && assetCache[src]) ? assetCache[src] : (src || ""),
+                    preserveAspectRatio: fit === "fill" ? "none" : `${fitX}${fitY} ${fit === "cover" ? "slice" : "meet"}`
                 });
                 content.appendChild(img);
             } else if (node.type === 'group' || node.type === 'telop' || node.type === 'plane') {
