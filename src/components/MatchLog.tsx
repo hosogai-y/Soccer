@@ -8,6 +8,7 @@ import {
     LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals
 } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
+import { TEAM_LINEUPS_KEY, TeamLineup, CLEARED_SUBBED_OUT } from '../utils/lineup';
 
 const LOG_ROW_HEIGHT = 30;
 const LOG_VISIBLE_ROWS = 5;
@@ -21,6 +22,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
     const { syncedStateRef } = useTelopHub();
     const { entries, archives, record, remove, saveEntries, saveArchives, writeScores } = useMatchLog();
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
+    const [, setTeamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
     const [, setTimerState] = useSyncedState<TimerState | null>('match_timer_state', null);
     const [, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
     const timer = useTelop('タイマー');
@@ -98,6 +100,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             `CGOperation を初期状態にしますか？\n` +
             `・得点 0 - 0、タイマー 0:00（停止）、前半\n` +
             `・全選手の Today ゴールを 0 にし、Total を試合前の通算に戻します\n` +
+            `・${oaLeftTeam}・${oaRightTeam} の交代済み（グレー表示）を解除します\n` +
             (entries.length > 0 ? `・当日ログ（${entries.length}件）は過去ログに保管して空にします` : '')
         )) return;
         if (entries.length > 0) {
@@ -106,6 +109,14 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             saveEntries([]);
         }
         setPlayers(prev => resetTodayGoals(prev || []));
+        // 交代済みの印を外す（スタメン・控えの並びはそのまま）
+        setTeamLineups(prev => {
+            const next = { ...(prev || {}) };
+            [oaLeftTeam, oaRightTeam].forEach(team => {
+                if (next[team]) next[team] = { ...next[team], subbedOut: CLEARED_SUBBED_OUT };
+            });
+            return next;
+        });
         writeScores(0, 0);
         setTimerState({ isRunning: false, lastTick: Date.now(), accumulatedMs: 0 });
         changePeriod('前半', 0);

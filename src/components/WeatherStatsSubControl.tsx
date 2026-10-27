@@ -6,6 +6,8 @@ import { useCgQueueRegister } from '../utils/cgQueue';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, formatGrade, subChangeBaseImage } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
+import { useClearForTake } from '../utils/cgExclusive';
+import { useApplySubstitution } from '../utils/useSubstitution';
 
 export type StatsData = {
     leftShoot: string;
@@ -22,6 +24,7 @@ export type StatsData = {
 
 export default function WeatherStatsSubControl() {
     const statsTelop = useTelop('スタッツ');
+    const clearForTake = useClearForTake();
     const smallScoreTelop = useTelop('小得点');
     const bigScoreTelop = useTelop('大得点');
 
@@ -148,6 +151,7 @@ export default function WeatherStatsSubControl() {
 
         statsTelop.setData(payload);
         if (isTake) {
+            clearForTake('スタッツ'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
             statsTelop.show(payload);
         } else {
             statsTelop.update(payload);
@@ -323,6 +327,7 @@ export default function WeatherStatsSubControl() {
 // --------------------------------------------------------
 export function WeatherControl() {
     const weatherTelop = useTelop('気象');
+    const clearForTake = useClearForTake();
 
     const [weatherData, setWeatherData] = useState({
         condition: '晴れ',
@@ -337,6 +342,7 @@ export function WeatherControl() {
             '湿度テキスト': weatherData.humidity
         };
         weatherTelop.setData(payload);
+        clearForTake('気象'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         weatherTelop.show(payload);
     };
 
@@ -413,7 +419,9 @@ function useSubTeams() {
         isRegistered: (side: Side) => hasRegistered(lineupOf(side)),
         startersOf: (side: Side) => registeredStarters(lineupOf(side), players || []),
         subsOf: (side: Side) => registeredSubs(lineupOf(side), players || []),
-        findPlayer: (id: string) => (id ? (players || []).find(p => p.id === id) : undefined)
+        findPlayer: (id: string) => (id ? (players || []).find(p => p.id === id) : undefined),
+        // 交代反映でスタメンから控えに下がった選手（再出場できない）
+        isSubbedOut: (side: Side, id: string) => !!lineupOf(side)?.subbedOut?.includes(id)
     };
 }
 
@@ -457,7 +465,9 @@ function SubPlayerSelect({ side, value, onChange, placeholder, teams, style }: {
             )}
             {subs.length > 0 && (
                 <optgroup label="控え">
-                    {subs.map(p => <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
+                    {subs.map(p => teams.isSubbedOut(side, p.id)
+                        ? <option key={p.id} value={p.id} disabled style={{ color: '#777' }}>{p.number} - {p.name}（交代済）</option>
+                        : <option key={p.id} value={p.id}>{p.number} - {p.name}</option>)}
                 </optgroup>
             )}
         </select>
@@ -471,6 +481,8 @@ export function Sub1Control() {
     const teams = useSubTeams();
     const registerQueue = useCgQueueRegister();
     const sub1Telop = useTelop('選手交代1枚');
+    const clearForTake = useClearForTake();
+    const applySubstitution = useApplySubstitution();
     const { record: recordLog } = useMatchLog();
 
     const [sub1Data, setSub1Data] = useState<{ side: Side, outPlayerId: string, inPlayerId: string }>({
@@ -502,8 +514,14 @@ export function Sub1Control() {
     const sendSub1 = () => {
         const payload = buildPayload();
         sub1Telop.setData(payload);
+        clearForTake('選手交代1枚'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         sub1Telop.show(payload);
         recordLog(logDrafts());
+    };
+
+    // 交代反映: Lineups のスタメンと控えを入れ替える
+    const reflectSub1 = () => {
+        applySubstitution(teams.schoolOf(sub1Data.side), [{ outId: sub1Data.outPlayerId, inId: sub1Data.inPlayerId }]);
     };
 
     const registerSub1 = () => {
@@ -538,6 +556,7 @@ export function Sub1Control() {
             <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub1}>TAKE 交代1枚</button>
                 <button className="btn btn-warning" style={{ padding: '6px 10px' }} onClick={registerSub1} title="CG Queue List にストック">Q登録</button>
+                <button className="btn btn-primary" style={{ padding: '6px 10px' }} onClick={reflectSub1} title="Lineups のスタメンと控えを入れ替えます（OUT 選手は控えでグレー表示）">交代反映</button>
                 <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub1Telop.hide}>HIDE</button>
             </div>
         </div>
@@ -551,6 +570,8 @@ export function Sub2Control() {
     const teams = useSubTeams();
     const registerQueue = useCgQueueRegister();
     const sub2Telop = useTelop('選手交代2枚');
+    const clearForTake = useClearForTake();
+    const applySubstitution = useApplySubstitution();
     const { record: recordLog } = useMatchLog();
 
     const emptyPicks = { outPlayerId1: '', inPlayerId1: '', outPlayerId2: '', inPlayerId2: '' };
@@ -587,8 +608,17 @@ export function Sub2Control() {
     const sendSub2 = () => {
         const payload = buildPayload();
         sub2Telop.setData(payload);
+        clearForTake('選手交代2枚'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         sub2Telop.show(payload);
         recordLog(logDrafts());
+    };
+
+    // 交代反映: Lineups のスタメンと控えを入れ替える（選ばれている組だけ）
+    const reflectSub2 = () => {
+        applySubstitution(teams.schoolOf(sub2Data.side), [
+            { outId: sub2Data.outPlayerId1, inId: sub2Data.inPlayerId1 },
+            { outId: sub2Data.outPlayerId2, inId: sub2Data.inPlayerId2 }
+        ]);
     };
 
     const registerSub2 = () => {
@@ -624,6 +654,7 @@ export function Sub2Control() {
             <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub2}>TAKE 交代2枚</button>
                 <button className="btn btn-warning" style={{ padding: '6px 10px' }} onClick={registerSub2} title="CG Queue List にストック">Q登録</button>
+                <button className="btn btn-primary" style={{ padding: '6px 10px' }} onClick={reflectSub2} title="Lineups のスタメンと控えを入れ替えます（OUT 選手は控えでグレー表示）">交代反映</button>
                 <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub2Telop.hide}>HIDE</button>
             </div>
         </div>

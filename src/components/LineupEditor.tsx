@@ -30,7 +30,9 @@ type AssignTarget = { kind: 'starter'; slotId: string } | { kind: 'sub'; index: 
 const normalizeLineup = (l?: TeamLineup | null): TeamLineup => ({
     starters: { ...(l?.starters || {}) },
     subs: Array.from({ length: SUB_SLOT_COUNT }, (_, i) => l?.subs?.[i] || ''),
-    ...(l?.formation ? { formation: { system: l.formation.system, positions: { ...l.formation.positions } } } : {})
+    ...(l?.formation ? { formation: { system: l.formation.system, positions: { ...l.formation.positions } } } : {}),
+    // 交代反映で下がった選手は、Lineups で登録し直しても交代済みのまま
+    ...(l?.subbedOut?.length ? { subbedOut: [...l.subbedOut] } : {})
 });
 
 export default function LineupEditor() {

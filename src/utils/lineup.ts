@@ -29,8 +29,53 @@ export type TeamLineup = {
     starters: Record<string, string>; // slotId -> player.id
     subs: string[]; // 控え枠順の player.id（空枠は ''）
     formation?: FormationLayout; // 陣形（未設定ならチーム設定の基本フォーメーションの標準配置）
+    subbedOut?: string[]; // 交代反映でスタメンから控えに下がった player.id（控え一覧でグレー表示・再出場の候補から外す）
     updatedAt?: number;
 };
+
+export type SubstitutionPair = { outId: string, inId: string };
+
+/**
+ * 交代済みの印を外した subbedOut。SDK の状態マージは空配列で既存の配列を上書きしないので、
+ * 空にするときは [''] を書く（'' はどの選手 id とも一致しない）
+ */
+export const CLEARED_SUBBED_OUT = [''];
+
+/**
+ * 交代反映: OUT 選手（スタメン）と IN 選手（控え）の枠を入れ替え、OUT 選手を交代済みにする。
+ * 反映できなかった組は理由を返す（すでに反映済み・スタメンにいない など）
+ */
+export function applySubstitutions(lineup: TeamLineup, pairs: SubstitutionPair[], nameOf: (id: string) => string) {
+    const starters = { ...(lineup.starters || {}) };
+    const subs = Array.from({ length: SUB_SLOT_COUNT }, (_, i) => lineup.subs?.[i] || '');
+    const subbedOut = (lineup.subbedOut || []).filter(Boolean);
+    const applied: SubstitutionPair[] = [];
+    const skipped: string[] = [];
+
+    pairs.forEach(({ outId, inId }) => {
+        const slotId = Object.keys(starters).find(k => starters[k] === outId);
+        if (!slotId) {
+            const inIsStarter = Object.values(starters).includes(inId);
+            skipped.push(inIsStarter
+                ? `${nameOf(outId)} → ${nameOf(inId)} はすでに反映済みです`
+                : `${nameOf(outId)} はスタメンにいません`);
+            return;
+        }
+        if (subbedOut.includes(inId)) {
+            skipped.push(`${nameOf(inId)} は交代済みのため出場できません`);
+            return;
+        }
+        starters[slotId] = inId;
+        // IN 選手がいた控え枠に OUT 選手を入れる（控えに登録されていなければ空き枠へ）
+        const inIdx = subs.indexOf(inId);
+        const idx = inIdx >= 0 ? inIdx : subs.indexOf('');
+        if (idx >= 0) subs[idx] = outId;
+        if (!subbedOut.includes(outId)) subbedOut.push(outId);
+        applied.push({ outId, inId });
+    });
+
+    return { lineup: { ...lineup, starters, subs, subbedOut, updatedAt: Date.now() }, applied, skipped };
+}
 
 export const TEAM_LINEUPS_KEY = 'team_lineups';
 

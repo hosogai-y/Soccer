@@ -11,6 +11,7 @@ export type CgQueueItem = {
     played?: boolean;
     payload?: Record<string, any>;
     logEntries?: MatchLogDraft[]; // 送出したときに当日操作ログへ記録する内容（交代・カード）
+    reflected?: boolean;          // 交代反映（スタメンと控えの入れ替え）済み
 };
 
 /**

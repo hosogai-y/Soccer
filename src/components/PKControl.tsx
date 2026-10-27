@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
+import { useClearForTake } from '../utils/cgExclusive';
 
 type Side = 'left' | 'right';
 
@@ -45,6 +46,7 @@ export default function PKControl() {
 
     const pkCenter = useTelop('PK');
     const pkTopLeft = useTelop('左上PK');
+    const clearForTake = useClearForTake();
 
     const state = pkState || DEFAULT_PK_STATE;
 
@@ -193,12 +195,14 @@ export default function PKControl() {
     const sendToCenterPK = () => {
         const payload = buildPayload('PK');
         pkCenter.setData(payload);
+        clearForTake('PK'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         pkCenter.show(payload);
     };
 
     const sendToTopLeftPK = () => {
         const payload = buildPayload('左上PK');
         pkTopLeft.setData(payload);
+        clearForTake('左上PK'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         pkTopLeft.show(payload);
     };
 

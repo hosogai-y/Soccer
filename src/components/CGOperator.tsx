@@ -12,6 +12,8 @@ import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
+import { useClearForTake, KEEP_ON_TAKE } from '../utils/cgExclusive';
+import { useApplySubstitution } from '../utils/useSubstitution';
 
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
@@ -51,6 +53,8 @@ export default function CGOperator() {
         const lineup = teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam];
         return hasRegistered(lineup) ? registeredStarters(lineup, players || []) : teamPlayersOf(side).filter(p => !p.isSubbed);
     };
+    // 交代反映でスタメンから控えに下がった選手（Subs 一覧でグレー表示）
+    const subbedOutOf = (side: 'left' | 'right') => teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam]?.subbedOut || [];
     const hasRegisteredSide = (side: 'left' | 'right') => hasRegistered(teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam]);
     const subsOf = (side: 'left' | 'right') => {
         const lineup = teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam];
@@ -69,6 +73,8 @@ export default function CGOperator() {
     // CG Queue State
     const [cgQueue, setCgQueue] = useCgQueue();
     const { record: recordLog } = useMatchLog();
+    const clearForTake = useClearForTake();
+    const applySubstitution = useApplySubstitution();
     const [queueMode, setQueueMode] = useState(false);
     // マウスクリックで選択したキュー項目（TAKE NEXT はこれを優先して送出）
     const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null);
@@ -113,6 +119,19 @@ export default function CGOperator() {
 
     const selectedQueueItem = (cgQueue || []).find(item => item.id === selectedQueueId && !item.played);
 
+    // 交代反映の対象: 選択中の交代項目、なければ直前に送出した未反映の交代項目
+    const subEntriesOf = (item?: CgQueueItem) => (item?.logEntries || []).filter(e => e.type === 'sub' && e.team && e.playerId && e.inPlayerId);
+    const reflectTarget = subEntriesOf(selectedQueueItem).length > 0
+        ? selectedQueueItem
+        : [...(cgQueue || [])].reverse().find(item => item.played && !item.reflected && subEntriesOf(item).length > 0);
+
+    const reflectQueueSubstitution = () => {
+        if (!reflectTarget) return;
+        const entries = subEntriesOf(reflectTarget);
+        const ok = applySubstitution(entries[0].team!, entries.map(e => ({ outId: e.playerId!, inId: e.inPlayerId! })));
+        if (ok) setCgQueue(prev => (prev || []).map(q => q.id === reflectTarget.id ? { ...q, reflected: true } : q));
+    };
+
     const takeNextQueue = () => {
         if (!cgQueue || cgQueue.length === 0) return;
         const item = selectedQueueItem || cgQueue.find(item => !item.skipped && !item.played);
@@ -125,8 +144,8 @@ export default function CGOperator() {
 
     // キュー項目を送出（TAKE NEXT と、ダブルクリックでの再送出で共用）
     const takeQueueItem = (item: CgQueueItem) => {
-        // Hide non-essential items
-        window.dispatchEvent(new Event('TRIGGER_HIDE_QUEUE_ITEMS'));
+        // 小得点・タイマー・アディショナルタイム以外の CG を消してから出す
+        clearForTake(item.telopName);
 
         setCgQueue(prev => (prev || []).map(q => q.id === item.id ? { ...q, played: true } : q));
         setSelectedQueueId(null);
@@ -137,7 +156,6 @@ export default function CGOperator() {
         const payloadTelop = item.payload ? payloadTelops[item.telopName] : undefined;
         if (payloadTelop && item.payload) {
             const payload = item.payload;
-            Object.entries(payloadTelops).forEach(([name, t]) => { if (name !== item.telopName && t.isVisible) t.hide(); });
             setTimeout(() => {
                 payloadTelop.setData(payload);
                 payloadTelop.show(payload);
@@ -176,6 +194,7 @@ export default function CGOperator() {
                     title={`${oaLeftTeam} - Subs`}
                     color="#8bc34a"
                     players={subsOf('left')}
+                    grayedIds={subbedOutOf('left')}
                     sortBy={hasRegisteredSide('left') ? 'none' : 'number'}
                     selectedId={selectedPlayer?.id}
                     onSelect={p => setSelectedPlayerId(p.id)}
@@ -252,6 +271,10 @@ export default function CGOperator() {
                                     <button className="btn btn-danger" style={{ padding: '4px 16px', fontSize: '0.9rem', fontWeight: 'bold' }} onClick={hideQueueOnAir} disabled={!queueOnAir} title={queueOnAir ? `${queueOnAir.label} を消す` : 'キューから送出中のCGはありません'}>
                                         HIDE
                                     </button>
+                                    <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '0.8rem', fontWeight: 'bold' }} onClick={reflectQueueSubstitution} disabled={!reflectTarget}
+                                        title={reflectTarget ? `#${(cgQueue || []).indexOf(reflectTarget) + 1} ${reflectTarget.label} を Lineups に反映（スタメンと控えを入れ替え）` : '反映する交代がありません（交代の項目を選択するか、送出してください）'}>
+                                        交代反映{reflectTarget ? ` #${(cgQueue || []).indexOf(reflectTarget) + 1}` : ''}
+                                    </button>
                                     <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.8rem', borderColor: 'var(--accent-danger)' }} onClick={clearQueue} disabled={(cgQueue || []).length === 0} title="キューの項目をすべて削除">
                                         一括削除
                                     </button>
@@ -278,6 +301,7 @@ export default function CGOperator() {
                                         >
                                             <span style={{ fontWeight: 'bold', color: '#ffca28' }}>#{idx + 1}</span>
                                             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', textDecoration: item.played ? 'line-through' : 'none' }} title={item.label}>{item.label}</span>
+                                            {item.reflected && <span style={{ fontSize: '0.65rem', color: '#0dcaf0' }}>反映済</span>}
                                             {!item.played && (
                                                 <button className="btn btn-secondary" style={{ padding: '1px 5px', fontSize: '0.65rem' }} onClick={e => { e.stopPropagation(); toggleSkipQueueItem(item.id); }}>SKIP</button>
                                             )}
@@ -322,7 +346,7 @@ export default function CGOperator() {
                     {isCgControlsOpen && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
                             {ALL_TELOPS.map(t => (
-                                <TelopControl key={t.name} telopName={t.name} label={t.label} queueMode={queueMode} onAddToQueue={() => addToQueue(t.name, t.label)} />
+                                <TelopControl key={t.name} telopName={t.name} label={t.label} queueMode={queueMode} onAddToQueue={() => addToQueue(t.name, t.label)} clearForTake={clearForTake} />
                             ))}
                         </div>
                     )}
@@ -350,6 +374,7 @@ export default function CGOperator() {
                     title={`${oaRightTeam} - Subs`}
                     color="#0d6efd"
                     players={subsOf('right')}
+                    grayedIds={subbedOutOf('right')}
                     sortBy={hasRegisteredSide('right') ? 'none' : 'number'}
                     selectedId={selectedPlayer?.id}
                     onSelect={p => setSelectedPlayerId(p.id)}
@@ -389,6 +414,7 @@ function OneShotPlayerControl({
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const { record: recordLog } = useMatchLog();
+    const clearForTake = useClearForTake();
     const [goalBusy, setGoalBusy] = useState(false);
 
     // 選手ごとの登録コメント配列を取得
@@ -501,7 +527,7 @@ function OneShotPlayerControl({
 
     // 1Shot 送出 (後出し優先: 1Shotカードが出ている場合は即座に非表示！)
     const handleSend1Shot = (mode: OneShotMode) => {
-        oneShotCard.hide(); // 先に出ていた1Shotカードを消去
+        clearForTake('1Shot'); // 1Shotカードなど他の CG を消してから出す（小得点・タイマー・ATは残す）
         const payload = buildBasePayload(mode);
         oneShot.setData(payload);
         oneShot.show(payload);
@@ -522,7 +548,7 @@ function OneShotPlayerControl({
 
     // 1Shotカード 送出 (後出し優先: 1Shotが出ている場合は即座に非表示！)
     const handleSend1ShotCard = (cardType: CardType) => {
-        oneShot.hide(); // 先に出ていた1Shotを消去
+        clearForTake('1Shotカード'); // 1Shot など他の CG を消してから出す
         const payload = buildCardPayload(cardType);
         oneShotCard.setData(payload);
         oneShotCard.show(payload);
@@ -820,7 +846,9 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
     const [subsOnAirSide, setSubsOnAirSide] = useSyncedState<string>('subs_telop_side', '');
 
     // 左チーム → フォーメーション左、右チーム → フォーメーション右。控え選手は左右ともサブ下位置左
-    const telop = useTelop(kind === 'subs' ? 'サブ下位置左' : (side === 'left' ? 'フォーメーション左' : 'フォーメーション右'));
+    const telopName = kind === 'subs' ? 'サブ下位置左' : (side === 'left' ? 'フォーメーション左' : 'フォーメーション右');
+    const telop = useTelop(telopName);
+    const clearForTake = useClearForTake();
 
     const school = side === 'left' ? oaLeftTeam : oaRightTeam;
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
@@ -840,6 +868,7 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
         const payload = kind === 'subs'
             ? buildSubsPayload(lineup, players || [], schoolLabel, teamColor)
             : buildFormationPayload(lineup, players || [], schoolLabel, side, teamConfig?.formationSystem || '4-4-2', teamColor);
+        clearForTake(telopName); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         telop.setData(payload);
         telop.show(payload);
         if (kind === 'subs') setSubsOnAirSide(side);
@@ -873,12 +902,14 @@ function PlayerGrid({
     players,
     selectedId,
     onSelect,
-    sortBy = 'number'
+    sortBy = 'number',
+    grayedIds = []
 }: {
     players: Player[],
     selectedId?: string,
     onSelect: (p: Player) => void,
-    sortBy?: 'number' | 'none' // none: 渡された順のまま（Lineups の登録順＝控え選手CGの並び）
+    sortBy?: 'number' | 'none', // none: 渡された順のまま（Lineups の登録順＝控え選手CGの並び）
+    grayedIds?: string[] // 交代済みでグレー表示する選手
 }) {
     const sortedPlayers = sortBy === 'none' ? players : [...players].sort(byNumber);
     return (
@@ -900,6 +931,7 @@ function PlayerGrid({
                     {sortedPlayers.map(p => {
                         const isSelected = p.id === selectedId;
                         const hasPhoto = !!p.photoUrl;
+                        const isGrayed = grayedIds.includes(p.id);
                         return (
                             <tr 
                                 key={p.id} 
@@ -907,11 +939,14 @@ function PlayerGrid({
                                 style={{ 
                                     cursor: 'pointer', 
                                     background: isSelected ? 'rgba(255, 202, 40, 0.2)' : 'transparent',
-                                    borderLeft: isSelected ? '3px solid #ffca28' : '3px solid transparent'
+                                    borderLeft: isSelected ? '3px solid #ffca28' : '3px solid transparent',
+                                    opacity: isGrayed ? 0.4 : 1,
+                                    color: isGrayed ? '#999' : undefined
                                 }}
+                                title={isGrayed ? '交代済み（スタメンから下がった選手）' : undefined}
                             >
                                 <td style={{ fontWeight: 'bold' }}>{p.number}</td>
-                                <td style={{ whiteSpace: 'nowrap', fontWeight: isSelected ? 'bold' : 'normal' }}>{p.name}</td>
+                                <td style={{ whiteSpace: 'nowrap', fontWeight: isSelected ? 'bold' : 'normal' }}>{p.name}{isGrayed ? '（交代済）' : ''}</td>
                                 <td>{p.position}</td>
                                 <td>
                                     <span style={{ color: '#ffca28', fontWeight: 'bold' }}>{p.todayGoals || '0'}</span>
@@ -957,7 +992,7 @@ function StaffOneShotList({ school, side }: { school: string, side: 'left' | 'ri
 
 function StaffOneShotRow({ school, side, member }: { school: string, side: 'left' | 'right', member: StaffMember }) {
     const oneShot = useTelop('1Shot');
-    const oneShotCard = useTelop('1Shotカード');
+    const clearForTake = useClearForTake();
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     const [commentIdx, setCommentIdx] = useState(0);
 
@@ -968,7 +1003,7 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
     const comment = comments[Math.min(commentIdx, comments.length - 1)] || { text: '', isYellow: false };
 
     const handleTake = () => {
-        oneShotCard.hide(); // 1Shot と 1Shotカード は排他
+        clearForTake('1Shot'); // 1Shotカードなど他の CG を消してから出す
         const yellow = comment.isYellow ? comment.text : '';
         const white = comment.isYellow ? '' : comment.text;
         const payload = {
@@ -1066,30 +1101,32 @@ function QueueHideBridge({ telopName }: { telopName: string }) {
 // Telop Control Button Subcomponent
 // --------------------------------------------------------
 
-function TelopControl({ telopName, label, queueMode, onAddToQueue }: { telopName: string, label: string, queueMode: boolean, onAddToQueue: () => void }) {
+function TelopControl({ telopName, label, queueMode, onAddToQueue, clearForTake }: { telopName: string, label: string, queueMode: boolean, onAddToQueue: () => void, clearForTake: (keep: string) => void }) {
     const { show, hide, update, isVisible } = useTelop(telopName);
     const [showUpdate, setShowUpdate] = useState(false);
 
+    // キューの TAKE NEXT（payload なしの項目）。他の CG はキュー側で消してある
     useEffect(() => {
         const handleTake = (e: any) => {
             if (e.detail === telopName) {
                 show();
             }
         };
-        const handleHideAll = () => {
-            // タイマー、1Shot、1Shotカード、アディショナルタイム、小得点、大得点は消さないよう完全保護！
-            const protectedTelops = ['大得点', '小得点', 'タイマー', 'アディショナルタイム', '1Shot', '1Shotカード'];
-            if (!protectedTelops.includes(telopName)) {
-                hide();
-            }
-        };
         window.addEventListener('TRIGGER_TAKE', handleTake);
-        window.addEventListener('TRIGGER_HIDE_QUEUE_ITEMS', handleHideAll);
         return () => {
             window.removeEventListener('TRIGGER_TAKE', handleTake);
-            window.removeEventListener('TRIGGER_HIDE_QUEUE_ITEMS', handleHideAll);
         };
-    }, [telopName, show, hide]);
+    }, [telopName, show]);
+
+    // 小得点・タイマー・AT はそのまま出し、それ以外は他の CG を消してから出す
+    const handleTake = () => {
+        if (KEEP_ON_TAKE.includes(telopName)) {
+            show();
+            return;
+        }
+        clearForTake(telopName);
+        setTimeout(() => show(), 100);
+    };
 
     return (
         <div className="glass-panel" style={{ padding: '8px', borderLeft: isVisible ? '4px solid var(--accent-success)' : '4px solid transparent' }}>
@@ -1102,10 +1139,7 @@ function TelopControl({ telopName, label, queueMode, onAddToQueue }: { telopName
                 {queueMode ? (
                     <button className="btn btn-warning" style={{ flex: 1, padding: '4px', fontSize: '0.75rem' }} onClick={onAddToQueue}>Q-ADD</button>
                 ) : (
-                    <button className="btn btn-success" style={{ flex: 1, padding: '4px', fontSize: '0.75rem' }} onClick={() => {
-                        window.dispatchEvent(new Event('TRIGGER_HIDE_QUEUE_ITEMS'));
-                        setTimeout(() => show(), 100);
-                    }}>TAKE</button>
+                    <button className="btn btn-success" style={{ flex: 1, padding: '4px', fontSize: '0.75rem' }} onClick={handleTake}>TAKE</button>
                 )}
                 <button className="btn btn-danger" style={{ flex: 1, padding: '4px', fontSize: '0.75rem' }} onClick={hide}>HIDE</button>
             </div>
@@ -1138,6 +1172,7 @@ function MatchScorePanel() {
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     // スコアCGのチーム名を、どの OA チーム・TeamSettings 表記から入れたか（変わったら入れ直す）
     const [appliedNameSource, setAppliedNameSource] = useSyncedState<string | null>('score_team_name_source', null);
+    const clearForTake = useClearForTake();
     const { sdk, isConnected, isSyncingSnapshot } = useTelopHub();
 
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
@@ -1316,6 +1351,7 @@ function MatchScorePanel() {
             'RightTeamColorLargePoint': rightTeamColor
         };
         bigScore.setData((prev: any) => ({ ...prev, ...payload }));
+        clearForTake('大得点'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         bigScore.show(payload);
     };
 
