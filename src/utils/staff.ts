@@ -71,7 +71,22 @@ export function useTeamStaff() {
         });
     }, [setJson, legacyManagers]);
 
-    return { staffOf, updateMember };
+    /**
+     * 学校ごとのスタッフ枠をまとめて置き換える（選手一覧の CSV / JSON 読み込み）。
+     * 共有ステートは書いた直後に読み直しても古いことがあるので、複数校は 1 回で書く
+     */
+    const replaceStaff = useCallback((bySchool: Record<string, StaffMember[]>) => {
+        setJson(prevJson => {
+            const map = parseStaff(prevJson);
+            Object.entries(bySchool).forEach(([school, slots]) => { map[school] = normalizeSlots(slots); });
+            return JSON.stringify(map);
+        });
+    }, [setJson]);
+
+    /** スタッフを登録したことのある学校 */
+    const staffSchools = Object.keys(staffMap);
+
+    return { staffOf, updateMember, replaceStaff, staffSchools };
 }
 
 /** 登録済み（氏名あり）のスタッフだけ */
