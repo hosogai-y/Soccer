@@ -1104,6 +1104,9 @@ function MatchScorePanel() {
     const [oaRightTeam, setOaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const [subsOnAirSide, setSubsOnAirSide] = useSyncedState<string>('subs_telop_side', '');
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
+    // スコアCGのチーム名を、どの OA チーム・TeamSettings 表記から入れたか（変わったら入れ直す）
+    const [appliedNameSource, setAppliedNameSource] = useSyncedState<string | null>('score_team_name_source', null);
+    const { sdk, isConnected, isSyncingSnapshot } = useTelopHub();
 
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
     const leftConfig = teams.find(t => t.name === oaLeftTeam);
@@ -1124,7 +1127,8 @@ function MatchScorePanel() {
         leftRed: '0', rightRed: '0'
     });
 
-    const syncScores = (data: any) => {
+    // smallOnly / bigOnly は片方のテロップだけに入れる値（チーム名表記など）
+    const syncScores = (data: any, smallOnly: any = {}, bigOnly: any = {}) => {
         const expandedData = { ...data };
         
         // チームカラーは CG の Rectangle (KeyExp: ColorRectL / ColorRectR) にも反映
@@ -1139,8 +1143,8 @@ function MatchScorePanel() {
             expandedData.RightTeamColorSmallPoint = data.RigtTeamColor;
         }
         
-        bigScore.setData((prev: any) => ({ ...prev, ...expandedData }));
-        smallScore.setData((prev: any) => ({ ...prev, ...expandedData }));
+        bigScore.setData((prev: any) => ({ ...prev, ...expandedData, ...bigOnly }));
+        smallScore.setData((prev: any) => ({ ...prev, ...expandedData, ...smallOnly }));
     };
 
     // チームカラーは TeamSettings の値のみを使用（このパネルでは変更不可）
@@ -1156,6 +1160,17 @@ function MatchScorePanel() {
         syncScores({ LeftTeamColor: leftTeamColor, RigtTeamColor: rightTeamColor });
     }, [leftTeamColor, rightTeamColor, bsColorData['LeftTeamColor'], bsColorData['RigtTeamColor']]);
 
+    // Lineups の OA チーム / TeamSettings の表記が変わったら、小得点・大得点のチーム名をそれぞれの表記で入れ直す。
+    // 変わっていなければ手入力したチーム名を残す（ZIP 読み込みで古い名前が戻ったときも、ここで OA 設定に揃う）
+    const nameSource = [oaLeftTeam, oaRightTeam, defaultLeftSmallName, defaultRightSmallName, defaultLeftBigName, defaultRightBigName].join('|');
+    useEffect(() => {
+        if (!sdk || !isConnected || isSyncingSnapshot) return;
+        if (appliedNameSource === nameSource) return;
+        setAppliedNameSource(nameSource);
+        smallScore.setData((prev: any) => ({ ...prev, '左チーム名': defaultLeftSmallName, '右チーム名': defaultRightSmallName }));
+        bigScore.setData((prev: any) => ({ ...prev, '左チーム名': defaultLeftBigName, '右チーム名': defaultRightBigName }));
+    }, [sdk, isConnected, isSyncingSnapshot, nameSource, appliedNameSource]);
+
     const updateScores = () => {
         bigScore.update();
         smallScore.update();
@@ -1170,12 +1185,13 @@ function MatchScorePanel() {
         // 控え選手CG（サブ下位置左）の送出中サイドもチームに合わせて入れ替える
         if (subsOnAirSide) setSubsOnAirSide(subsOnAirSide === 'left' ? 'right' : 'left');
 
+        // OA チームの左右が入れ替わるだけなので、チーム名の入れ直しは起こさず、今の名前（手入力含む）を左右反転する
+        setAppliedNameSource([oaRightTeam, oaLeftTeam, defaultRightSmallName, defaultLeftSmallName, defaultRightBigName, defaultLeftBigName].join('|'));
+
         const cur = smallScore.data || {};
         const curBig = bigScore.data || {};
 
         const swapped = {
-            '左チーム名': cur['右チーム名'] || curBig['右チーム名'] || defaultRightSmallName,
-            '右チーム名': cur['左チーム名'] || curBig['左チーム名'] || defaultLeftSmallName,
             '左チーム得点': cur['右チーム得点'] || curBig['右チーム得点'] || '0',
             '右チーム得点': cur['左チーム得点'] || curBig['左チーム得点'] || '0',
             'LeftTeamColor': rightTeamColor,
@@ -1188,7 +1204,14 @@ function MatchScorePanel() {
             'RightTeamColorSmallPoint': leftTeamColor
         };
 
-        syncScores(swapped);
+        // チーム名は小得点・大得点で表記が違うので、それぞれの名前を左右反転する
+        syncScores(swapped, {
+            '左チーム名': cur['右チーム名'] || defaultRightSmallName,
+            '右チーム名': cur['左チーム名'] || defaultLeftSmallName
+        }, {
+            '左チーム名': curBig['右チーム名'] || defaultRightBigName,
+            '右チーム名': curBig['左チーム名'] || defaultLeftBigName
+        });
 
         setStatsData(prev => {
             const c = prev || {
