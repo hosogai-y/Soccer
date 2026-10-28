@@ -385,10 +385,9 @@ export function WeatherControl() {
                     style={{ padding: '4px', minWidth: 0 }}
                 />
             </div>
-            {/* 湿度の下: TAKE / HIDE */}
+            {/* 湿度の下: TAKE（HIDE は置かない。消すときは 1Shot エリアの CGクリア か次の CG の TAKE） */}
             <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn btn-success" style={{ flex: 1, padding: '6px', whiteSpace: 'nowrap' }} onClick={sendWeather}>TAKE 気象</button>
-                <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={weatherTelop.hide}>HIDE</button>
             </div>
         </div>
     );
@@ -557,7 +556,6 @@ export function Sub1Control() {
                 <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub1}>TAKE 交代1枚</button>
                 <button className="btn btn-warning" style={{ padding: '6px 10px' }} onClick={registerSub1} title="CG Queue List にストック">Q登録</button>
                 <button className="btn btn-primary" style={{ padding: '6px 10px' }} onClick={reflectSub1} title="Lineups のスタメンと控えを入れ替えます（OUT 選手は控えでグレー表示）">交代反映</button>
-                <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub1Telop.hide}>HIDE</button>
             </div>
         </div>
     );
@@ -655,7 +653,6 @@ export function Sub2Control() {
                 <button className="btn btn-success" style={{ flex: 1, padding: '6px' }} onClick={sendSub2}>TAKE 交代2枚</button>
                 <button className="btn btn-warning" style={{ padding: '6px 10px' }} onClick={registerSub2} title="CG Queue List にストック">Q登録</button>
                 <button className="btn btn-primary" style={{ padding: '6px 10px' }} onClick={reflectSub2} title="Lineups のスタメンと控えを入れ替えます（OUT 選手は控えでグレー表示）">交代反映</button>
-                <button className="btn btn-danger" style={{ padding: '6px 12px' }} onClick={sub2Telop.hide}>HIDE</button>
             </div>
         </div>
     );

@@ -12,7 +12,7 @@ import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
-import { useClearForTake, KEEP_ON_TAKE } from '../utils/cgExclusive';
+import { useClearForTake, useClearButtons, KEEP_ON_TAKE } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
 
 // Profile 2 (プロ２) はユーザー要望により削除
@@ -438,8 +438,9 @@ function OneShotPlayerControl({
 
     if (!player) {
         return (
-            <div className="glass-panel" style={{ padding: '16px', textAlign: 'center', color: '#aaa' }}>
-                左右のプレイヤー一覧から選手を選択すると、1Shot / 1Shotカードの送出操作が行えます。
+            <div className="glass-panel" style={{ padding: '16px', color: '#aaa' }}>
+                <CgClearBar />
+                <div style={{ textAlign: 'center' }}>左右のプレイヤー一覧から選手を選択すると、1Shot / 1Shotカードの送出操作が行えます。</div>
             </div>
         );
     }
@@ -581,6 +582,7 @@ function OneShotPlayerControl({
 
     return (
         <div className="glass-panel" style={{ padding: '16px', border: '1px solid rgba(255, 202, 40, 0.3)', background: 'rgba(255, 202, 40, 0.03)' }}>
+            <CgClearBar />
             <div className="flex-between" style={{ marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${teamColor}` }}>
@@ -803,15 +805,6 @@ function OneShotPlayerControl({
                     <span>🟥 レッドカード</span>
                     <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>一発退場</span>
                 </button>
-
-                {/* HIDE Buttons */}
-                <button 
-                    className="btn btn-secondary" 
-                    style={{ padding: '8px 4px', fontSize: '0.8rem' }}
-                    onClick={() => { oneShot.hide(); oneShotCard.hide(); }}
-                >
-                    ⏹️ 1Shot全消去
-                </button>
             </div>
 
             {/* Q登録（CG Queue List にストック） */}
@@ -828,6 +821,26 @@ function OneShotPlayerControl({
                     </button>
                 ))}
             </div>
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// CG クリア（1Shot エリアの先頭）
+// --------------------------------------------------------
+
+function CgClearBar() {
+    const { clearCg, clearAll } = useClearButtons();
+    return (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <button className="btn btn-warning" style={{ flex: 1, padding: '6px', fontSize: '0.85rem', fontWeight: 'bold' }} onClick={clearCg}
+                title="小得点・タイマー・アディショナルタイム以外の CG を消します">
+                🧹 CGクリア
+            </button>
+            <button className="btn btn-danger" style={{ flex: 1, padding: '6px', fontSize: '0.85rem', fontWeight: 'bold' }} onClick={clearAll}
+                title="小得点・タイマー・アディショナルタイムも含めて、すべての CG を消します">
+                ⛔ Allクリア
+            </button>
         </div>
     );
 }
@@ -874,18 +887,11 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
         if (kind === 'subs') setSubsOnAirSide(side);
     };
 
-    const handleHide = () => {
-        telop.hide();
-        if (kind === 'subs') setSubsOnAirSide('');
-    };
-
+    // HIDE ボタンは置かない（消すときは 1Shot エリアの CGクリア / Allクリア、または次の CG の TAKE で消える）
     return (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
             <button className="btn btn-success" style={{ flex: 1, padding: '4px 8px', fontSize: '0.75rem', fontWeight: 'bold' }} onClick={handleTake}>
                 {kind === 'subs' ? '👥' : '📋'} {label} TAKE
-            </button>
-            <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={handleHide}>
-                HIDE
             </button>
             {isOnAir && <span className="status-badge status-connected" style={{ padding: '1px 4px', fontSize: '0.6rem' }}>ON AIR</span>}
         </div>
@@ -993,6 +999,7 @@ function StaffOneShotList({ school, side }: { school: string, side: 'left' | 'ri
 function StaffOneShotRow({ school, side, member }: { school: string, side: 'left' | 'right', member: StaffMember }) {
     const oneShot = useTelop('1Shot');
     const clearForTake = useClearForTake();
+    const registerQueue = useCgQueueRegister();
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     const [commentIdx, setCommentIdx] = useState(0);
 
@@ -1002,11 +1009,10 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
     const comments = staffComments(member);
     const comment = comments[Math.min(commentIdx, comments.length - 1)] || { text: '', isYellow: false };
 
-    const handleTake = () => {
-        clearForTake('1Shot'); // 1Shotカードなど他の CG を消してから出す
+    const buildPayload = () => {
         const yellow = comment.isYellow ? comment.text : '';
         const white = comment.isYellow ? '' : comment.text;
-        const payload = {
+        return {
             'TeamColor': teamColor,
             'ColorRect': teamColor,
             '背番号': '',
@@ -1028,8 +1034,18 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
             '顔写真_visible': false,
             'mode': 'pro2'
         };
+    };
+
+    const handleTake = () => {
+        clearForTake('1Shot'); // 1Shotカードなど他の CG を消してから出す
+        const payload = buildPayload();
         oneShot.setData(payload);
         oneShot.show(payload);
+    };
+
+    // CG Queue List にストック（送出時は登録時点のデータで出す）
+    const registerStaff = () => {
+        registerQueue('1Shot', `1Shot ${member.role} ${member.name}`, buildPayload());
     };
 
     return (
@@ -1045,8 +1061,8 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
             <button className="btn btn-success" style={{ padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold' }} onClick={handleTake} title={comment.text ? `プロ2: ${comment.text}` : 'プロ2コメント未登録'}>
                 TAKE
             </button>
-            <button className="btn btn-danger" style={{ padding: '2px 6px', fontSize: '0.7rem' }} onClick={() => oneShot.hide()}>
-                HIDE
+            <button className="btn btn-warning" style={{ padding: '2px 6px', fontSize: '0.7rem' }} onClick={registerStaff} title="CG Queue List にストック">
+                Q登録
             </button>
         </div>
     );
@@ -1160,6 +1176,9 @@ function TelopControl({ telopName, label, queueMode, onAddToQueue, clearForTake 
 // --------------------------------------------------------
 // Match Score Panel (独立TAKE/HIDE・タイマーと1SHOTを消さない)
 // --------------------------------------------------------
+
+// 小得点・大得点の TAKE/HIDE（ヘッダーの他のボタン 26px の 1.5 倍の高さ）
+const TALL_BUTTON: React.CSSProperties = { height: 39, padding: '0 12px', fontSize: '0.8rem' };
 
 function MatchScorePanel() {
     const bigScore = useTelop('大得点');
@@ -1410,26 +1429,29 @@ function MatchScorePanel() {
                     <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={updateScores}>
                         Update
                     </button>
-                    {/* 小得点 TAKE/HIDE */}
-                    <button className="btn btn-success" style={{ padding: '4px 8px', fontSize: '0.75rem', fontWeight: 'bold' }} onClick={handleTakeSmallScore}>
+                    {/* 小得点 TAKE/HIDE（他のボタンの 1.5 倍の高さ） */}
+                    <button className="btn btn-success" style={{ ...TALL_BUTTON, fontWeight: 'bold' }} onClick={handleTakeSmallScore}>
                         小得点 TAKE
                     </button>
-                    <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={handleHideSmallScore}>
+                    <button className="btn btn-danger" style={TALL_BUTTON} onClick={handleHideSmallScore}>
                         小得点 HIDE
-                    </button>
-                    {/* 大得点 TAKE/HIDE */}
-                    <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem', fontWeight: 'bold', background: '#e65100', borderColor: '#ff9800' }} onClick={handleTakeBigScore}>
-                        大得点 TAKE
-                    </button>
-                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.75rem', borderColor: '#e65100' }} onClick={handleHideBigScore}>
-                        大得点 HIDE
                     </button>
                 </div>
             </div>
-            
+
             <div style={{ display: 'flex', gap: '12px' }}>
                 {renderTeamScore('左チーム名', leftTeamColor, '左チーム得点', defaultLeftSmallName)}
                 {renderTeamScore('右チーム名', rightTeamColor, '右チーム得点', defaultRightSmallName)}
+            </div>
+
+            {/* 大得点 TAKE/HIDE（スコア表示の下・1.5 倍の高さ） */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button className="btn btn-primary" style={{ ...TALL_BUTTON, flex: 1, fontWeight: 'bold', background: '#e65100', borderColor: '#ff9800' }} onClick={handleTakeBigScore}>
+                    大得点 TAKE
+                </button>
+                <button className="btn btn-secondary" style={{ ...TALL_BUTTON, flex: 1, borderColor: '#e65100' }} onClick={handleHideBigScore}>
+                    大得点 HIDE
+                </button>
             </div>
         </div>
     );
@@ -1551,58 +1573,57 @@ function MatchTimerPanel() {
 
     return (
         <div className="glass-panel" style={{ padding: '16px' }}>
-            <div className="flex-between" style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Match Timer (タイマー & AT)</h3>
-                    {timer.isVisible && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.65rem' }}>ON AIR</span>}
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                    <button className={`btn ${isRunning ? 'btn-danger' : 'btn-success'}`} onClick={toggleTimer} style={{ padding: '4px 12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                        {isRunning ? '⏹️ STOP' : '▶️ START'}
-                    </button>
-                    <button className="btn btn-primary" onClick={() => timer.update(buildTimerPayload(displayMs, timerPeriod || '前半'))} style={{ padding: '4px 10px', fontSize: '0.8rem' }}>
-                        Update
-                    </button>
-                    {!timer.isVisible ? (
-                        <button className="btn btn-success" style={{ padding: '4px 10px', fontSize: '0.8rem', fontWeight: 'bold' }} onClick={showTimerAtCurrentTime}>
-                            ⏱️ タイマーON
-                        </button>
-                    ) : (
-                        <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.8rem' }} onClick={timer.hide}>
-                            HIDE
-                        </button>
-                    )}
-                </div>
-            </div>
-            
-            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                    <select 
-                        className="form-select" 
-                        value={timerPeriod || '前半'} 
-                        onChange={e => handlePeriodChange(e.target.value)} 
-                        style={{ padding: '4px 6px', fontSize: '0.85rem' }}
-                    >
-                        <option value="前半">前半 (1st)</option>
-                        <option value="後半">後半 (2nd)</option>
-                        <option value="延長前半">延前 (Ex1)</option>
-                        <option value="延長後半">延後 (Ex2)</option>
-                    </select>
-                </div>
-                <div className="form-group" style={{ flex: 2 }}>
-                    <input 
-                        type="text" 
-                        className="form-input" 
-                        value={liveTimeString} 
-                        readOnly 
-                        style={{ fontSize: '1.6rem', textAlign: 'center', fontWeight: 'bold', fontFamily: 'monospace', padding: '0px', color: '#ffca28' }} 
-                    />
-                </div>
+            {/* 1 行目: 項目名 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Match Timer (タイマー & AT)</h3>
+                {timer.isVisible && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.65rem' }}>ON AIR</span>}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-                <button className="btn btn-secondary" style={{ fontSize: '0.65rem', padding: '1px 6px' }} onClick={() => setShowAdjustments(!showAdjustments)}>
-                    {showAdjustments ? '調整パネルを閉じる ▲' : 'プリセット・微調整 ▼'}
+            {/* 2 行目: START / UPDATE / タイマー ON・OFF */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                <button className={`btn ${isRunning ? 'btn-danger' : 'btn-success'}`} onClick={toggleTimer} style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    {isRunning ? '⏹️ STOP' : '▶️ START'}
+                </button>
+                <button className="btn btn-primary" onClick={() => timer.update(buildTimerPayload(displayMs, timerPeriod || '前半'))} style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem' }}>
+                    Update
+                </button>
+                {!timer.isVisible ? (
+                    <button className="btn btn-success" style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem', fontWeight: 'bold' }} onClick={showTimerAtCurrentTime}>
+                        ⏱️ タイマーON
+                    </button>
+                ) : (
+                    <button className="btn btn-secondary" style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem' }} onClick={timer.hide}>
+                        ⏱️ タイマーOFF
+                    </button>
+                )}
+            </div>
+
+            {/* 3 行目: 前後半・タイマー表示（以前の半分の幅・余白少なめ）と、空いた右側にプリセット・微調整 */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8, alignItems: 'stretch' }}>
+                <select 
+                    className="form-select" 
+                    value={timerPeriod || '前半'} 
+                    onChange={e => handlePeriodChange(e.target.value)} 
+                    style={{ flex: 1, minWidth: 0, padding: '2px 4px', fontSize: '0.8rem' }}
+                >
+                    <option value="前半">前半 (1st)</option>
+                    <option value="後半">後半 (2nd)</option>
+                    <option value="延長前半">延前 (Ex1)</option>
+                    <option value="延長後半">延後 (Ex2)</option>
+                </select>
+                <input 
+                    type="text" 
+                    className="form-input" 
+                    value={liveTimeString} 
+                    readOnly 
+                    style={{ flex: 1, minWidth: 0, fontSize: '1.2rem', textAlign: 'center', fontWeight: 'bold', fontFamily: 'monospace', padding: '0 2px', color: '#ffca28' }} 
+                />
+                <button
+                    className={`btn ${showAdjustments ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ flex: 1, minWidth: 0, padding: '2px 4px', fontSize: '0.7rem', lineHeight: 1.2, whiteSpace: 'normal' }}
+                    onClick={() => setShowAdjustments(!showAdjustments)}
+                >
+                    プリセット<br />微調整 {showAdjustments ? '▲' : '▼'}
                 </button>
             </div>
 
@@ -1646,7 +1667,7 @@ function MatchTimerPanel() {
                 </select>
                 <button
                     className="btn btn-danger"
-                    style={{ flex: 1, padding: '4px 6px', fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                    style={{ padding: '2px 8px', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}
                     onClick={() => handleSendAdditionalTime()}
                 >
                     TAKE AT
