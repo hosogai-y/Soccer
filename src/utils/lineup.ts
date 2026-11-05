@@ -78,6 +78,8 @@ export function applySubstitutions(lineup: TeamLineup, pairs: SubstitutionPair[]
 }
 
 export const TEAM_LINEUPS_KEY = 'team_lineups';
+// 「Lineups を初期状態にする」を実行した時刻（CGOperation が 1Shot の選択を外す合図）
+export const LINEUP_RESET_AT_KEY = 'lineup_reset_at';
 
 export const emptyLineup = (): TeamLineup => ({ starters: {}, subs: Array(SUB_SLOT_COUNT).fill('') });
 

@@ -13,19 +13,57 @@ import { TEAM_LINEUPS_KEY, TeamLineup, CLEARED_SUBBED_OUT } from '../utils/lineu
 const LOG_ROW_HEIGHT = 30;
 const LOG_VISIBLE_ROWS = 5;
 
+/** 初期状態にするときの確認文（Lineups の「Lineups を初期状態にする」と共通） */
+export const resetSummary = (left: string, right: string, logCount: number) =>
+    `・得点 0 - 0、タイマー 0:00（停止）、前半\n` +
+    `・全選手の Today ゴールを 0 にし、Total を試合前の通算に戻します` +
+    (logCount > 0 ? `\n・当日ログ（${logCount}件）は「${left} vs ${right}」として過去ログに保管して空にします` : '');
+
+/**
+ * 試合の初期化（得点 0-0・タイマー 0:00 停止・前半・Today ゴール 0・当日ログを過去ログへ退避）と前後半の切り替え。
+ * MatchLog の「初期状態にする」と Lineups の「Lineups を初期状態にする」で使う。スタメン・控えには触れない
+ */
+export function useMatchReset() {
+    const { syncedStateRef } = useTelopHub();
+    const { entries, archives, saveEntries, saveArchives, writeScores } = useMatchLog();
+    const [, setPlayers] = useSyncedState<Player[]>('roster', []);
+    const [, setTimerState] = useSyncedState<TimerState | null>('match_timer_state', null);
+    const [, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
+    const timer = useTelop('タイマー');
+
+    // 前後半を変える。ON AIR 中のタイマーにも反映（ms が null なら今の経過時刻のまま）
+    const changePeriod = (period: string, ms: number | null) => {
+        setTimerPeriod(period);
+        if (timer.isVisible) {
+            const state = syncedStateRef.current?.match_timer_state as TimerState | undefined;
+            timer.update(buildTimerPayload(ms ?? getTimerMs(state), period));
+        }
+    };
+
+    const resetMatch = (left: string, right: string) => {
+        if (entries.length > 0) {
+            saveArchives([{ savedAt: Date.now(), title: `${left} vs ${right}`, entries }, ...archives].slice(0, MATCH_LOG_ARCHIVE_LIMIT));
+            saveEntries([]);
+        }
+        setPlayers(prev => resetTodayGoals(prev || []));
+        writeScores(0, 0);
+        setTimerState({ isRunning: false, lastTick: Date.now(), accumulatedMs: 0 });
+        changePeriod('前半', 0);
+    };
+
+    return { resetMatch, changePeriod, logCount: entries.length };
+}
+
 /**
  * 当日の操作ログ（ゴール・カード・交代・前後半）。
  * CGOperation の送出操作でも自動で記録される（useMatchLog）。
  * 「ログから復元」「初期状態にする」で CGOperation の得点・ゴール数・前後半をそろえる。
  */
 export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: string, oaRightTeam: string }) {
-    const { syncedStateRef } = useTelopHub();
-    const { entries, archives, record, remove, saveEntries, saveArchives, writeScores } = useMatchLog();
+    const { entries, archives, record, remove, writeScores } = useMatchLog();
+    const { resetMatch, changePeriod } = useMatchReset();
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [, setTeamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
-    const [, setTimerState] = useSyncedState<TimerState | null>('match_timer_state', null);
-    const [, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
-    const timer = useTelop('タイマー');
 
     // 入力フォーム
     const [type, setType] = useState<MatchLogType>('goal');
@@ -98,17 +136,10 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
     const handleReset = () => {
         if (!window.confirm(
             `CGOperation を初期状態にしますか？\n` +
-            `・得点 0 - 0、タイマー 0:00（停止）、前半\n` +
-            `・全選手の Today ゴールを 0 にし、Total を試合前の通算に戻します\n` +
-            `・${oaLeftTeam}・${oaRightTeam} の交代済み（グレー表示）を解除します\n` +
-            (entries.length > 0 ? `・当日ログ（${entries.length}件）は過去ログに保管して空にします` : '')
+            resetSummary(oaLeftTeam, oaRightTeam, entries.length) + '\n' +
+            `・${oaLeftTeam}・${oaRightTeam} の交代済み（グレー表示）を解除します`
         )) return;
-        if (entries.length > 0) {
-            const title = `${oaLeftTeam} vs ${oaRightTeam}`;
-            saveArchives([{ savedAt: Date.now(), title, entries }, ...archives].slice(0, MATCH_LOG_ARCHIVE_LIMIT));
-            saveEntries([]);
-        }
-        setPlayers(prev => resetTodayGoals(prev || []));
+        resetMatch(oaLeftTeam, oaRightTeam);
         // 交代済みの印を外す（スタメン・控えの並びはそのまま）
         setTeamLineups(prev => {
             const next = { ...(prev || {}) };
@@ -117,19 +148,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             });
             return next;
         });
-        writeScores(0, 0);
-        setTimerState({ isRunning: false, lastTick: Date.now(), accumulatedMs: 0 });
-        changePeriod('前半', 0);
         setViewing('');
-    };
-
-    // 前後半を変える。ON AIR 中のタイマーにも反映（ms が null なら今の経過時刻のまま）
-    const changePeriod = (period: string, ms: number | null) => {
-        setTimerPeriod(period);
-        if (timer.isVisible) {
-            const state = syncedStateRef.current?.match_timer_state as TimerState | undefined;
-            timer.update(buildTimerPayload(ms ?? getTimerMs(state), period));
-        }
     };
 
     const describe = (e: MatchLogEntry) => {

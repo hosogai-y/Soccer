@@ -9,7 +9,7 @@ import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Con
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
-import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
+import { TEAM_LINEUPS_KEY, LINEUP_RESET_AT_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useClearForTake, useClearButtons, KEEP_ON_TAKE } from '../utils/cgExclusive';
@@ -44,21 +44,25 @@ export default function CGOperator() {
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const [teamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
 
-    // Lineups タブで登録したメンバーを Starters / Subs に出す（未登録の学校は従来どおり全選手・交代フラグで振り分け）
+    // Lineups タブで登録したメンバーを Starters / Subs に出す。
+    // Lineups に一度も登録していない学校だけ、従来どおり全選手を交代フラグで振り分けて出す。
+    // 「Lineups を初期状態にする」で空にした学校は空のまま（前の登録や全選手を出さない）
     const teamPlayersOf = (side: 'left' | 'right') => {
         const school = side === 'left' ? oaLeftTeam : oaRightTeam;
+        if (!school) return [];
         return (players || []).filter(p => (p.schoolName ? p.schoolName === school : (side === 'right' ? p.teamId === 'right' : p.teamId !== 'right')));
     };
+    const lineupOf = (side: 'left' | 'right') => teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam];
     const startersOf = (side: 'left' | 'right') => {
-        const lineup = teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam];
-        return hasRegistered(lineup) ? registeredStarters(lineup, players || []) : teamPlayersOf(side).filter(p => !p.isSubbed);
+        const lineup = lineupOf(side);
+        return lineup ? registeredStarters(lineup, players || []) : teamPlayersOf(side).filter(p => !p.isSubbed);
     };
     // 交代反映でスタメンから控えに下がった選手（Subs 一覧でグレー表示）
     const subbedOutOf = (side: 'left' | 'right') => teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam]?.subbedOut || [];
     const hasRegisteredSide = (side: 'left' | 'right') => hasRegistered(teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam]);
     const subsOf = (side: 'left' | 'right') => {
-        const lineup = teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam];
-        return hasRegistered(lineup) ? registeredSubs(lineup, players || []) : teamPlayersOf(side).filter(p => p.isSubbed);
+        const lineup = lineupOf(side);
+        return lineup ? registeredSubs(lineup, players || []) : teamPlayersOf(side).filter(p => p.isSubbed);
     };
     
     // Active Tab in Dashboard
@@ -66,6 +70,11 @@ export default function CGOperator() {
 
     // Selected Player for 1Shot / 1Shotカード Operation
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    // Lineups の「Lineups を初期状態にする」で 1Shot の選択も外す（別タブ・別端末の操作でも外れるよう共有ステートで受け取る）
+    const [lineupResetAt] = useSyncedState<number>(LINEUP_RESET_AT_KEY, 0);
+    useEffect(() => {
+        if (lineupResetAt) setSelectedPlayerId(null);
+    }, [lineupResetAt]);
 
     // CG Controls の最小化（デフォルト: false = 閉じた状態）
     const [isCgControlsOpen, setIsCgControlsOpen] = useState(false);
@@ -168,7 +177,8 @@ export default function CGOperator() {
         }, 200);
     };
 
-    const selectedPlayer = (players || []).find(p => p.id === selectedPlayerId) || (players && players.length > 0 ? players[0] : null);
+    // 未選択のときは今の左右チームのスタメン先頭（チーム未選択・スタメンが空なら選択なし）
+    const selectedPlayer = (players || []).find(p => p.id === selectedPlayerId) || startersOf('left')[0] || startersOf('right')[0] || null;
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr 320px', gap: '20px', minHeight: '80vh' }}>

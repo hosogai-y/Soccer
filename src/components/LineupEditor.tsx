@@ -3,9 +3,9 @@ import { useSyncedState, useTelop } from '@sdk/TelopHubSDK';
 import { Player } from './PlayerRegistry';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS, FORMATION_OPTIONS } from './TeamSettings';
 import FormationBoard, { BoardPlate } from './FormationBoard';
-import MatchLog from './MatchLog';
+import MatchLog, { useMatchReset, resetSummary } from './MatchLog';
 import {
-    FORMATION_SLOTS, SUB_SLOT_COUNT, TEAM_LINEUPS_KEY, TeamLineup,
+    FORMATION_SLOTS, SUB_SLOT_COUNT, TEAM_LINEUPS_KEY, LINEUP_RESET_AT_KEY, TeamLineup, CLEARED_SUBBED_OUT,
     emptyLineup, migrateStarters, buildFormationPayload
 } from '../utils/lineup';
 import { Point, defaultPositions, resolvePositions, roleMap } from '../utils/formationLayout';
@@ -75,7 +75,7 @@ export default function LineupEditor() {
     useEffect(() => {
         if (isDirty && draftSchool === targetSchool) return;
         const legacy = teamMode === 'left' ? legacyLeftLineup : legacyRightLineup;
-        setDraft(registered ? normalizeLineup(registered) : { ...emptyLineup(), starters: migrateStarters(legacy) });
+        setDraft(registered ? normalizeLineup(registered) : (targetSchool ? { ...emptyLineup(), starters: migrateStarters(legacy) } : emptyLineup()));
         setDraftSchool(targetSchool);
         setIsDirty(false);
     }, [targetSchool, registered, isDirty, draftSchool, teamMode, legacyLeftLineup, legacyRightLineup]);
@@ -125,6 +125,10 @@ export default function LineupEditor() {
     // メンバー登録/更新: CGOperation の Starters / Subs とCG送出データに反映。
     // フォーメーションCGが ON AIR 中なら、選手名と陣形の座標をその場で UPDATE する
     const handleRegister = () => {
+        if (!targetSchool) {
+            alert(`OA${teamMode === 'left' ? '左' : '右'}チームが未選択です。当日OAチーム設定でチームを選んでください。`);
+            return;
+        }
         const saved: TeamLineup = { ...normalizeLineup(draft), updatedAt: Date.now() };
         setTeamLineups(prev => ({ ...(prev || {}), [targetSchool]: saved }));
         setIsDirty(false);
@@ -137,6 +141,46 @@ export default function LineupEditor() {
             telop.setData(payload);
             telop.update(payload);
         }
+    };
+
+    // Lineups を初期状態にする: 左右チームを未選択、当日操作ログ・得点・タイマー・前後半を初期化し、
+    // 全学校のスタメン・控えを空（Select Player）にする。陣形の配置はそのまま
+    const { resetMatch, logCount } = useMatchReset();
+    const [, setLineupResetAt] = useSyncedState<number>(LINEUP_RESET_AT_KEY, 0);
+    const handleResetAll = () => {
+        const left = oaLeftTeam || '左チーム';
+        const right = oaRightTeam || '右チーム';
+        if (!window.confirm(
+            `Lineups を初期状態にしますか？\n` +
+            `・OA左チーム・OA右チームを未選択にします\n` +
+            `・全学校のスタメン・控えを空（Select Player）にし、交代済みの印も外します\n` +
+            `・CGOperation の 1Shot の選択を外します\n` +
+            resetSummary(left, right, logCount) + '\n\n' +
+            `※登録した選手・陣形の配置・チーム設定は消えません。`
+        )) return;
+        resetMatch(left, right);
+        // 共有ステートはオブジェクトを深くマージするので、空にする枠は '' を明示して上書きする
+        const blankStarters = Object.fromEntries(FORMATION_SLOTS.map(slot => [slot.id, '']));
+        setTeamLineups(prev => {
+            const next = { ...(prev || {}) };
+            Object.keys(next).forEach(school => {
+                next[school] = {
+                    ...next[school],
+                    starters: blankStarters,
+                    subs: Array(SUB_SLOT_COUNT).fill(''),
+                    subbedOut: CLEARED_SUBBED_OUT,
+                    updatedAt: Date.now()
+                };
+            });
+            return next;
+        });
+        setOaLeftTeam('');
+        setOaRightTeam('');
+        // CGOperation の 1Shot の選択も外す
+        setLineupResetAt(Date.now());
+        setDraft(emptyLineup());
+        setIsDirty(false);
+        setTeamMode('left');
     };
 
     const handleResetDraft = () => {
@@ -225,9 +269,15 @@ export default function LineupEditor() {
                             当日OAチーム設定 (Today's Broadcast Match)
                         </h3>
                     </div>
-                    <span style={{ fontSize: '0.8rem', color: '#aaa' }}>
-                        ※ここでの選択がPlayerRegistry・CGOperation（選手一覧・スコア名・テロップ）に反映されます
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{ fontSize: '0.8rem', color: '#aaa' }}>
+                            ※ここでの選択がPlayerRegistry・CGOperation（選手一覧・スコア名・テロップ）に反映されます
+                        </span>
+                        <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: '0.8rem', whiteSpace: 'nowrap' }} onClick={handleResetAll}
+                            title="左右チームを未選択にし、当日操作ログ・得点・タイマーと全学校のスタメン・控えを初期状態に戻します">
+                            🔄 Lineups を初期状態にする
+                        </button>
+                    </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -241,6 +291,7 @@ export default function LineupEditor() {
                             value={oaLeftTeam}
                             onChange={e => setOaLeftTeam(e.target.value)}
                         >
+                            <option value="">-- 未選択 --</option>
                             {activeSchools.map(sch => (
                                 <option key={sch} value={sch}>{sch}</option>
                             ))}
@@ -261,6 +312,7 @@ export default function LineupEditor() {
                             value={oaRightTeam}
                             onChange={e => setOaRightTeam(e.target.value)}
                         >
+                            <option value="">-- 未選択 --</option>
                             {activeSchools.map(sch => (
                                 <option key={sch} value={sch}>{sch}</option>
                             ))}
