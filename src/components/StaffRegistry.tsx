@@ -3,7 +3,7 @@ import { useTeamStaff, MANAGER_ROLE } from '../utils/staff';
 import { toHalfWidthNum } from './PlayerRegistry';
 
 /**
- * スタッフ登録（監督 + 汎用 3 枠）。学校ごとに役職・氏名・年齢・プロ2コメント（5 枠）を登録する。
+ * スタッフ登録（監督 + 汎用 4 枠の 5 名）。学校ごとに役職・氏名・年齢・プロ2コメント（5 枠）を登録する。
  * CG Operation の Starters に表示し、1Shot（プロ2表示）で送出する。
  */
 export default function StaffRegistry({ school }: { school: string }) {
@@ -29,7 +29,7 @@ export default function StaffRegistry({ school }: { school: string }) {
                                     disabled={isManager}
                                     onChange={e => updateMember(school, idx, { role: e.target.value })}
                                     placeholder="役職"
-                                    title={isManager ? '1 枠目は監督固定' : '役職（コーチ・部長など）'}
+                                    title={isManager ? '1 枠目は監督固定' : '役職（コーチ・総監督・部長など）'}
                                     style={{ padding: '4px 8px', width: 110, fontWeight: 'bold' }}
                                 />
                                 <input

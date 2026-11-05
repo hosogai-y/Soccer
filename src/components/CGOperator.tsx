@@ -9,7 +9,7 @@ import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Con
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
-import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload } from '../utils/lineup';
+import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useClearForTake, useClearButtons, KEEP_ON_TAKE } from '../utils/cgExclusive';
@@ -499,7 +499,7 @@ function OneShotPlayerControl({
             'ColorRect': teamColor, // CG の Rectangle (KeyExp: ColorRect) にチームカラーを反映
             '背番号': player.number || '',
             '氏名': player.name || '',
-            'ポジション': player.position || 'FW',
+            'ポジション': normalizePosition(player.position) || 'FW',
             '所属': oneShotSchoolName, // １SHOT上段のチーム名表記
             '学年': (player.grade || '').replace('年', ''),
             '学年単位': '年', // スタッフ送出時は「歳」に差し替わるので毎回送る

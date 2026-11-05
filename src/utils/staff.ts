@@ -3,7 +3,7 @@ import { useSyncedState } from '@sdk/TelopHubSDK';
 import type { Pro2CommentItem } from '../components/PlayerRegistry';
 
 /**
- * 学校ごとのスタッフ（監督 + 汎用 3 枠）。1Shot のプロ2表示で送出する。
+ * 学校ごとのスタッフ（監督 + 汎用 4 枠の 5 名。コーチ・総監督など）。1Shot のプロ2表示で送出する。
  * 枠数固定で、synced state には JSON 文字列で保存する（SDK の配列マージを避ける）。
  */
 export type StaffMember = {
@@ -13,7 +13,7 @@ export type StaffMember = {
     pro2List: Pro2CommentItem[];
 };
 
-export const STAFF_SLOT_COUNT = 4;
+export const STAFF_SLOT_COUNT = 5;
 export const STAFF_COMMENT_COUNT = 5;
 export const MANAGER_ROLE = '監督';
 const DEFAULT_GENERIC_ROLE = 'コーチ';

@@ -1,5 +1,6 @@
 // 顔写真は VolleyBall と同じく SDK の uploadAsset で TelopHub に上げ、
 // /telop-assets/soccer/assets/face/<高校名>/<ファイル名> の URL で選手に持たせる
+import { isTgaFile, tgaToPngBlob, tgaToPngName } from './tga';
 
 export interface PhotoItem {
     school: string;
@@ -37,11 +38,12 @@ export const parseNum = (str?: string): number | null => {
     return isNaN(n) ? null : n;
 };
 
-export const isImageFile = (filename: string): boolean => /\.(png|jpe?g|webp)$/i.test(filename);
+// TGA は読み込み時に PNG に変換して使う（tga.ts）
+export const isImageFile = (filename: string): boolean => /\.(png|jpe?g|webp|tga)$/i.test(filename);
 
 // ファイル名 "14 菅野桜抜き.png" → 背番号 "14" / 氏名 "菅野桜"
 export function parsePhotoFilename(filename: string): { number: string; name: string } {
-    const cleaned = filename.replace(/\.(png|jpe?g|webp)$/i, '').replace(/抜き$/, '').trim();
+    const cleaned = filename.replace(/\.(png|jpe?g|webp|tga)$/i, '').replace(/抜き$/, '').trim();
     const match = cleaned.match(/^([0-9０-９]+)[\s　]*(.*)$/);
     return match ? { number: match[1], name: match[2].trim() } : { number: '', name: cleaned };
 }
@@ -58,6 +60,39 @@ export function toPhotoFile(file: File, fallbackSchool: string): PhotoFile {
 // uploadAsset に渡す保存先パス
 export const faceAssetPath = (school: string, filename: string): string =>
     `${FACE_ASSET_DIR}/${school}/${filename}`.normalize('NFC');
+
+type UploadAsset = (file: Blob | File, destPath: string) => Promise<string>;
+
+// 顔写真を assets/face/<高校名>/ にアップロードして、選手に持たせる URL を返す。
+// TGA は元のファイルと PNG に変換したものを両方保存し、PNG の URL を返す
+export async function uploadFacePhoto(uploadAsset: UploadAsset, file: File, school: string, filename: string): Promise<string> {
+    if (!isTgaFile(filename)) return uploadAsset(file, faceAssetPath(school, filename));
+    const png = await tgaToPngBlob(file);
+    await uploadAsset(file, faceAssetPath(school, filename));
+    return uploadAsset(png, faceAssetPath(school, tgaToPngName(filename)));
+}
+
+// 読み込んだ写真パスが TGA の場合、TelopHub 上の TGA を取得して PNG に変換・保存し、PNG の URL を返す
+export async function convertTgaAssetUrl(uploadAsset: UploadAsset, url: string): Promise<string> {
+    const assetPath = assetPathFromUrl(url);
+    if (!assetPath) throw new Error(`TelopHub の assets 以外の場所です（${url}）`);
+    const res = await fetch(encodePhotoUrl(url));
+    if (!res.ok) throw new Error(`取得できません（${res.status}）: ${url}`);
+    return uploadAsset(await tgaToPngBlob(await res.blob()), tgaToPngName(assetPath));
+}
+
+// uploadAsset の URL（/telop-assets/soccer/assets/face/...?t=...）→ 保存先パス（assets/face/...）。
+// プロジェクトの assets 以外を指す URL は null
+export function assetPathFromUrl(url: string): string | null {
+    const clean = toPhotoAssetUrl(url).split('?')[0];
+    const prefix = FACE_URL_BASE.slice(0, -FACE_ASSET_DIR.length);
+    if (!clean.startsWith(prefix)) return null;
+    try {
+        return decodeURI(clean.slice(prefix.length)).normalize('NFC');
+    } catch {
+        return clean.slice(prefix.length).normalize('NFC');
+    }
+}
 
 // 以前の Photo フォルダ形式 (/Photo/高校名/ファイル名) を assets/face の URL に読み替える。
 // それ以外（uploadAsset の URL や img/ のパス）はそのまま返す

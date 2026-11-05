@@ -1,11 +1,14 @@
 import type { Player, Pro2CommentItem } from '../components/PlayerRegistry';
 import type { StaffMember } from './staff';
 import { STAFF_SLOT_COUNT, STAFF_COMMENT_COUNT, MANAGER_ROLE } from './staff';
+import { normalizePosition } from './lineup';
 
 /**
  * 登録選手一覧（選手 + 監督・コーチ）の CSV / JSON 書き出しと読み込み。
- * CSV は学校ごとに選手（背番号順）→ 監督 → コーチの順。監督・コーチは
- * ポジション欄に役職、学年欄に年齢を入れ、背番号・身長・体重・ゴール・顔写真は空欄。
+ * 書き出しは学校ごとに選手（背番号順）→ スタッフ（コーチ → 部長など → 監督 → 総監督。同じ役職は氏名の 50 音順）。
+ * スタッフはポジション欄に役職、学年欄に年齢を入れ、背番号・身長・体重・ゴール・顔写真は空欄。
+ * 読み込みは行・学校の並び順を問わない。背番号のある行が選手、背番号の無い行がスタッフ
+ * （ポジションが GK/DF/MF/FW なのに背番号が無い行は、背番号抜けの選手として登録しない）。
  */
 
 const COMMENT_COUNT = 5;
@@ -22,11 +25,28 @@ export type RosterTeam = {
     school: string;
     players: Player[];
     staff: StaffMember[]; // 氏名のある枠だけ（1 件目が監督とは限らない）
+    skipped?: string[]; // 読み込み時: 背番号が無いため登録しなかった選手の氏名
 };
 
 // ---------------------------------------------------------------- 共通
 
 const byNumber = (a: Player, b: Player) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0);
+
+export const HEAD_MANAGER_ROLE = '総監督';
+const nameCollator = new Intl.Collator('ja');
+
+/** スタッフの並び順: コーチ → その他（部長など）→ 監督 → 総監督 */
+const staffRank = (role: string) => {
+    const r = role.trim();
+    if (r === HEAD_MANAGER_ROLE) return 3;
+    if (r === MANAGER_ROLE) return 2;
+    if (r.includes('コーチ')) return 0;
+    return 1;
+};
+
+/** スタッフを書き出し順に並べる（同じ役職どうしは氏名の 50 音順） */
+export const sortStaff = (staff: StaffMember[]) =>
+    [...staff].sort((a, b) => staffRank(a.role) - staffRank(b.role) || nameCollator.compare(a.name, b.name));
 
 /** 「浅田　卓人」→「浅田」（全角・半角スペースの前） */
 export const surnameOf = (fullName: string) => fullName.trim().split(/[\s　]+/)[0] || '';
@@ -52,7 +72,7 @@ export function buildRosterTeams(players: Player[], schools: string[], staffOf: 
         .map(school => ({
             school,
             players: players.filter(p => p.schoolName === school).sort(byNumber),
-            staff: staffOf(school).filter(m => m.name.trim() !== '')
+            staff: sortStaff(staffOf(school).filter(m => m.name.trim() !== ''))
         }))
         .filter(t => t.players.length > 0 || t.staff.length > 0);
 }
@@ -72,9 +92,7 @@ export function toCsv(teams: RosterTeam[]): string {
                 ...Array.from({ length: COMMENT_COUNT }, (_, i) => comments[i]?.text || '')
             ]);
         });
-        // 監督を先に、続けてコーチなど
-        const staff = [...t.staff].sort((a, b) => Number(b.role === MANAGER_ROLE) - Number(a.role === MANAGER_ROLE));
-        staff.forEach(m => {
+        sortStaff(t.staff).forEach(m => {
             const comments = m.pro2List.filter(c => c.text && c.text.trim() !== '');
             rows.push([
                 t.school, '', m.name, surnameOf(m.name), m.role, m.age || '', '', '', '', '', '',
@@ -113,6 +131,37 @@ export function parseCsv(text: string): string[][] {
 // 見出しの表記ゆれ（全角数字・半角の「2」・空白）を吸収して比べる
 const normHeader = (h: string) => h.trim().replace(/\s/g, '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[’‘]/g, "'");
 const toHalf = (v: string) => v.trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+/** 全角の英数字・記号（！〜～）と全角スペースを半角にする */
+const toHalfWidthAscii = (v: string) => v
+    .replace(/[！-～]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/　/g, ' ')
+    .trim();
+
+/** 学年が数字だけ（"2"・"２"）なら「年」を付けて "2年" にする。それ以外はそのまま */
+export const normalizeGrade = (v: string) => {
+    const g = toHalf(v);
+    return /^\d+$/.test(g) ? `${g}年` : g;
+};
+
+/**
+ * 読み込んだ 1 人を背番号の有無で選手・スタッフに振り分ける（ファイル内の並び順は問わない）。
+ * 背番号あり → 選手 / 背番号なし → スタッフ（ポジション欄 = 役職）/
+ * 背番号なしでポジションが GK/DF/MF/FW → 背番号抜けの選手として登録しない
+ */
+function addMember(team: RosterTeam, number: string, position: string, player: () => Omit<Player, 'number' | 'position'>, staff: () => Omit<StaffMember, 'role'>) {
+    // 全角の英数字・記号・空白は半角にしてから読む（「ＧＫ」→「GK」）
+    const half = toHalfWidthAscii(position);
+    // 「gk」「キーパー」なども GK/DF/MF/FW に揃えて保存する
+    const normalized = normalizePosition(half);
+    const isPlayerPosition = PLAYER_POSITIONS.includes(normalized);
+    if (number) {
+        team.players.push({ ...player(), number, position: isPlayerPosition ? normalized : (half || 'FW') });
+    } else if (isPlayerPosition) {
+        (team.skipped ||= []).push(player().name);
+    } else {
+        team.staff.push({ role: half || 'コーチ', ...staff() });
+    }
+}
 
 export function teamsFromCsv(text: string): RosterTeam[] {
     const rows = parseCsv(text);
@@ -135,21 +184,20 @@ export function teamsFromCsv(text: string): RosterTeam[] {
         if (!school || !name) return;
         if (!teams.has(school)) teams.set(school, { school, players: [], staff: [] });
         const team = teams.get(school)!;
-        const position = get(r, 'ポジション');
         const comments = commentCols.map(h => get(r, h)).filter(Boolean).map(text => ({ text, isYellow: false }));
-        if (PLAYER_POSITIONS.includes(position.toUpperCase())) {
-            const today = toHalf(get(r, "Today'sゴール")) || '0';
-            const total = toHalf(get(r, 'Totalゴール')) || today;
-            team.players.push({
-                id: '', schoolName: school, name, number: toHalf(get(r, '背番号')), position: position.toUpperCase(),
-                grade: toHalf(get(r, '学年')), height: toHalf(get(r, '身長')), weight: toHalf(get(r, '体重')),
-                todayGoals: today, totalGoals: total, photoUrl: get(r, '顔写真パス'),
-                pro2Comment: comments[0]?.text || '', pro2List: comments
-            });
-        } else {
-            // GK/DF/MF/FW 以外は監督・コーチ（ポジション欄 = 役職、学年欄 = 年齢）
-            team.staff.push({ role: position || 'コーチ', name, age: toHalf(get(r, '学年')), pro2List: comments });
-        }
+        addMember(team, toHalf(get(r, '背番号')), get(r, 'ポジション'),
+            () => {
+                const today = toHalf(get(r, "Today'sゴール")) || '0';
+                const total = toHalf(get(r, 'Totalゴール')) || today;
+                return {
+                    id: '', schoolName: school, name,
+                    grade: normalizeGrade(get(r, '学年')), height: toHalf(get(r, '身長')), weight: toHalf(get(r, '体重')),
+                    todayGoals: today, totalGoals: total, photoUrl: get(r, '顔写真パス'),
+                    pro2Comment: comments[0]?.text || '', pro2List: comments
+                };
+            },
+            // スタッフは学年欄 = 年齢
+            () => ({ name, age: toHalf(get(r, '学年')), pro2List: comments }));
     });
     return [...teams.values()];
 }
@@ -196,23 +244,25 @@ export function teamsFromJson(text: string): RosterTeam[] {
         .filter((s: any) => str(s?.name))
         .map((s: any) => {
             const school = str(s.name);
-            return {
-                school,
-                players: (Array.isArray(s.players) ? s.players : []).filter((p: any) => str(p?.name)).map((p: any) => {
-                    const pro2List = list(p.pro2List);
-                    return {
-                        id: '', schoolName: school, name: str(p.name), number: str(p.number), position: str(p.position) || 'FW',
-                        grade: str(p.grade), height: str(p.height), weight: str(p.weight),
+            const team: RosterTeam = { school, players: [], staff: [] };
+            (Array.isArray(s.players) ? s.players : []).filter((p: any) => str(p?.name).trim()).forEach((p: any) => {
+                const pro2List = list(p.pro2List);
+                addMember(team, toHalf(str(p.number)), str(p.position),
+                    () => ({
+                        id: '', schoolName: school, name: str(p.name).trim(),
+                        grade: normalizeGrade(str(p.grade)), height: toHalf(str(p.height)), weight: toHalf(str(p.weight)),
                         todayGoals: str(p.todayGoals) || '0', totalGoals: str(p.totalGoals) || '0',
                         ...(str(p.baseTotalGoals) ? { baseTotalGoals: str(p.baseTotalGoals) } : {}),
                         yellowCards: str(p.yellowCards) || '0', photoUrl: str(p.photoUrl), photoEnabled: p.photoEnabled !== false,
                         pro2IsYellow: !!p.pro2IsYellow, pro2Comment: pro2List[0]?.text || '', pro2List
-                    } as Player;
-                }),
-                staff: (Array.isArray(s.staff) ? s.staff : []).filter((m: any) => str(m?.name)).map((m: any) => ({
-                    role: str(m.role) || 'コーチ', name: str(m.name), age: str(m.age), pro2List: list(m.pro2List)
-                }))
-            };
+                    }),
+                    // players 側に背番号なしで入っているスタッフ（学年欄 = 年齢）
+                    () => ({ name: str(p.name).trim(), age: toHalf(str(p.age ?? p.grade)), pro2List }));
+            });
+            (Array.isArray(s.staff) ? s.staff : []).filter((m: any) => str(m?.name).trim()).forEach((m: any) => {
+                team.staff.push({ role: str(m.role).trim() || 'コーチ', name: str(m.name).trim(), age: toHalf(str(m.age)), pro2List: list(m.pro2List) });
+            });
+            return team;
         });
 }
 
@@ -269,7 +319,7 @@ export function mergePlayers(current: Player[], teams: RosterTeam[]) {
     return { players: next, added, updated };
 }
 
-/** 読み込んだ監督・コーチを学校のスタッフ枠（監督 + 3 枠）に並べる。監督は 1 枠目、残りは順に */
+/** 読み込んだスタッフを学校のスタッフ枠（監督 + 4 枠）に並べる。監督は 1 枠目、残りはコーチ（50 音順）→ その他 → 総監督の順 */
 export function staffSlotsFrom(staff: StaffMember[]): StaffMember[] | null {
     if (staff.length === 0) return null;
     const pad = (m: StaffMember): StaffMember => ({
@@ -277,7 +327,7 @@ export function staffSlotsFrom(staff: StaffMember[]): StaffMember[] | null {
         pro2List: Array.from({ length: STAFF_COMMENT_COUNT }, (_, i) => m.pro2List[i] || { text: '', isYellow: false })
     });
     const manager = staff.find(m => m.role === MANAGER_ROLE);
-    const others = staff.filter(m => m !== manager);
+    const others = sortStaff(staff.filter(m => m !== manager));
     const slots: StaffMember[] = [pad(manager ? { ...manager, role: MANAGER_ROLE } : { role: MANAGER_ROLE, name: '', age: '', pro2List: [] })];
     others.slice(0, STAFF_SLOT_COUNT - 1).forEach(m => slots.push(pad(m)));
     while (slots.length < STAFF_SLOT_COUNT) slots.push(pad({ role: 'コーチ', name: '', age: '', pro2List: [] }));

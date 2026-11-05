@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSyncedState, useTelopHub, useFullSyncedState } from '@sdk/TelopHubSDK';
 import StaffRegistry from './StaffRegistry';
 import RosterImportExport from './RosterImportExport';
-import { matchPlayerPhoto, toPhotoFile, faceAssetPath, toPhotoAssetUrl, encodePhotoUrl, isImageFile, PhotoFile } from '../utils/photoMatcher';
+import { matchPlayerPhoto, toPhotoFile, uploadFacePhoto, toPhotoAssetUrl, encodePhotoUrl, isImageFile, PhotoFile } from '../utils/photoMatcher';
 
 export interface Pro2CommentItem {
     text: string;
@@ -128,7 +128,7 @@ export default function PlayerRegistry() {
             for (let i = 0; i < toUpload.length; i++) {
                 const ph = toUpload[i];
                 setMatchingStatus(`写真をアップロード中... (${i + 1}/${toUpload.length})`);
-                urls.set(ph, await uploadAsset(ph.file, faceAssetPath(ph.school, ph.filename)));
+                urls.set(ph, await uploadFacePhoto(uploadAsset, ph.file, ph.school, ph.filename));
             }
             setPlayers(prev => (prev || []).map(p => {
                 const ph = assignments.get(p.id);
@@ -152,7 +152,7 @@ export default function PlayerRegistry() {
         }
         setIsUploading(true);
         try {
-            const url = await uploadAsset(file, faceAssetPath(school, file.name.normalize('NFC')));
+            const url = await uploadFacePhoto(uploadAsset, file, school, file.name.normalize('NFC'));
             setForm(prev => ({ ...prev, photoUrl: url }));
         } catch (e: any) {
             showStatus(`アップロードエラー: ${e.message}`);
@@ -163,7 +163,9 @@ export default function PlayerRegistry() {
 
     // どの選手も使っていない写真を assets/ から削除（先に一覧を見せて確認する）
     const handleCleanupPhotos = async () => {
-        const activeUrls = Array.from(new Set((players || []).map(p => toPhotoAssetUrl(p.photoUrl)).filter(Boolean)));
+        // TGA から変換した PNG を使っている選手がいれば、元の TGA も残す
+        const activeUrls = Array.from(new Set((players || []).map(p => toPhotoAssetUrl(p.photoUrl)).filter(Boolean)
+            .flatMap(u => /\.png(\?|$)/i.test(u) ? [u, u.replace(/\.png(\?|$)/i, '.tga$1')] : [u])));
         const preview = await gcAssets(activeUrls, { dryRun: true });
         if (!preview) {
             showStatus('TelopHubから応答がないため、整理できませんでした。', 5000);
@@ -491,7 +493,7 @@ export default function PlayerRegistry() {
                     <input
                         ref={bulkFilesRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,.tga"
                         multiple
                         style={{ display: 'none' }}
                         onChange={e => { handleBulkPhotoFiles(e.target.files); e.target.value = ''; }}
@@ -746,7 +748,7 @@ export default function PlayerRegistry() {
                                         <input
                                             ref={formPhotoRef}
                                             type="file"
-                                            accept="image/*"
+                                            accept="image/*,.tga"
                                             style={{ display: 'none' }}
                                             onChange={e => { handleFormPhotoFile(e.target.files?.[0], currentSchool); e.target.value = ''; }}
                                         />

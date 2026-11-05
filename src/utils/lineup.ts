@@ -126,9 +126,29 @@ const SUB_POSITION_IMAGES: Record<string, string> = {
     FW: 'img/HD2D_F01_new_BaseFW.png'
 };
 
+const POSITION_ALIASES: [RegExp, string][] = [
+    [/^(GK|G\.K\.?|GOALKEEPER|ゴールキーパー|キーパー)/, 'GK'],
+    [/^(DF|D\.F\.?|DEFENDER|ディフェンダー|ディフェンス)/, 'DF'],
+    [/^(MF|M\.F\.?|MIDFIELDER|ミッドフィルダー|ミッドフィールダー)/, 'MF'],
+    [/^(FW|F\.W\.?|FORWARD|フォワード)/, 'FW']
+];
+
+/**
+ * ポジションの表記ゆれ（全角「ＧＫ」・小文字・空白・「キーパー」など）を GK/DF/MF/FW に揃える。
+ * どれにも当てはまらなければ空白を詰めた元の値を返す
+ */
+export function normalizePosition(position?: string): string {
+    const v = (position || '')
+        .replace(/[Ａ-Ｚａ-ｚ．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+        .replace(/[\s　]+/g, '')
+        .toUpperCase();
+    const hit = POSITION_ALIASES.find(([re]) => re.test(v));
+    return hit ? hit[1] : v;
+}
+
 /** 選手交代1枚／2枚の OUT/IN ベース画像（ポジション帯）。ポジション不明時は MF */
 export function subChangeBaseImage(kind: 'OUT' | 'IN', position?: string) {
-    const pos = (position || '').toUpperCase().slice(0, 2);
+    const pos = normalizePosition(position);
     return `img/HD2D_S04_Base${kind}_${['GK', 'DF', 'MF', 'FW'].includes(pos) ? pos : 'MF'}.png`;
 }
 
@@ -161,7 +181,7 @@ export function buildSubsPayload(lineup: TeamLineup | undefined, players: Player
     for (let i = 0; i < SUB_SLOT_COUNT; i++) {
         const p = findPlayer(players, lineup?.subs?.[i]);
         const n = i + 1;
-        const pos = (p?.position || '').toUpperCase().slice(0, 2);
+        const pos = normalizePosition(p?.position);
         data[`選手名${n}`] = p?.name || '';
         data[`背番号${n}`] = p?.number || '';
         data[`学年${n}`] = formatGrade(p?.grade);
