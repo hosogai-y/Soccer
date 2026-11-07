@@ -1,5 +1,7 @@
 // Pulled from telop "選手交代1枚" by telopkit. Every node keeps its full editor props in `raw`.
 // Edit (or replace nodes with the short-hand), then: node .telopkit/telopkit.mjs push .telopkit/specs/選手交代1枚.mjs
+// 背番号は 1Shot と同じ白文字＋黒エッジ。
+// 参照_Base*: ダッシュボードが img/HD2D_S04_Base{IN,OUT}_{GK,DF,MF,FW}.png を送るので、push で消えないよう非表示で参照しておく。
 export default {
   "title": "soccer",
   "canvas": {
@@ -374,7 +376,7 @@ export default {
                     {
                       "enabled": true,
                       "fillEnabled": true,
-                      "fill": "#000000",
+                      "fill": "#ffffff",
                       "strokeEnabled": false,
                       "color": "#000000",
                       "thickness": 2,
@@ -386,6 +388,22 @@ export default {
                       "shadowAlpha": 1,
                       "shadowOffsetX": 4,
                       "shadowOffsetY": 4
+                    },
+                    {
+                      "fillEnabled": false,
+                      "fill": "#ffffff",
+                      "strokeEnabled": true,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "enabled": true,
+                      "shadowEnabled": false,
+                      "shadowColor": "#000000",
+                      "shadowBlur": 0,
+                      "shadowAlpha": 1,
+                      "shadowOffsetX": 0,
+                      "shadowOffsetY": 0
                     }
                   ],
                   "letterSpacing": 0,
@@ -910,7 +928,7 @@ export default {
                     {
                       "enabled": true,
                       "fillEnabled": true,
-                      "fill": "#000000",
+                      "fill": "#ffffff",
                       "strokeEnabled": false,
                       "color": "#000000",
                       "thickness": 2,
@@ -922,6 +940,22 @@ export default {
                       "shadowAlpha": 1,
                       "shadowOffsetX": 4,
                       "shadowOffsetY": 4
+                    },
+                    {
+                      "fillEnabled": false,
+                      "fill": "#ffffff",
+                      "strokeEnabled": true,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "enabled": true,
+                      "shadowEnabled": false,
+                      "shadowColor": "#000000",
+                      "shadowBlur": 0,
+                      "shadowAlpha": 1,
+                      "shadowOffsetX": 0,
+                      "shadowOffsetY": 0
                     }
                   ],
                   "letterSpacing": 0,
@@ -1381,6 +1415,70 @@ export default {
             "height": 40,
             "keyexp": "高校名テキスト"
           }
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseIN_GK",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseIN_GK.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseIN_DF",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseIN_DF.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseIN_MF",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseIN_MF.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseIN_FW",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseIN_FW.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseOUT_GK",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseOUT_GK.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseOUT_DF",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseOUT_DF.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseOUT_MF",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseOUT_MF.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
+        },
+        {
+          "type": "image",
+          "name": "参照_BaseOUT_FW",
+          "src": "../../選手交代1枚/img/HD2D_S04_BaseOUT_FW.png",
+          "w": 10,
+          "h": 10,
+          "visible": false
         }
       ]
     }
