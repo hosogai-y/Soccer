@@ -2506,7 +2506,7 @@ export default {
               "w": 40,
               "raw": {
                 "x": 19,
-                "y": 0,
+                "y": -2,
                 "rotation": 0,
                 "scaleX": 1,
                 "scaleY": 1,
@@ -2560,8 +2560,8 @@ export default {
               "text": "4",
               "w": 40,
               "raw": {
-                "x": -211,
-                "y": -2,
+                "x": -209,
+                "y": -1,
                 "rotation": 0,
                 "scaleX": 1,
                 "scaleY": 1,
@@ -2615,7 +2615,7 @@ export default {
               "text": "澤中　拓也",
               "w": 170,
               "raw": {
-                "x": -169,
+                "x": -168,
                 "y": -2,
                 "rotation": 0,
                 "scaleX": 1,

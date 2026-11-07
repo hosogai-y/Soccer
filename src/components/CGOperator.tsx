@@ -1207,6 +1207,9 @@ function TelopControl({ telopName, label, queueMode, onAddToQueue, clearForTake 
 // Match Score Panel (独立TAKE/HIDE・タイマーと1SHOTを消さない)
 // --------------------------------------------------------
 
+// 小得点 HIDE で一緒に消した AT があるか（MatchScorePanel と MatchTimerPanel で共有）
+const AT_HIDDEN_BY_SMALL_SCORE_KEY = 'at_hidden_by_small_score';
+
 // 小得点・大得点の TAKE/HIDE（ヘッダーの他のボタン 26px の 1.5 倍の高さ）
 const TALL_BUTTON: React.CSSProperties = { height: 39, padding: '0 12px', fontSize: '0.8rem' };
 
@@ -1216,6 +1219,8 @@ function MatchScorePanel() {
     const timer = useTelop('タイマー');
     const additionalTime = useTelop('アディショナルタイム');
     const statsTelop = useTelop('スタッツ');
+    // 小得点 HIDE で一緒に消した AT（次の小得点 TAKE で AT も再度 TAKE する）
+    const [atHiddenBySmallScore, setAtHiddenBySmallScore] = useSyncedState<boolean>(AT_HIDDEN_BY_SMALL_SCORE_KEY, false);
     const showTimerAtCurrentTime = useShowTimerAtCurrentTime();
     const [oaLeftTeam, setOaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam, setOaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
@@ -1398,12 +1403,20 @@ function MatchScorePanel() {
         if (!timer.isVisible || !wasVisible) {
             showTimerAtCurrentTime();
         }
+
+        // 小得点 HIDE のときに AT が TAKE 中だったら、AT も前回の内容で再度 TAKE する
+        if (atHiddenBySmallScore) {
+            if (!additionalTime.isVisible) additionalTime.show(additionalTime.data);
+            setAtHiddenBySmallScore(false);
+        }
     };
 
-    // 小得点をOFFする際、タイマーとアディショナルタイムも非表示にする
+    // 小得点をOFFする際、タイマーとアディショナルタイムも非表示にする。
+    // AT が TAKE 中だったかを覚えておき、次の小得点 TAKE で AT も出し直す
     const handleHideSmallScore = () => {
         smallScore.hide();
         timer.hide();
+        setAtHiddenBySmallScore(additionalTime.isVisible);
         additionalTime.hide();
     };
 
@@ -1517,6 +1530,7 @@ function MatchScorePanel() {
 function MatchTimerPanel() {
     const timer = useTelop('タイマー');
     const additionalTime = useTelop('アディショナルタイム');
+    const [, setAtHiddenBySmallScore] = useSyncedState<boolean>(AT_HIDDEN_BY_SMALL_SCORE_KEY, false);
     const showTimerAtCurrentTime = useShowTimerAtCurrentTime();
 
     const [timerState, setTimerState] = useSyncedState<TimerState>('match_timer_state', {
@@ -1613,7 +1627,14 @@ function MatchTimerPanel() {
     };
 
     // アディショナルタイム送出 (LossSlide_1～9.png を切り替えて送出)
+    // AT を手動で HIDE したら、小得点 TAKE での AT 再送出はしない
+    const handleHideAdditionalTime = () => {
+        additionalTime.hide();
+        setAtHiddenBySmallScore(false);
+    };
+
     const handleSendAdditionalTime = (numStr?: string) => {
+        setAtHiddenBySmallScore(false);
         const targetNum = numStr || selectedLossTime || "3";
         const payload = {
             'アディショナルタイム': targetNum,
@@ -1729,7 +1750,7 @@ function MatchTimerPanel() {
                 <button
                     className="btn btn-secondary"
                     style={{ padding: '4px 10px', fontSize: '0.85rem' }}
-                    onClick={additionalTime.hide}
+                    onClick={handleHideAdditionalTime}
                 >
                     HIDE
                 </button>
