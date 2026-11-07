@@ -2137,7 +2137,12 @@ function expandRepeats(doc, options = {}) {
                     registerRuleList(app.shadowColorRules);
                     registerRuleList(app.colorRules);
                     if (app.gradientConfig?.stops && Array.isArray(app.gradientConfig.stops)) {
-                        app.gradientConfig.stops.forEach((s) => registerRuleList(s.colorRules));
+                        app.gradientConfig.stops.forEach((s, stopIdx) => {
+                            if (s && s.colorKeyexp) {
+                                registerKeyExp(s.colorKeyexp, { type: isBg ? 'bg_appearance_gradient_stop' : 'appearance_gradient_stop', nodeData: node, appearanceIndex: idx, stopIndex: stopIdx, element: outerEl });
+                            }
+                            registerRuleList(s.colorRules);
+                        });
                     }
                 });
             };
