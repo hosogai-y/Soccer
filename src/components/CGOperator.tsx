@@ -6,7 +6,8 @@ import { TimerState, useShowTimerAtCurrentTime, nextTimerState, getTimerMs } fro
 import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
 import WeatherStatsSubControl, { WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
-import { useScoreSideChange, useOaTeamSettings, scoreColorKeys } from '../utils/useScoreSideChange';
+import { useScoreSideChange, useOaTeamSettings, scoreColorKeys, sameScoreColors } from '../utils/useScoreSideChange';
+import { TeamColorSet, teamColorSet, teamColorKeys, teamColorCss } from '../utils/teamColor';
 import { useScorerCg } from '../utils/useScorerCg';
 import { SCORER_TELOP, SCORER_ROWS } from '../utils/scorers';
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
@@ -474,7 +475,9 @@ function OneShotPlayerControl({
     const teamConfig = teams.find(t => t.name === rawSchool) ||
                        teams.find(t => player.teamId === 'right' ? t.name === oaRightTeam : t.name === oaLeftTeam);
     
-    const teamColor = teamConfig?.color || (player.teamId === 'right' ? '#0dcaf0' : '#198754');
+    // チームカラー一式（カラー1・カラー2・エッジ）。teamColor はカラー1
+    const colorSet = teamColorSet(teamConfig, player.teamId === 'right' ? 'right' : 'left');
+    const teamColor = colorSet.color;
     // ４）１SHOTの上段部分のチーム名表記
     const oneShotSchoolName = teamConfig?.oneShotName || rawSchool;
 
@@ -519,7 +522,7 @@ function OneShotPlayerControl({
 
         return {
             'TeamColor': teamColor,
-            'ColorRect': teamColor, // CG の Rectangle (KeyExp: ColorRect) にチームカラーを反映
+            ...teamColorKeys(colorSet), // CG のチームカラーザブトン（ColorRect / ColorRect2 / ColorEdge）
             '背番号': player.number || '',
             '氏名': player.name || '',
             'ポジション': normalizePosition(player.position) || 'FW',
@@ -901,7 +904,7 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
     const teamConfig = teams.find(t => t.name === school);
     const schoolLabel = teamConfig?.formationTelopName || school;
     // TeamSettings のチームカラー（未設定時は画面の左右カラー）
-    const teamColor = teamConfig?.color || (side === 'right' ? '#0dcaf0' : '#198754');
+    const colorSet = teamColorSet(teamConfig, side);
     const lineup = teamLineups?.[school];
     const isOnAir = telop.isVisible && (kind === 'formation' || subsOnAirSide === side);
     const label = kind === 'subs' ? '控え選手' : 'フォーメーション';
@@ -912,8 +915,8 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
             return;
         }
         const payload = kind === 'subs'
-            ? buildSubsPayload(lineup, players || [], schoolLabel, teamColor)
-            : buildFormationPayload(lineup, players || [], schoolLabel, side, teamConfig?.formationSystem || '4-4-2', teamColor);
+            ? buildSubsPayload(lineup, players || [], schoolLabel, colorSet)
+            : buildFormationPayload(lineup, players || [], schoolLabel, side, teamConfig?.formationSystem || '4-4-2', colorSet);
         telop.setData(payload);
         if (isOnAir) {
             // このボタンの CG が送出中なら UPDATE（控え選手は同じチームの送出中のときだけ）
@@ -1043,7 +1046,8 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
 
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
     const teamConfig = teams.find(t => t.name === school);
-    const teamColor = teamConfig?.color || (side === 'right' ? '#0dcaf0' : '#198754');
+    const colorSet = teamColorSet(teamConfig, side);
+    const teamColor = colorSet.color;
     const comments = staffComments(member);
     const comment = comments[Math.min(commentIdx, comments.length - 1)] || { text: '', isYellow: false };
 
@@ -1052,7 +1056,7 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
         const white = comment.isYellow ? '' : comment.text;
         return {
             'TeamColor': teamColor,
-            'ColorRect': teamColor,
+            ...teamColorKeys(colorSet),
             '背番号': '',
             '氏名': member.name,
             'ポジション': member.role,
@@ -1253,23 +1257,10 @@ function MatchScorePanel() {
     const defaultRightColor = oa.rightColor;
 
     // smallOnly / bigOnly は片方のテロップだけに入れる値（チーム名表記など）
+    // チームカラーは scoreColorKeys（カラー1・カラー2・エッジ一式）で渡す
     const syncScores = (data: any, smallOnly: any = {}, bigOnly: any = {}) => {
-        const expandedData = { ...data };
-        
-        // チームカラーは CG の Rectangle (KeyExp: ColorRectL / ColorRectR) にも反映
-        if (data.LeftTeamColor) {
-            expandedData.ColorRectL = data.LeftTeamColor;
-            expandedData.LeftTeamColorLargePoint = data.LeftTeamColor;
-            expandedData.LeftTeamColorSmallPoint = data.LeftTeamColor;
-        }
-        if (data.RigtTeamColor) {
-            expandedData.ColorRectR = data.RigtTeamColor;
-            expandedData.RightTeamColorLargePoint = data.RigtTeamColor;
-            expandedData.RightTeamColorSmallPoint = data.RigtTeamColor;
-        }
-        
-        bigScore.setData((prev: any) => ({ ...prev, ...expandedData, ...bigOnly }));
-        smallScore.setData((prev: any) => ({ ...prev, ...expandedData, ...smallOnly }));
+        bigScore.setData((prev: any) => ({ ...prev, ...data, ...bigOnly }));
+        smallScore.setData((prev: any) => ({ ...prev, ...data, ...smallOnly }));
     };
 
     // チームカラーは TeamSettings の OA 左チーム・右チームの色そのまま（このパネルでは変更不可）。
@@ -1280,17 +1271,18 @@ function MatchScorePanel() {
     const rightTeamColor = defaultRightColor;
 
     // TeamSettings のチームカラー変更（またはCGに残った古い・逆の色）をスコアCGへ連動。送出中ならその場で UPDATE
+    // （カラー1・カラー2・エッジのどれかが違えば入れ直す）
     const bsColorData = bigScore.data || {};
     const ssColorData = smallScore.data || {};
+    const scoreColors = scoreColorKeys(oa.leftSet, oa.rightSet);
+    const bigColorsOk = sameScoreColors(bsColorData, oa.leftSet, oa.rightSet);
+    const smallColorsOk = sameScoreColors(ssColorData, oa.leftSet, oa.rightSet);
     useEffect(() => {
-        const bigOk = bsColorData['LeftTeamColor'] === leftTeamColor && bsColorData['RigtTeamColor'] === rightTeamColor;
-        const smallOk = ssColorData['LeftTeamColor'] === leftTeamColor && ssColorData['RigtTeamColor'] === rightTeamColor;
-        if (bigOk && smallOk) return;
-        const colors = scoreColorKeys(leftTeamColor, rightTeamColor);
-        syncScores(colors);
-        if (!smallOk && smallScore.isVisible) smallScore.update({ ...ssColorData, ...colors });
-        if (!bigOk && bigScore.isVisible) bigScore.update({ ...bsColorData, ...colors });
-    }, [leftTeamColor, rightTeamColor, bsColorData['LeftTeamColor'], bsColorData['RigtTeamColor'], ssColorData['LeftTeamColor'], ssColorData['RigtTeamColor']]);
+        if (bigColorsOk && smallColorsOk) return;
+        syncScores(scoreColors);
+        if (!smallColorsOk && smallScore.isVisible) smallScore.update({ ...ssColorData, ...scoreColors });
+        if (!bigColorsOk && bigScore.isVisible) bigScore.update({ ...bsColorData, ...scoreColors });
+    }, [JSON.stringify(scoreColors), bigColorsOk, smallColorsOk]);
 
     // Lineups の OA チーム / TeamSettings の表記が変わったら、小得点・大得点のチーム名をそれぞれの表記で入れ直す。
     // 変わっていなければ手入力したチーム名を残す（ZIP 読み込みで古い名前が戻ったときも、ここで OA 設定に揃う）
@@ -1320,12 +1312,7 @@ function MatchScorePanel() {
             '右チーム名': cur['右チーム名'] || defaultRightSmallName,
             '左チーム得点': cur['左チーム得点'] || '0',
             '右チーム得点': cur['右チーム得点'] || '0',
-            'LeftTeamColor': leftTeamColor,
-            'RigtTeamColor': rightTeamColor,
-            'ColorRectL': leftTeamColor,
-            'ColorRectR': rightTeamColor,
-            'LeftTeamColorSmallPoint': leftTeamColor,
-            'RightTeamColorSmallPoint': rightTeamColor
+            ...scoreColors
         };
         smallScore.setData((prev: any) => ({ ...prev, ...payload }));
         const wasVisible = smallScore.isVisible;
@@ -1363,12 +1350,7 @@ function MatchScorePanel() {
             '右チーム名': cur['右チーム名'] || defaultRightBigName,
             '左チーム得点': cur['左チーム得点'] || '0',
             '右チーム得点': cur['右チーム得点'] || '0',
-            'LeftTeamColor': leftTeamColor,
-            'RigtTeamColor': rightTeamColor,
-            'ColorRectL': leftTeamColor,
-            'ColorRectR': rightTeamColor,
-            'LeftTeamColorLargePoint': leftTeamColor,
-            'RightTeamColorLargePoint': rightTeamColor
+            ...scoreColors
         };
         bigScore.setData((prev: any) => ({ ...prev, ...payload }));
         if (scorer.enabled) {
@@ -1403,7 +1385,7 @@ function MatchScorePanel() {
 
     const bsData = bigScore.data || {};
 
-    const renderTeamScore = (teamNameKey: string, teamColor: string, scoreKey: string, defaultName: string) => {
+    const renderTeamScore = (teamNameKey: string, colorSet: TeamColorSet, scoreKey: string, defaultName: string) => {
         return (
             <div style={{ flex: 1, padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <input 
@@ -1417,9 +1399,9 @@ function MatchScorePanel() {
                 {/* チームカラー表示のみ（変更は Team Settings で行う） */}
                 <div
                     title="チームカラーは Team Settings で変更してください"
-                    style={{ height: '22px', width: '100%', borderRadius: '4px', marginBottom: '12px', background: teamColor, border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontFamily: 'monospace', color: '#fff', textShadow: '0 0 3px #000', cursor: 'default', userSelect: 'none' }}
+                    style={{ height: '22px', width: '100%', borderRadius: '4px', marginBottom: '12px', background: teamColorCss(colorSet), border: '1px solid rgba(255,255,255,0.2)', borderLeft: colorSet.edge ? `4px solid ${colorSet.edge}` : undefined, borderRight: colorSet.edge ? `4px solid ${colorSet.edge}` : undefined, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontFamily: 'monospace', color: '#fff', textShadow: '0 0 3px #000', cursor: 'default', userSelect: 'none' }}
                 >
-                    {teamColor}
+                    {colorSet.color}{colorSet.color2 !== colorSet.color ? ` / ${colorSet.color2}` : ''}{colorSet.edge ? ` (エッジ ${colorSet.edge})` : ''}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
                     <button className="btn btn-secondary" style={{ width: '32px', height: '32px', borderRadius: '6px', fontSize: '1.1rem', padding: 0 }} onClick={() => syncScores({ [scoreKey]: String(Math.max(0, parseInt(bsData[scoreKey] || '0') - 1)) })}>-</button>
@@ -1463,8 +1445,8 @@ function MatchScorePanel() {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-                {renderTeamScore('左チーム名', leftTeamColor, '左チーム得点', defaultLeftSmallName)}
-                {renderTeamScore('右チーム名', rightTeamColor, '右チーム得点', defaultRightSmallName)}
+                {renderTeamScore('左チーム名', oa.leftSet, '左チーム得点', defaultLeftSmallName)}
+                {renderTeamScore('右チーム名', oa.rightSet, '右チーム得点', defaultRightSmallName)}
             </div>
 
             {/* 大得点 TAKE/HIDE（スコア表示の下・1.5 倍の高さ） */}

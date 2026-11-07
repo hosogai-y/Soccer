@@ -1,4 +1,5 @@
-// サブ下位置左: KeyExp 学校名 / 選手名n・背番号n・学年n・ポジションn (n = 1..9, ポジションn は画像パス)
+// Pulled from telop "サブ下位置左" by telopkit. Every node keeps its full editor props in `raw`.
+// Edit (or replace nodes with the short-hand), then: node .telopkit/telopkit.mjs push .telopkit/specs/サブ下位置左.mjs
 export default {
   "title": "soccer",
   "canvas": {
@@ -29,8 +30,6 @@ export default {
           "type": "group",
           "name": "チーム情報",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": -9,
             "y": 924,
             "rotation": 0,
@@ -38,6 +37,8 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -50,8 +51,6 @@ export default {
               "name": "チームベース",
               "src": "../../サブ下位置左/img/HD2D_F09_SubMember_TeamZabu_001.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -59,14 +58,286 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "width": 588,
-                "height": 89,
+                "height": 89
+              }
+            },
+            {
+              "type": "group",
+              "name": "チームカラーザブトン",
+              "raw": {
+                "x": 121,
+                "y": -22,
+                "rotation": 0,
+                "scaleX": 0.6079390732479742,
+                "scaleY": 1.1749999999999838,
+                "pivotX": 0,
+                "pivotY": 0,
+                "skewX": -6.275922439779979,
+                "skewY": 0,
+                "opacity": 1,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": []
-              }
+              },
+              "children": [
+                {
+                  "type": "rect",
+                  "name": "エッジ左",
+                  "w": 4,
+                  "h": 35,
+                  "raw": {
+                    "x": -25,
+                    "y": 18,
+                    "rotation": -4,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -5,
+                    "skewY": 4,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 35,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 5
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "エッジ右",
+                  "w": 4,
+                  "h": 35,
+                  "raw": {
+                    "x": 18,
+                    "y": 18,
+                    "rotation": -4,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -5,
+                    "skewY": 4,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 35,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 5
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "ベースカラー",
+                  "w": 39,
+                  "h": 35,
+                  "raw": {
+                    "x": -21,
+                    "y": 18,
+                    "rotation": -4,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -5,
+                    "skewY": 4,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 39,
+                    "height": 35,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect"
+                        }
+                      ],
+                      "cornerRadius": 5
+                    },
+                    "domId": "TeamColor"
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "カラー2",
+                  "w": 19.5,
+                  "h": 35,
+                  "raw": {
+                    "x": -1.5,
+                    "y": 18,
+                    "rotation": -4,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -5,
+                    "skewY": 4,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 19.5,
+                    "height": 35,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect2"
+                        }
+                      ],
+                      "cornerRadius": 5
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "グラデーションマット",
+                  "w": 39,
+                  "h": 35,
+                  "raw": {
+                    "x": -21,
+                    "y": 18,
+                    "rotation": -4,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -5,
+                    "skewY": 4,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 39,
+                    "height": 35,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": [
+                            "#00000073",
+                            "#00000078",
+                            "#ffffff29",
+                            "#00000075",
+                            "#0000001a",
+                            "#000000a1"
+                          ],
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "gradientConfig": {
+                            "type": "linear",
+                            "angle": 90,
+                            "units": "objectBoundingBox",
+                            "stops": [
+                              {
+                                "offset": 0.05,
+                                "color": "#00000073"
+                              },
+                              {
+                                "offset": 0.05,
+                                "color": "#00000078"
+                              },
+                              {
+                                "offset": 0.5,
+                                "color": "#ffffff29"
+                              },
+                              {
+                                "offset": 0.51,
+                                "color": "#00000075"
+                              },
+                              {
+                                "offset": 0.95,
+                                "color": "#0000001a"
+                              },
+                              {
+                                "offset": 1,
+                                "color": "#000000a1"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "cornerRadius": 5
+                    }
+                  }
+                }
+              ]
             },
             {
               "type": "text",
@@ -74,8 +345,6 @@ export default {
               "text": "札幌大谷",
               "w": 220,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 130,
                 "y": 0,
                 "rotation": 0,
@@ -83,10 +352,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 220,
-                "height": 46,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "札幌大谷",
+                "width": 220,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 30,
@@ -112,13 +390,7 @@ export default {
                   "letterSpacing": 3,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 46,
                 "keyexp": "学校名"
               }
             }
@@ -128,8 +400,6 @@ export default {
           "type": "group",
           "name": "サブ1",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 49,
             "y": 976,
             "rotation": 0,
@@ -137,11 +407,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名1",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -149,8 +426,6 @@ export default {
               "name": "ポジション1",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseGK_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -158,13 +433,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keepRatio": true,
                 "keyexp": "ポジション1"
               }
@@ -175,8 +452,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -184,10 +459,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -213,13 +497,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年1"
               }
             },
@@ -229,8 +507,6 @@ export default {
               "text": "山田 侑人",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -238,10 +514,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "山田 侑人",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -267,13 +552,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名1"
               }
             },
@@ -283,8 +562,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -292,10 +569,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -321,28 +607,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号1"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名1",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ2",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 320,
             "y": 976,
             "rotation": 0,
@@ -350,11 +624,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名2",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -362,8 +643,6 @@ export default {
               "name": "ポジション2",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseDF_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -371,13 +650,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション2"
               }
             },
@@ -387,8 +668,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -396,10 +675,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -425,13 +713,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年2"
               }
             },
@@ -441,8 +723,6 @@ export default {
               "text": "西島 都生",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -450,10 +730,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "西島 都生",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -479,13 +768,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名2"
               }
             },
@@ -495,8 +778,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -504,10 +785,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -533,28 +823,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号2"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名2",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ3",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 585,
             "y": 976,
             "rotation": 0,
@@ -562,11 +840,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名3",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -574,8 +859,6 @@ export default {
               "name": "ポジション3",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseDF_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -583,13 +866,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション3"
               }
             },
@@ -599,8 +884,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -608,10 +891,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -637,13 +929,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年3"
               }
             },
@@ -653,8 +939,6 @@ export default {
               "text": "川井　駿",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -662,10 +946,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "川井　駿",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -691,13 +984,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名3"
               }
             },
@@ -707,8 +994,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -716,10 +1001,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -745,28 +1039,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号3"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名3",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ4",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 846,
             "y": 976,
             "rotation": 0,
@@ -774,11 +1056,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名4",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -786,8 +1075,6 @@ export default {
               "name": "ポジション4",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseDF_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -795,13 +1082,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション4"
               }
             },
@@ -811,8 +1100,6 @@ export default {
               "text": "(3年)",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -820,10 +1107,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -849,13 +1145,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "学年4"
               }
             },
@@ -865,8 +1155,6 @@ export default {
               "text": "山﨑　遥翔",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -874,10 +1162,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "山﨑　遥翔",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -903,13 +1200,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名4"
               }
             },
@@ -919,8 +1210,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -928,10 +1217,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -957,28 +1255,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号4"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名4",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ5",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1112,
             "y": 976,
             "rotation": 0,
@@ -986,11 +1272,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名5",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -998,8 +1291,6 @@ export default {
               "name": "ポジション5",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseMF_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -1007,13 +1298,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション5"
               }
             },
@@ -1023,8 +1316,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -1032,10 +1323,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -1061,13 +1361,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年5"
               }
             },
@@ -1077,8 +1371,6 @@ export default {
               "text": "高山　大樹",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -1086,10 +1378,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "高山　大樹",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -1115,13 +1416,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名5"
               }
             },
@@ -1131,8 +1426,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -1140,10 +1433,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -1169,28 +1471,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号5"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名5",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ6",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1375,
             "y": 976,
             "rotation": 0,
@@ -1198,11 +1488,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名6",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -1210,8 +1507,6 @@ export default {
               "name": "ポジション6",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseMF_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -1219,13 +1514,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション6"
               }
             },
@@ -1235,8 +1532,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -1244,10 +1539,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -1273,13 +1577,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年6"
               }
             },
@@ -1289,8 +1587,6 @@ export default {
               "text": "吉田　北斗",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -1298,10 +1594,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "吉田　北斗",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -1327,13 +1632,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名6"
               }
             },
@@ -1343,8 +1642,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -1352,10 +1649,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -1381,28 +1687,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号6"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名6",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ7",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 49,
             "y": 1016,
             "rotation": 0,
@@ -1410,11 +1704,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名7",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -1422,8 +1723,6 @@ export default {
               "name": "ポジション7",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseMF_FIX.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -1431,13 +1730,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション7"
               }
             },
@@ -1447,8 +1748,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -1456,10 +1755,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -1485,13 +1793,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年7"
               }
             },
@@ -1501,8 +1803,6 @@ export default {
               "text": "岡本　大地",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -1510,10 +1810,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "岡本　大地",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -1539,13 +1848,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名7"
               }
             },
@@ -1555,8 +1858,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -1564,10 +1865,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -1593,28 +1903,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号7"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名7",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ8",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 321,
             "y": 1016,
             "rotation": 0,
@@ -1622,11 +1920,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名8",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -1634,8 +1939,6 @@ export default {
               "name": "ポジション8",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseFW.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -1643,13 +1946,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション8"
               }
             },
@@ -1659,8 +1964,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -1668,10 +1971,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -1697,13 +2009,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年8"
               }
             },
@@ -1713,8 +2019,6 @@ export default {
               "text": "佐野　宏太",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -1722,10 +2026,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "佐野　宏太",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -1751,13 +2064,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名8"
               }
             },
@@ -1767,8 +2074,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -1776,10 +2081,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -1805,28 +2119,16 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号8"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名8",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "group",
           "name": "サブ9",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 585,
             "y": 1016,
             "rotation": 0,
@@ -1834,11 +2136,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "visibilityCondition": {
+              "enabled": true,
+              "targetKeyexp": "選手名9",
+              "operator": "not_empty"
+            }
           },
           "children": [
             {
@@ -1846,8 +2155,6 @@ export default {
               "name": "ポジション9",
               "src": "../../サブ下位置左/img/HD2D_F01_new_BaseFW.png",
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -1855,13 +2162,15 @@ export default {
                 "scaleY": 0.8,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 318,
-                "height": 46,
                 "visible": true,
                 "locked": false,
                 "blendMode": "normal",
                 "effects": [],
+                "width": 318,
+                "height": 46,
                 "keyexp": "ポジション9"
               }
             },
@@ -1871,8 +2180,6 @@ export default {
               "text": "(3年)",
               "w": 40,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 186,
                 "y": 7,
                 "rotation": 0,
@@ -1880,10 +2187,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 40,
-                "height": 25,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "(3年)",
+                "width": 40,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 17,
@@ -1909,13 +2225,7 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 25,
                 "keyexp": "学年9"
               }
             },
@@ -1925,8 +2235,6 @@ export default {
               "text": "佐野　宏太",
               "w": 120,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 66,
                 "y": 5,
                 "rotation": 0,
@@ -1934,10 +2242,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 120,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "佐野　宏太",
+                "width": 120,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -1963,13 +2280,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "選手名9"
               }
             },
@@ -1979,8 +2290,6 @@ export default {
               "text": "41",
               "w": 30,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 33,
                 "y": 4,
                 "rotation": 0,
@@ -1988,10 +2297,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 30,
-                "height": 30,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "41",
+                "width": 30,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_font",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 20,
@@ -2017,29 +2335,17 @@ export default {
                   "lineHeight": 1.2,
                   "letterSpacing": 0
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_font",
+                "height": 30,
                 "keyexp": "背番号9"
               }
             }
-          ],
-          "showIf": {
-            "key": "選手名9",
-            "op": "not_empty"
-          }
+          ]
         },
         {
           "type": "image",
           "name": "蹴り上げマーク",
           "src": "../../サブ下位置左/img/HD2D_S00_MarkHighSchool.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 44,
             "y": 925,
             "rotation": 0,
@@ -2047,59 +2353,18 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 55,
-            "height": 40,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 55,
+            "height": 40
           }
         }
       ]
     }
-  ],
-  "samples": {
-    "サブ下位置左": [
-      {
-        "学校名": "帯広北",
-        "選手名1": "控え　選手1",
-        "背番号1": "12",
-        "学年1": "(2年)",
-        "ポジション1": "img/HD2D_F01_new_BaseGK_FIX.png",
-        "選手名2": "控え　選手2",
-        "背番号2": "13",
-        "学年2": "(3年)",
-        "ポジション2": "img/HD2D_F01_new_BaseDF_FIX.png",
-        "選手名3": "アブーバクル　月舘汰壱",
-        "背番号3": "14",
-        "学年3": "(1年)",
-        "ポジション3": "img/HD2D_F01_new_BaseDF_FIX.png",
-        "選手名4": "控え　選手4",
-        "背番号4": "15",
-        "学年4": "(2年)",
-        "ポジション4": "img/HD2D_F01_new_BaseMF_FIX.png",
-        "選手名5": "控え　選手5",
-        "背番号5": "16",
-        "学年5": "(3年)",
-        "ポジション5": "img/HD2D_F01_new_BaseMF_FIX.png",
-        "選手名6": "控え　選手6",
-        "背番号6": "17",
-        "学年6": "(1年)",
-        "ポジション6": "img/HD2D_F01_new_BaseFW.png",
-        "選手名7": "",
-        "背番号7": "",
-        "学年7": "",
-        "ポジション7": "",
-        "選手名8": "",
-        "背番号8": "",
-        "学年8": "",
-        "ポジション8": "",
-        "選手名9": "",
-        "背番号9": "",
-        "学年9": "",
-        "ポジション9": ""
-      }
-    ]
-  }
+  ]
 };

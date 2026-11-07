@@ -1,5 +1,6 @@
 import type { Player } from '../components/PlayerRegistry';
 import { FormationLayout, Role, resolvePositions, roleMap, toSidePosition } from './formationLayout';
+import { TeamColorSet, teamColorKeys } from './teamColor';
 
 /**
  * スタメン・控えの登録データとフォーメーション／控え選手テロップのペイロード生成。
@@ -167,13 +168,13 @@ export function formationPositionImage(registered: string | undefined, slotRole:
 /**
  * フォーメーション左／右のペイロード（空枠は '' を送り、テロップ側で非表示になる）。
  * <ps>_X / <ps>_Y はプレート左上の座標で、テロップの customJs がグループ位置に反映する。
- * ColorRect はチームカラー（チームカラーザブトンの Rectangle に反映）。
+ * ColorRect / ColorRect2 / ColorEdge はチームカラー一式（チームカラーザブトンに反映）。
  */
 export function buildFormationPayload(
     lineup: TeamLineup | undefined, players: Player[], schoolLabel: string,
-    side: 'left' | 'right', fallbackSystem: string, teamColor: string
+    side: 'left' | 'right', fallbackSystem: string, colors: TeamColorSet
 ) {
-    const data: Record<string, string> = { '学校名': schoolLabel, 'ColorRect': teamColor };
+    const data: Record<string, string> = { '学校名': schoolLabel, ...teamColorKeys(colors) };
     const positions = resolvePositions(lineup?.formation, fallbackSystem);
     const roles = roleMap(lineup?.formation?.system || fallbackSystem);
     FORMATION_SLOTS.forEach(slot => {
@@ -189,9 +190,9 @@ export function buildFormationPayload(
     return data;
 }
 
-/** サブ下位置左のペイロード（ポジション帯の画像は選手のポジションから選ぶ。ColorRect はチームカラー） */
-export function buildSubsPayload(lineup: TeamLineup | undefined, players: Player[], schoolLabel: string, teamColor: string) {
-    const data: Record<string, string> = { '学校名': schoolLabel, 'ColorRect': teamColor };
+/** サブ下位置左のペイロード（ポジション帯の画像は選手のポジションから選ぶ。ColorRect など はチームカラー一式） */
+export function buildSubsPayload(lineup: TeamLineup | undefined, players: Player[], schoolLabel: string, colors: TeamColorSet) {
+    const data: Record<string, string> = { '学校名': schoolLabel, ...teamColorKeys(colors) };
     for (let i = 0; i < SUB_SLOT_COUNT; i++) {
         const p = findPlayer(players, lineup?.subs?.[i]);
         const n = i + 1;

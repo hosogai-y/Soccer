@@ -17,6 +17,8 @@ export default {
         "scaleY": 1,
         "pivotX": 0,
         "pivotY": 0,
+        "skewX": 0,
+        "skewY": 0,
         "opacity": 1,
         "visible": true,
         "locked": false,
@@ -30,8 +32,6 @@ export default {
           "name": "1SHOT用ザブトン",
           "src": "../../1Shotカード/img/HD2D_S01_Base1.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1286,
             "y": 929,
             "rotation": 0,
@@ -39,21 +39,21 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 602,
-            "height": 150,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 602,
+            "height": 150
           }
         },
         {
           "type": "group",
           "name": "チームカラー変更",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1336,
             "y": 957,
             "rotation": 0,
@@ -61,6 +61,8 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -72,8 +74,6 @@ export default {
               "type": "group",
               "name": "チームカラーザブトン",
               "raw": {
-                "skewX": -14.524950658846302,
-                "skewY": 0,
                 "x": 162,
                 "y": -19,
                 "rotation": 0,
@@ -81,6 +81,8 @@ export default {
                 "scaleY": 1.1749999999999878,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -14.524950658846302,
+                "skewY": 0,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -90,12 +92,100 @@ export default {
               "children": [
                 {
                   "type": "rect",
+                  "name": "エッジ左",
+                  "w": 4,
+                  "h": 54,
+                  "raw": {
+                    "x": -32,
+                    "y": -2,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": 3,
+                    "skewY": 3,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 54,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "エッジ右",
+                  "w": 4,
+                  "h": 54,
+                  "raw": {
+                    "x": 12,
+                    "y": -2,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": 3,
+                    "skewY": 3,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 54,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
                   "name": "ベースカラー",
                   "w": 40,
                   "h": 54,
                   "raw": {
-                    "skewX": 3,
-                    "skewY": 3,
                     "x": -28,
                     "y": -2,
                     "rotation": -1,
@@ -103,7 +193,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": 3,
+                    "skewY": 3,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 40,
                     "height": 54,
                     "style": {
@@ -122,11 +218,47 @@ export default {
                       ],
                       "cornerRadius": 0
                     },
+                    "domId": "TeamColor"
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "カラー2",
+                  "w": 20,
+                  "h": 54,
+                  "raw": {
+                    "x": -8,
+                    "y": -2,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": 3,
+                    "skewY": 3,
+                    "opacity": 1,
                     "visible": true,
                     "locked": false,
                     "blendMode": "normal",
                     "effects": [],
-                    "domId": "TeamColor"
+                    "width": 20,
+                    "height": 54,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect2"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    }
                   }
                 },
                 {
@@ -135,8 +267,6 @@ export default {
                   "w": 40,
                   "h": 54,
                   "raw": {
-                    "skewX": 3,
-                    "skewY": 2,
                     "x": -28,
                     "y": -1,
                     "rotation": -3,
@@ -144,7 +274,13 @@ export default {
                     "scaleY": 1,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": 3,
+                    "skewY": 2,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 40,
                     "height": 54,
                     "style": {
@@ -199,11 +335,7 @@ export default {
                         }
                       ],
                       "cornerRadius": 0
-                    },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": []
+                    }
                   }
                 }
               ]
@@ -214,8 +346,6 @@ export default {
               "text": "#bd39fb",
               "w": 66,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 149,
                 "y": 22,
                 "rotation": 0,
@@ -223,10 +353,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 66,
-                "height": 24,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "#bd39fb",
+                "width": 66,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 10,
@@ -252,13 +391,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 24,
                 "keyexp": "TeamColor"
               }
             }
@@ -269,8 +402,6 @@ export default {
           "name": "左側上板",
           "src": "../../1Shotカード/img/HD2D_S01_ZabuTeam.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1286,
             "y": 887,
             "rotation": 0,
@@ -278,13 +409,15 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 602,
-            "height": 60,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 602,
+            "height": 60
           }
         },
         {
@@ -292,8 +425,6 @@ export default {
           "name": "反転した上板",
           "src": "../../1Shotカード/img/HD2D_S01_ZabuTeam.png",
           "raw": {
-            "skewX": -1.4014958968929839e-12,
-            "skewY": 0,
             "x": 1888,
             "y": 886,
             "rotation": -180,
@@ -301,13 +432,15 @@ export default {
             "scaleY": -0.9999999999999898,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": -1.4014958968929839e-12,
+            "skewY": 0,
             "opacity": 1,
-            "width": 602,
-            "height": 60,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 602,
+            "height": 60
           }
         },
         {
@@ -316,8 +449,6 @@ export default {
           "text": "右サイドの快速ドリブラー",
           "w": 470,
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1359,
             "y": 1009,
             "rotation": 0,
@@ -325,10 +456,19 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 470,
-            "height": 33,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "text": "右サイドの快速ドリブラー",
+            "width": 470,
+            "padding": 0,
+            "align": "center",
+            "verticalAlign": "middle",
+            "fitMode": "shrink_x",
             "style": {
               "fontFamily": "Noto Sans JP",
               "fontSize": 30,
@@ -354,13 +494,7 @@ export default {
               "letterSpacing": 0,
               "lineHeight": 1.2
             },
-            "align": "center",
-            "verticalAlign": "middle",
-            "visible": true,
-            "locked": false,
-            "blendMode": "normal",
-            "effects": [],
-            "fitMode": "shrink_x",
+            "height": 33,
             "keyexp": "プロ2コメント黄色"
           }
         },
@@ -370,8 +504,6 @@ export default {
           "text": "右サイドの快速ドリブラー",
           "w": 470,
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1359,
             "y": 1009,
             "rotation": 0,
@@ -379,10 +511,19 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 470,
-            "height": 33,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "text": "右サイドの快速ドリブラー",
+            "width": 470,
+            "padding": 0,
+            "align": "center",
+            "verticalAlign": "middle",
+            "fitMode": "shrink_x",
             "style": {
               "fontFamily": "Noto Sans JP",
               "fontSize": 30,
@@ -408,13 +549,7 @@ export default {
               "letterSpacing": 0,
               "lineHeight": 1.2
             },
-            "align": "center",
-            "verticalAlign": "middle",
-            "visible": true,
-            "locked": false,
-            "blendMode": "normal",
-            "effects": [],
-            "fitMode": "shrink_x",
+            "height": 33,
             "keyexp": "プロ2コメント"
           }
         },
@@ -422,8 +557,6 @@ export default {
           "type": "group",
           "name": "TOTALゴール",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1614,
             "y": 1009,
             "rotation": 0,
@@ -431,8 +564,10 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "visible": true,
+            "visible": false,
             "locked": false,
             "blendMode": "normal",
             "effects": []
@@ -444,8 +579,6 @@ export default {
               "text": "8",
               "w": 38,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": -17,
                 "y": 0,
                 "rotation": 0,
@@ -453,10 +586,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 38,
-                "height": 33,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "8",
+                "width": 38,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 32,
@@ -482,13 +624,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 33,
                 "keyexp": "Total数値"
               }
             },
@@ -498,8 +634,6 @@ export default {
               "text": "ゴール",
               "w": 96,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 25,
                 "y": 0,
                 "rotation": 0,
@@ -507,10 +641,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 96,
-                "height": 33,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "ゴール",
+                "width": 96,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_x",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 30,
@@ -536,13 +679,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_x",
+                "height": 33,
                 "keyexp": "ゴール(文字)"
               }
             },
@@ -552,8 +689,6 @@ export default {
               "text": "今大会通算",
               "w": 197,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": -178,
                 "y": 0,
                 "rotation": 0,
@@ -561,10 +696,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 197,
-                "height": 33,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "今大会通算",
+                "width": 197,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_x",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 30,
@@ -590,13 +734,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_x",
+                "height": 33,
                 "keyexp": "今大会通算(文字)"
               }
             }
@@ -616,7 +754,7 @@ export default {
             "skewX": 0,
             "skewY": 0,
             "opacity": 1,
-            "visible": true,
+            "visible": false,
             "locked": false,
             "blendMode": "normal",
             "effects": []
@@ -628,8 +766,6 @@ export default {
               "text": "Today's Goal ",
               "w": 197,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -637,10 +773,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 197,
-                "height": 33,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "Today's Goal ",
+                "width": 197,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_x",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 30,
@@ -666,13 +811,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_x",
+                "height": 33,
                 "keyexp": "Today's(文字)"
               }
             },
@@ -682,8 +821,6 @@ export default {
               "text": "４",
               "w": 38,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 178,
                 "y": 0,
                 "rotation": 0,
@@ -691,10 +828,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 38,
-                "height": 33,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "４",
+                "width": 38,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 30,
@@ -720,13 +866,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 33,
                 "keyexp": "Today's数値"
               }
             }
@@ -738,8 +878,6 @@ export default {
           "text": "13",
           "w": 47,
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1456,
             "y": 939,
             "rotation": 0,
@@ -747,10 +885,19 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 47,
-            "height": 65,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "text": "13",
+            "width": 47,
+            "padding": 0,
+            "align": "center",
+            "verticalAlign": "middle",
+            "fitMode": "none",
             "style": {
               "fontFamily": "Noto Sans JP",
               "fontSize": 33,
@@ -792,13 +939,7 @@ export default {
               "letterSpacing": 0,
               "lineHeight": 1.2
             },
-            "align": "center",
-            "verticalAlign": "middle",
-            "visible": true,
-            "locked": false,
-            "blendMode": "normal",
-            "effects": [],
-            "fitMode": "none",
+            "height": 65,
             "keyexp": "背番号"
           }
         },
@@ -808,8 +949,6 @@ export default {
           "text": "FW",
           "w": 60,
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1381,
             "y": 944,
             "rotation": 0,
@@ -817,10 +956,19 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 60,
-            "height": 49,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "text": "FW",
+            "width": 60,
+            "padding": 0,
+            "align": "center",
+            "verticalAlign": "middle",
+            "fitMode": "none",
             "style": {
               "fontFamily": "Noto Sans JP",
               "fontSize": 36,
@@ -846,13 +994,7 @@ export default {
               "letterSpacing": 0,
               "lineHeight": 1.2
             },
-            "align": "center",
-            "verticalAlign": "middle",
-            "visible": true,
-            "locked": false,
-            "blendMode": "normal",
-            "effects": [],
-            "fitMode": "none",
+            "height": 49,
             "keyexp": "ポジション"
           }
         },
@@ -862,8 +1004,6 @@ export default {
           "text": "月舘汰壱アブーバクル",
           "w": 260,
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1524,
             "y": 950,
             "rotation": 0,
@@ -871,10 +1011,19 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 260,
-            "height": 42,
+            "visible": true,
+            "locked": false,
+            "blendMode": "normal",
+            "effects": [],
             "text": "月舘汰壱アブーバクル",
+            "width": 260,
+            "padding": 0,
+            "align": "left",
+            "verticalAlign": "middle",
+            "fitMode": "shrink_x",
             "style": {
               "fontFamily": "Noto Sans JP",
               "fontSize": 40,
@@ -900,13 +1049,7 @@ export default {
               "lineHeight": 1.2,
               "letterSpacing": 0
             },
-            "align": "left",
-            "verticalAlign": "middle",
-            "visible": true,
-            "locked": false,
-            "blendMode": "normal",
-            "effects": [],
-            "fitMode": "shrink_x",
+            "height": 42,
             "keyexp": "氏名"
           }
         },
@@ -936,8 +1079,6 @@ export default {
               "text": "札幌大谷",
               "w": 165,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 0,
                 "y": 0,
                 "rotation": 0,
@@ -945,10 +1086,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 165,
-                "height": 32,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "札幌大谷",
+                "width": 165,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "shrink_x",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 30,
@@ -974,13 +1124,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "shrink_x",
+                "height": 32,
                 "keyexp": "所属"
               }
             },
@@ -990,8 +1134,6 @@ export default {
               "text": "3",
               "w": 37,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 184,
                 "y": -3,
                 "rotation": 0,
@@ -999,10 +1141,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 37,
-                "height": 42,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "3",
+                "width": 37,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 33,
@@ -1028,13 +1179,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 42,
                 "keyexp": "学年"
               }
             },
@@ -1044,8 +1189,6 @@ export default {
               "text": "年",
               "w": 33,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 216,
                 "y": -3,
                 "rotation": 0,
@@ -1053,10 +1196,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 33,
-                "height": 42,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "年",
+                "width": 33,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 29,
@@ -1082,13 +1234,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 42,
                 "keyexp": ""
               }
             },
@@ -1098,8 +1244,6 @@ export default {
               "text": "cm",
               "w": 44,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 320,
                 "y": -3,
                 "rotation": 0,
@@ -1107,10 +1251,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 44,
-                "height": 42,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "cm",
+                "width": 44,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 27,
@@ -1136,13 +1289,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 42,
                 "keyexp": ""
               }
             },
@@ -1152,8 +1299,6 @@ export default {
               "text": "169",
               "w": 61,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 263,
                 "y": -3,
                 "rotation": 0,
@@ -1161,10 +1306,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 61,
-                "height": 42,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "169",
+                "width": 61,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 33,
@@ -1190,13 +1344,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 42,
                 "keyexp": "身長"
               }
             },
@@ -1206,8 +1354,6 @@ export default {
               "text": "kg",
               "w": 37,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 423,
                 "y": -6,
                 "rotation": 0,
@@ -1215,10 +1361,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 37,
-                "height": 48,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "kg",
+                "width": 37,
+                "padding": 0,
+                "align": "left",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 28,
@@ -1244,13 +1399,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "left",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 48,
                 "keyexp": ""
               }
             },
@@ -1260,8 +1409,6 @@ export default {
               "text": "69",
               "w": 43,
               "raw": {
-                "skewX": 0,
-                "skewY": 0,
                 "x": 381,
                 "y": -3,
                 "rotation": 0,
@@ -1269,10 +1416,19 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": 0,
+                "skewY": 0,
                 "opacity": 1,
-                "width": 43,
-                "height": 42,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
                 "text": "69",
+                "width": 43,
+                "padding": 0,
+                "align": "center",
+                "verticalAlign": "middle",
+                "fitMode": "none",
                 "style": {
                   "fontFamily": "Noto Sans JP",
                   "fontSize": 33,
@@ -1298,13 +1454,7 @@ export default {
                   "letterSpacing": 0,
                   "lineHeight": 1.2
                 },
-                "align": "center",
-                "verticalAlign": "middle",
-                "visible": true,
-                "locked": false,
-                "blendMode": "normal",
-                "effects": [],
-                "fitMode": "none",
+                "height": 42,
                 "keyexp": "体重"
               }
             }
@@ -1315,8 +1465,6 @@ export default {
           "name": "蹴り上げマーク",
           "src": "../../1Shotカード/img/HD2D_S00_MarkHighSchool.png",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1304,
             "y": 939,
             "rotation": 0,
@@ -1324,13 +1472,15 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
-            "width": 84,
-            "height": 57,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
-            "effects": []
+            "effects": [],
+            "width": 84,
+            "height": 57
           }
         },
         {
@@ -1348,12 +1498,12 @@ export default {
             "skewX": 0,
             "skewY": 0,
             "opacity": 1,
-            "width": 205,
-            "height": 240,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
             "effects": [],
+            "width": 205,
+            "height": 240,
             "keyexp": "顔写真"
           }
         },
@@ -1372,12 +1522,12 @@ export default {
             "skewX": 0,
             "skewY": 0,
             "opacity": 1,
-            "width": 230,
-            "height": 150,
             "visible": true,
             "locked": false,
             "blendMode": "normal",
             "effects": [],
+            "width": 230,
+            "height": 150,
             "keyexp": "カード"
           }
         }

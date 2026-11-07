@@ -92,6 +92,96 @@ export default {
               "children": [
                 {
                   "type": "rect",
+                  "name": "エッジ左",
+                  "w": 4,
+                  "h": 52,
+                  "raw": {
+                    "x": -31,
+                    "y": -4,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 52,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "エッジ右",
+                  "w": 4,
+                  "h": 52,
+                  "raw": {
+                    "x": 18,
+                    "y": -4,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 52,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
                   "name": "ベースカラー",
                   "w": 45,
                   "h": 52,
@@ -129,6 +219,46 @@ export default {
                       "cornerRadius": 0
                     },
                     "domId": "TeamColor"
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "カラー2",
+                  "w": 22.5,
+                  "h": 52,
+                  "raw": {
+                    "x": -4.5,
+                    "y": -4,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 22.5,
+                    "height": 52,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect2"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    }
                   }
                 },
                 {
@@ -443,6 +573,96 @@ export default {
               "children": [
                 {
                   "type": "rect",
+                  "name": "エッジ左",
+                  "w": 4,
+                  "h": 51,
+                  "raw": {
+                    "x": -32,
+                    "y": -4,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 51,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "エッジ右",
+                  "w": 4,
+                  "h": 51,
+                  "raw": {
+                    "x": 17,
+                    "y": -4,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 51,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
                   "name": "ベースカラー",
                   "w": 45,
                   "h": 51,
@@ -480,6 +700,46 @@ export default {
                       "cornerRadius": 0
                     },
                     "domId": "TeamColor"
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "カラー2",
+                  "w": 22.5,
+                  "h": 51,
+                  "raw": {
+                    "x": -5.5,
+                    "y": -4,
+                    "rotation": -1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": -1,
+                    "skewY": 1,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 22.5,
+                    "height": 51,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect2"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    }
                   }
                 },
                 {
@@ -778,8 +1038,6 @@ export default {
           "type": "group",
           "name": "チームカラーザブトン",
           "raw": {
-            "skewX": -12.556492647850591,
-            "skewY": 0,
             "x": 1080,
             "y": 1140,
             "rotation": 0,
@@ -787,6 +1045,8 @@ export default {
             "scaleY": 1.1749999999999874,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": -12.556492647850591,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -796,12 +1056,100 @@ export default {
           "children": [
             {
               "type": "rect",
+              "name": "エッジ左",
+              "w": 4,
+              "h": 36,
+              "raw": {
+                "x": -577,
+                "y": -172,
+                "rotation": -1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "skewX": -1,
+                "skewY": 1,
+                "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "width": 4,
+                "height": 36,
+                "style": {
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": "#ffffff",
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "fillKeyexp": "ColorEdge"
+                    }
+                  ],
+                  "cornerRadius": 0
+                },
+                "visibilityCondition": {
+                  "enabled": true,
+                  "targetKeyexp": "ColorEdge",
+                  "operator": "not_empty"
+                }
+              }
+            },
+            {
+              "type": "rect",
+              "name": "エッジ右",
+              "w": 4,
+              "h": 36,
+              "raw": {
+                "x": -556,
+                "y": -172,
+                "rotation": -1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "skewX": -1,
+                "skewY": 1,
+                "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "width": 4,
+                "height": 36,
+                "style": {
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": "#ffffff",
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "fillKeyexp": "ColorEdge"
+                    }
+                  ],
+                  "cornerRadius": 0
+                },
+                "visibilityCondition": {
+                  "enabled": true,
+                  "targetKeyexp": "ColorEdge",
+                  "operator": "not_empty"
+                }
+              }
+            },
+            {
+              "type": "rect",
               "name": "ベースカラー",
               "w": 17,
               "h": 36,
               "raw": {
-                "skewX": -1,
-                "skewY": 1,
                 "x": -573,
                 "y": -172,
                 "rotation": -1,
@@ -809,6 +1157,8 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -1,
+                "skewY": 1,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -837,12 +1187,50 @@ export default {
             },
             {
               "type": "rect",
+              "name": "カラー2",
+              "w": 8.5,
+              "h": 36,
+              "raw": {
+                "x": -564.5,
+                "y": -172,
+                "rotation": -1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "skewX": -1,
+                "skewY": 1,
+                "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "width": 8.5,
+                "height": 36,
+                "style": {
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": "#bd39fb",
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "fillKeyexp": "ColorRect2"
+                    }
+                  ],
+                  "cornerRadius": 0
+                }
+              }
+            },
+            {
+              "type": "rect",
               "name": "グラデーションマット",
               "w": 17,
               "h": 36,
               "raw": {
-                "skewX": -1,
-                "skewY": 1,
                 "x": -573,
                 "y": -172,
                 "rotation": -1,
@@ -850,6 +1238,8 @@ export default {
                 "scaleY": 1,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -1,
+                "skewY": 1,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,

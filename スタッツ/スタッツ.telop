@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_a2ai90a9j2ie",
+  "rootId": "n1_g50l7oflbcho",
   "nodesById": {
-    "n1_a2ai90a9j2ie": {
-      "id": "n1_a2ai90a9j2ie",
+    "n1_g50l7oflbcho": {
+      "id": "n1_g50l7oflbcho",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,20 +24,20 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_7n4fz1dv19s4",
-        "n1_ccnjd5orlt7p",
-        "n1_qihn74lp8qi4",
-        "n1_eo9lym0sheq7",
-        "n1_cztvbp8ag3qs",
-        "n1_dfne01uz144g",
-        "n1_9hsecca83qcm",
-        "n1_tl51w1a8i2r8",
-        "n1_g728r73pqhi6",
-        "n1_f7mm41nhortr",
-        "n1_5bxet2p3p0a8",
-        "n1_oh770hc59xij",
-        "n1_t3ann8mgliga",
-        "n1_i0hpxcu3ihhm"
+        "n1_cpczggbhsm7e",
+        "n1_m6uyku7owlih",
+        "n1_orctxcais3pk",
+        "n1_xp82nzata2vl",
+        "n1_61abzb5lgi3x",
+        "n1_08m3my9dyde8",
+        "n1_yq5u6d8ogfiq",
+        "n1_1zodf85zl6tj",
+        "n1_totrvhr7247x",
+        "n1_vut5bjxoe1p9",
+        "n1_70o29phxxee9",
+        "n1_4gm92b9urhng",
+        "n1_n97mjbzh9nro",
+        "n1_mntnndvl4lli"
       ],
       "name": "スタッツ",
       "visible": true,
@@ -46,8 +46,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_7n4fz1dv19s4": {
-      "id": "n1_7n4fz1dv19s4",
+    "n1_cpczggbhsm7e": {
+      "id": "n1_cpczggbhsm7e",
       "type": "image",
       "x": 141,
       "y": 853,
@@ -64,13 +64,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_oa0122vr1syx",
+      "assetId": "a1_wkcq8dhm0z5y",
       "width": 420,
       "height": 200,
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_ccnjd5orlt7p": {
-      "id": "n1_ccnjd5orlt7p",
+    "n1_m6uyku7owlih": {
+      "id": "n1_m6uyku7owlih",
       "type": "image",
       "x": 350,
       "y": 797,
@@ -87,13 +87,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_z9iqijdghopo",
+      "assetId": "a1_97hclzuj517y",
       "width": 303,
       "height": 90,
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_qihn74lp8qi4": {
-      "id": "n1_qihn74lp8qi4",
+    "n1_orctxcais3pk": {
+      "id": "n1_orctxcais3pk",
       "type": "image",
       "x": 48,
       "y": 797,
@@ -110,13 +110,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_1t72c54dasqi",
+      "assetId": "a1_mw0kl68isj0c",
       "width": 303,
       "height": 90,
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_eo9lym0sheq7": {
-      "id": "n1_eo9lym0sheq7",
+    "n1_xp82nzata2vl": {
+      "id": "n1_xp82nzata2vl",
       "type": "group",
       "x": 105,
       "y": 804,
@@ -134,13 +134,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_i66z82xvbuyx",
-        "n1_yhvpf98tlvru"
+        "n1_meuqppj5abnt",
+        "n1_0gy9fznax7in",
+        "n1_9aqazw394dwr",
+        "n1_54sr8k8b965a",
+        "n1_q43lqg25hkoa"
       ],
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_i66z82xvbuyx": {
-      "id": "n1_i66z82xvbuyx",
+    "n1_meuqppj5abnt": {
+      "id": "n1_meuqppj5abnt",
+      "type": "rect",
+      "x": -4,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdgeL"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdgeL",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_xp82nzata2vl"
+    },
+    "n1_0gy9fznax7in": {
+      "id": "n1_0gy9fznax7in",
+      "type": "rect",
+      "x": 19,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdgeL"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdgeL",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_xp82nzata2vl"
+    },
+    "n1_9aqazw394dwr": {
+      "id": "n1_9aqazw394dwr",
       "type": "rect",
       "x": 0,
       "y": 0,
@@ -177,10 +266,50 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_eo9lym0sheq7"
+      "parentId": "n1_xp82nzata2vl"
     },
-    "n1_yhvpf98tlvru": {
-      "id": "n1_yhvpf98tlvru",
+    "n1_54sr8k8b965a": {
+      "id": "n1_54sr8k8b965a",
+      "type": "rect",
+      "x": 9.5,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 9.5,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#1f4fa8",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "isMask": false,
+            "maskMode": "subtract",
+            "fillKeyexp": "ColorRectL2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_xp82nzata2vl"
+    },
+    "n1_q43lqg25hkoa": {
+      "id": "n1_q43lqg25hkoa",
       "type": "rect",
       "x": 0,
       "y": 0,
@@ -252,10 +381,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_eo9lym0sheq7"
+      "parentId": "n1_xp82nzata2vl"
     },
-    "n1_cztvbp8ag3qs": {
-      "id": "n1_cztvbp8ag3qs",
+    "n1_61abzb5lgi3x": {
+      "id": "n1_61abzb5lgi3x",
       "type": "group",
       "x": 577,
       "y": 804,
@@ -273,13 +402,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_qc51yix7sfxq",
-        "n1_4ngmh486khtb"
+        "n1_yyk9bnz1hmug",
+        "n1_is0oooiltdsb",
+        "n1_nwo7rjxd1k9a",
+        "n1_epynkiex5dsq",
+        "n1_r7d46lc3q9zd"
       ],
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_qc51yix7sfxq": {
-      "id": "n1_qc51yix7sfxq",
+    "n1_yyk9bnz1hmug": {
+      "id": "n1_yyk9bnz1hmug",
+      "type": "rect",
+      "x": -4,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdgeR"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdgeR",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_61abzb5lgi3x"
+    },
+    "n1_is0oooiltdsb": {
+      "id": "n1_is0oooiltdsb",
+      "type": "rect",
+      "x": 19,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdgeR"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdgeR",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_61abzb5lgi3x"
+    },
+    "n1_nwo7rjxd1k9a": {
+      "id": "n1_nwo7rjxd1k9a",
       "type": "rect",
       "x": 0,
       "y": 0,
@@ -314,10 +532,48 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_cztvbp8ag3qs"
+      "parentId": "n1_61abzb5lgi3x"
     },
-    "n1_4ngmh486khtb": {
-      "id": "n1_4ngmh486khtb",
+    "n1_epynkiex5dsq": {
+      "id": "n1_epynkiex5dsq",
+      "type": "rect",
+      "x": 9.5,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 9.5,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#1f4fa8",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRectR2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_61abzb5lgi3x"
+    },
+    "n1_r7d46lc3q9zd": {
+      "id": "n1_r7d46lc3q9zd",
       "type": "rect",
       "x": 0,
       "y": 0,
@@ -389,10 +645,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_cztvbp8ag3qs"
+      "parentId": "n1_61abzb5lgi3x"
     },
-    "n1_dfne01uz144g": {
-      "id": "n1_dfne01uz144g",
+    "n1_08m3my9dyde8": {
+      "id": "n1_08m3my9dyde8",
       "type": "group",
       "x": 211,
       "y": 1012,
@@ -410,20 +666,20 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_ycwvlh2yw9cs",
-        "n1_jy60e4vy6f82",
-        "n1_mdffact7eqdq",
-        "n1_xn4m09s54qb5",
-        "n1_fpkhvczbljmg",
-        "n1_nkse8s29yded",
-        "n1_kkoc5dhemwlt",
-        "n1_uu7wy0zib3nz",
-        "n1_g2iwpqg938ki"
+        "n1_sz4mt7uf88b4",
+        "n1_cvgisj0f7j67",
+        "n1_3y0nzysf5yw1",
+        "n1_tm2el0o3jai0",
+        "n1_6n2afunzfjb1",
+        "n1_7ri1dnhw2irq",
+        "n1_ue2u3x6y7jdk",
+        "n1_akg8i7w5r6rq",
+        "n1_on2e4aimffiq"
       ],
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_ycwvlh2yw9cs": {
-      "id": "n1_ycwvlh2yw9cs",
+    "n1_sz4mt7uf88b4": {
+      "id": "n1_sz4mt7uf88b4",
       "type": "text",
       "x": 89,
       "y": 7,
@@ -489,10 +745,10 @@
       },
       "height": 29,
       "keyexp": "カード(文字)",
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_jy60e4vy6f82": {
-      "id": "n1_jy60e4vy6f82",
+    "n1_cvgisj0f7j67": {
+      "id": "n1_cvgisj0f7j67",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -509,13 +765,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_bvd9942e1p2n",
+      "assetId": "a1_7f7jnntuwzr4",
       "width": 28,
       "height": 36,
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_mdffact7eqdq": {
-      "id": "n1_mdffact7eqdq",
+    "n1_3y0nzysf5yw1": {
+      "id": "n1_3y0nzysf5yw1",
       "type": "image",
       "x": -30,
       "y": 0,
@@ -532,13 +788,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_0ayen6sqst7t",
+      "assetId": "a1_ow57ne0ljxj1",
       "width": 28,
       "height": 36,
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_xn4m09s54qb5": {
-      "id": "n1_xn4m09s54qb5",
+    "n1_tm2el0o3jai0": {
+      "id": "n1_tm2el0o3jai0",
       "type": "image",
       "x": 277,
       "y": 0,
@@ -555,13 +811,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_0ayen6sqst7t",
+      "assetId": "a1_ow57ne0ljxj1",
       "width": 28,
       "height": 36,
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_fpkhvczbljmg": {
-      "id": "n1_fpkhvczbljmg",
+    "n1_6n2afunzfjb1": {
+      "id": "n1_6n2afunzfjb1",
       "type": "image",
       "x": 246,
       "y": 0,
@@ -578,13 +834,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_bvd9942e1p2n",
+      "assetId": "a1_7f7jnntuwzr4",
       "width": 28,
       "height": 36,
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_nkse8s29yded": {
-      "id": "n1_nkse8s29yded",
+    "n1_7ri1dnhw2irq": {
+      "id": "n1_7ri1dnhw2irq",
       "type": "text",
       "x": 248,
       "y": 4,
@@ -650,10 +906,10 @@
       },
       "height": 29,
       "keyexp": "右側レッド数値",
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_kkoc5dhemwlt": {
-      "id": "n1_kkoc5dhemwlt",
+    "n1_ue2u3x6y7jdk": {
+      "id": "n1_ue2u3x6y7jdk",
       "type": "text",
       "x": 279,
       "y": 4,
@@ -719,10 +975,10 @@
       },
       "height": 29,
       "keyexp": "右側イエロー数値",
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_uu7wy0zib3nz": {
-      "id": "n1_uu7wy0zib3nz",
+    "n1_akg8i7w5r6rq": {
+      "id": "n1_akg8i7w5r6rq",
       "type": "text",
       "x": -28,
       "y": 4,
@@ -788,10 +1044,10 @@
       },
       "height": 29,
       "keyexp": "左側イエロー数値",
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_g2iwpqg938ki": {
-      "id": "n1_g2iwpqg938ki",
+    "n1_on2e4aimffiq": {
+      "id": "n1_on2e4aimffiq",
       "type": "text",
       "x": 2,
       "y": 4,
@@ -857,10 +1113,10 @@
       },
       "height": 29,
       "keyexp": "左側レッド数値",
-      "parentId": "n1_dfne01uz144g"
+      "parentId": "n1_08m3my9dyde8"
     },
-    "n1_9hsecca83qcm": {
-      "id": "n1_9hsecca83qcm",
+    "n1_yq5u6d8ogfiq": {
+      "id": "n1_yq5u6d8ogfiq",
       "type": "group",
       "x": 469,
       "y": 967,
@@ -878,14 +1134,14 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_uw6bpbmzzrph",
-        "n1_g3xanqiu3yer",
-        "n1_bhy5gkcwr4i8"
+        "n1_iw7vjrv4ho9g",
+        "n1_wvxtf04mbckt",
+        "n1_2sx4ejdjz4xd"
       ],
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_uw6bpbmzzrph": {
-      "id": "n1_uw6bpbmzzrph",
+    "n1_iw7vjrv4ho9g": {
+      "id": "n1_iw7vjrv4ho9g",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -951,10 +1207,10 @@
       },
       "height": 29,
       "keyexp": "右側CK数値",
-      "parentId": "n1_9hsecca83qcm"
+      "parentId": "n1_yq5u6d8ogfiq"
     },
-    "n1_g3xanqiu3yer": {
-      "id": "n1_g3xanqiu3yer",
+    "n1_wvxtf04mbckt": {
+      "id": "n1_wvxtf04mbckt",
       "type": "text",
       "x": -274,
       "y": 0,
@@ -1020,10 +1276,10 @@
       },
       "height": 29,
       "keyexp": "左側CK数値",
-      "parentId": "n1_9hsecca83qcm"
+      "parentId": "n1_yq5u6d8ogfiq"
     },
-    "n1_bhy5gkcwr4i8": {
-      "id": "n1_bhy5gkcwr4i8",
+    "n1_2sx4ejdjz4xd": {
+      "id": "n1_2sx4ejdjz4xd",
       "type": "text",
       "x": -169,
       "y": 0,
@@ -1089,10 +1345,10 @@
       },
       "height": 29,
       "keyexp": "CK(文字)",
-      "parentId": "n1_9hsecca83qcm"
+      "parentId": "n1_yq5u6d8ogfiq"
     },
-    "n1_tl51w1a8i2r8": {
-      "id": "n1_tl51w1a8i2r8",
+    "n1_1zodf85zl6tj": {
+      "id": "n1_1zodf85zl6tj",
       "type": "group",
       "x": 470,
       "y": 914,
@@ -1110,14 +1366,14 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_5hsc9swxq2h6",
-        "n1_6tykcvpjk8p5",
-        "n1_o5ywp4ysruq9"
+        "n1_6ycyu2r2leab",
+        "n1_4tihhcq2eygb",
+        "n1_atvdi9xjzw6b"
       ],
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_5hsc9swxq2h6": {
-      "id": "n1_5hsc9swxq2h6",
+    "n1_6ycyu2r2leab": {
+      "id": "n1_6ycyu2r2leab",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -1183,10 +1439,10 @@
       },
       "height": 29,
       "keyexp": "右側FK数値",
-      "parentId": "n1_tl51w1a8i2r8"
+      "parentId": "n1_1zodf85zl6tj"
     },
-    "n1_6tykcvpjk8p5": {
-      "id": "n1_6tykcvpjk8p5",
+    "n1_4tihhcq2eygb": {
+      "id": "n1_4tihhcq2eygb",
       "type": "text",
       "x": -274,
       "y": 0,
@@ -1252,10 +1508,10 @@
       },
       "height": 29,
       "keyexp": "左側FK数値",
-      "parentId": "n1_tl51w1a8i2r8"
+      "parentId": "n1_1zodf85zl6tj"
     },
-    "n1_o5ywp4ysruq9": {
-      "id": "n1_o5ywp4ysruq9",
+    "n1_atvdi9xjzw6b": {
+      "id": "n1_atvdi9xjzw6b",
       "type": "text",
       "x": -170,
       "y": 0,
@@ -1321,10 +1577,10 @@
       },
       "height": 29,
       "keyexp": "FK(文字)",
-      "parentId": "n1_tl51w1a8i2r8"
+      "parentId": "n1_1zodf85zl6tj"
     },
-    "n1_g728r73pqhi6": {
-      "id": "n1_g728r73pqhi6",
+    "n1_totrvhr7247x": {
+      "id": "n1_totrvhr7247x",
       "type": "group",
       "x": 467,
       "y": 866,
@@ -1342,14 +1598,14 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_63mbleg8pv8c",
-        "n1_yjqmikhvzmu5",
-        "n1_0r0xc1f67wca"
+        "n1_x0y3iopf4kr6",
+        "n1_pgmhjjjf7xm1",
+        "n1_uhepe6hysaer"
       ],
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_63mbleg8pv8c": {
-      "id": "n1_63mbleg8pv8c",
+    "n1_x0y3iopf4kr6": {
+      "id": "n1_x0y3iopf4kr6",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -1415,10 +1671,10 @@
       },
       "height": 29,
       "keyexp": "右側シュート数値",
-      "parentId": "n1_g728r73pqhi6"
+      "parentId": "n1_totrvhr7247x"
     },
-    "n1_yjqmikhvzmu5": {
-      "id": "n1_yjqmikhvzmu5",
+    "n1_pgmhjjjf7xm1": {
+      "id": "n1_pgmhjjjf7xm1",
       "type": "text",
       "x": -274,
       "y": 0,
@@ -1484,10 +1740,10 @@
       },
       "height": 29,
       "keyexp": "左側シュート数値",
-      "parentId": "n1_g728r73pqhi6"
+      "parentId": "n1_totrvhr7247x"
     },
-    "n1_0r0xc1f67wca": {
-      "id": "n1_0r0xc1f67wca",
+    "n1_uhepe6hysaer": {
+      "id": "n1_uhepe6hysaer",
       "type": "text",
       "x": -167,
       "y": 0,
@@ -1553,10 +1809,10 @@
       },
       "height": 29,
       "keyexp": "シュート(文字)",
-      "parentId": "n1_g728r73pqhi6"
+      "parentId": "n1_totrvhr7247x"
     },
-    "n1_f7mm41nhortr": {
-      "id": "n1_f7mm41nhortr",
+    "n1_vut5bjxoe1p9": {
+      "id": "n1_vut5bjxoe1p9",
       "type": "image",
       "x": 346,
       "y": 831,
@@ -1573,13 +1829,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_w9p8qzb4f2jv",
+      "assetId": "a1_vxhu6tkusj8h",
       "width": 10,
       "height": 6,
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_5bxet2p3p0a8": {
-      "id": "n1_5bxet2p3p0a8",
+    "n1_70o29phxxee9": {
+      "id": "n1_70o29phxxee9",
       "type": "text",
       "x": 358,
       "y": 812,
@@ -1646,10 +1902,10 @@
       },
       "height": 40,
       "keyexp": "Right得点数値",
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_oh770hc59xij": {
-      "id": "n1_oh770hc59xij",
+    "n1_4gm92b9urhng": {
+      "id": "n1_4gm92b9urhng",
       "type": "text",
       "x": 400,
       "y": 816,
@@ -1699,10 +1955,10 @@
       },
       "height": 31,
       "keyexp": "右側チーム名",
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_t3ann8mgliga": {
-      "id": "n1_t3ann8mgliga",
+    "n1_n97mjbzh9nro": {
+      "id": "n1_n97mjbzh9nro",
       "type": "text",
       "x": 303,
       "y": 812,
@@ -1769,10 +2025,10 @@
       },
       "height": 40,
       "keyexp": "Left得点数値",
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     },
-    "n1_i0hpxcu3ihhm": {
-      "id": "n1_i0hpxcu3ihhm",
+    "n1_mntnndvl4lli": {
+      "id": "n1_mntnndvl4lli",
       "type": "text",
       "x": 126,
       "y": 816,
@@ -1822,69 +2078,69 @@
       },
       "height": 31,
       "keyexp": "左側チーム名",
-      "parentId": "n1_a2ai90a9j2ie"
+      "parentId": "n1_g50l7oflbcho"
     }
   },
   "assets": {
-    "a1_0ayen6sqst7t": {
-      "id": "a1_0ayen6sqst7t",
-      "kind": "image",
-      "name": "YellowCard.png",
-      "src": "img/YellowCard.png",
-      "width": 28,
-      "height": 36,
-      "groupId": null,
-      "ownerId": "n1_a2ai90a9j2ie"
-    },
-    "a1_1t72c54dasqi": {
-      "id": "a1_1t72c54dasqi",
-      "kind": "image",
-      "name": "P02_Base_L_004.png",
-      "src": "img/P02_Base_L_004.png",
-      "width": 303,
-      "height": 90,
-      "groupId": null,
-      "ownerId": "n1_a2ai90a9j2ie"
-    },
-    "a1_bvd9942e1p2n": {
-      "id": "a1_bvd9942e1p2n",
+    "a1_7f7jnntuwzr4": {
+      "id": "a1_7f7jnntuwzr4",
       "kind": "image",
       "name": "RedCard.png",
       "src": "img/RedCard.png",
       "width": 28,
       "height": 36,
       "groupId": null,
-      "ownerId": "n1_a2ai90a9j2ie"
+      "ownerId": "n1_g50l7oflbcho"
     },
-    "a1_oa0122vr1syx": {
-      "id": "a1_oa0122vr1syx",
-      "kind": "image",
-      "name": "Stats_Base_4.png",
-      "src": "img/Stats_Base_4.png",
-      "width": 420,
-      "height": 200,
-      "groupId": null,
-      "ownerId": "n1_a2ai90a9j2ie"
-    },
-    "a1_w9p8qzb4f2jv": {
-      "id": "a1_w9p8qzb4f2jv",
-      "kind": "image",
-      "name": "得点中棒.png",
-      "src": "img/得点中棒.png",
-      "width": 10,
-      "height": 6,
-      "groupId": null,
-      "ownerId": "n1_a2ai90a9j2ie"
-    },
-    "a1_z9iqijdghopo": {
-      "id": "a1_z9iqijdghopo",
+    "a1_97hclzuj517y": {
+      "id": "a1_97hclzuj517y",
       "kind": "image",
       "name": "P02_Base_R_003.png",
       "src": "img/P02_Base_R_003.png",
       "width": 303,
       "height": 90,
       "groupId": null,
-      "ownerId": "n1_a2ai90a9j2ie"
+      "ownerId": "n1_g50l7oflbcho"
+    },
+    "a1_mw0kl68isj0c": {
+      "id": "a1_mw0kl68isj0c",
+      "kind": "image",
+      "name": "P02_Base_L_004.png",
+      "src": "img/P02_Base_L_004.png",
+      "width": 303,
+      "height": 90,
+      "groupId": null,
+      "ownerId": "n1_g50l7oflbcho"
+    },
+    "a1_ow57ne0ljxj1": {
+      "id": "a1_ow57ne0ljxj1",
+      "kind": "image",
+      "name": "YellowCard.png",
+      "src": "img/YellowCard.png",
+      "width": 28,
+      "height": 36,
+      "groupId": null,
+      "ownerId": "n1_g50l7oflbcho"
+    },
+    "a1_vxhu6tkusj8h": {
+      "id": "a1_vxhu6tkusj8h",
+      "kind": "image",
+      "name": "得点中棒.png",
+      "src": "img/得点中棒.png",
+      "width": 10,
+      "height": 6,
+      "groupId": null,
+      "ownerId": "n1_g50l7oflbcho"
+    },
+    "a1_wkcq8dhm0z5y": {
+      "id": "a1_wkcq8dhm0z5y",
+      "kind": "image",
+      "name": "Stats_Base_4.png",
+      "src": "img/Stats_Base_4.png",
+      "width": 420,
+      "height": 200,
+      "groupId": null,
+      "ownerId": "n1_g50l7oflbcho"
     }
   },
   "assetGroups": {}

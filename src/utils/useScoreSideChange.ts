@@ -1,6 +1,7 @@
 import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from '../components/TeamSettings';
 import { StatsData, STATS_DATA_KEY, EMPTY_STATS, swapStats, buildStatsPayload } from './stats';
+import { TeamColorSet, teamColorSet, teamColorKeys } from './teamColor';
 
 /** OA 左右チームの TeamSettings（チームカラー・小得点/大得点の表記）。CGOperation 全体で同じ求め方をする */
 export function useOaTeamSettings() {
@@ -10,12 +11,16 @@ export function useOaTeamSettings() {
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
     const leftConfig = teams.find(t => t.name === oaLeftTeam);
     const rightConfig = teams.find(t => t.name === oaRightTeam);
+    // チームカラーは TeamSettings の OA 左チーム・右チームの色そのまま（CG に残った色から左右を推測しない）
+    const leftSet = teamColorSet(leftConfig, 'left');
+    const rightSet = teamColorSet(rightConfig, 'right');
     return {
         oaLeftTeam,
         oaRightTeam,
-        // チームカラーは TeamSettings の OA 左チーム・右チームの色そのまま（CG に残った色から左右を推測しない）
-        leftColor: leftConfig?.color || '#198754',
-        rightColor: rightConfig?.color || '#0dcaf0',
+        leftSet,
+        rightSet,
+        leftColor: leftSet.color,
+        rightColor: rightSet.color,
         leftSmallName: leftConfig?.smallScoreName || oaLeftTeam,
         rightSmallName: rightConfig?.smallScoreName || oaRightTeam,
         leftBigName: leftConfig?.bigScoreName || oaLeftTeam,
@@ -23,18 +28,24 @@ export function useOaTeamSettings() {
     };
 }
 
-/** 小得点・大得点に入れるチームカラーのキー一式 */
-export function scoreColorKeys(left: string, right: string) {
+/** 小得点・大得点・大得点得点者に入れるチームカラーのキー一式（カラー1・カラー2・エッジ） */
+export function scoreColorKeys(left: TeamColorSet, right: TeamColorSet): Record<string, string> {
     return {
-        'LeftTeamColor': left,
-        'RigtTeamColor': right,
-        'ColorRectL': left,
-        'ColorRectR': right,
-        'LeftTeamColorLargePoint': left,
-        'RightTeamColorLargePoint': right,
-        'LeftTeamColorSmallPoint': left,
-        'RightTeamColorSmallPoint': right
+        'LeftTeamColor': left.color,
+        'RigtTeamColor': right.color,
+        'LeftTeamColorLargePoint': left.color,
+        'RightTeamColorLargePoint': right.color,
+        'LeftTeamColorSmallPoint': left.color,
+        'RightTeamColorSmallPoint': right.color,
+        ...teamColorKeys(left, 'L'),
+        ...teamColorKeys(right, 'R')
     };
+}
+
+/** CG に入っているチームカラーが、指定の色一式と同じか（カラー1・カラー2・エッジすべて） */
+export function sameScoreColors(data: Record<string, any>, left: TeamColorSet, right: TeamColorSet): boolean {
+    const want = scoreColorKeys(left, right);
+    return Object.keys(want).every(k => (data[k] ?? '') === want[k]);
 }
 
 /**
@@ -70,7 +81,7 @@ export function useScoreSideChange() {
         const swapped = {
             '左チーム得点': cur['右チーム得点'] || curBig['右チーム得点'] || '0',
             '右チーム得点': cur['左チーム得点'] || curBig['左チーム得点'] || '0',
-            ...scoreColorKeys(oa.rightColor, oa.leftColor)
+            ...scoreColorKeys(oa.rightSet, oa.leftSet)
         };
         // チーム名は小得点・大得点で表記が違うので、それぞれの名前を左右反転する
         const smallNames = {
@@ -98,8 +109,8 @@ export function useScoreSideChange() {
                 rightName: smallNames['右チーム名'],
                 leftScore: swapped['左チーム得点'],
                 rightScore: swapped['右チーム得点'],
-                leftColor: oa.rightColor,
-                rightColor: oa.leftColor
+                leftSet: oa.rightSet,
+                rightSet: oa.leftSet
             }, swappedStats);
             statsTelop.setData(statsPayload);
             statsTelop.update(statsPayload);

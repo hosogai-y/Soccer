@@ -1,6 +1,10 @@
 {
+  "ColorEdgeL": "#ffffff",
   "ColorRectL": "#1f4fa8",
+  "ColorRectL2": "#1f4fa8",
+  "ColorEdgeR": "#ffffff",
   "ColorRectR": "#1f4fa8",
+  "ColorRectR2": "#1f4fa8",
   "カード(文字)": "カード",
   "右側レッド数値": "3",
   "右側イエロー数値": "3",

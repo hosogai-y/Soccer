@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_kkushzqwncf2",
+  "rootId": "n1_fsyb0pbw6md3",
   "nodesById": {
-    "n1_kkushzqwncf2": {
-      "id": "n1_kkushzqwncf2",
+    "n1_fsyb0pbw6md3": {
+      "id": "n1_fsyb0pbw6md3",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,17 +24,17 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_0z45mt6paj3k",
-        "n1_uafa9yl3mzzm",
-        "n1_a4g0nbxdqm1c",
-        "n1_2qg3gmokvo2k",
-        "n1_1l3t181m6bpy",
-        "n1_l1k6nm1b3k91",
-        "n1_qrl6w2tlub24",
-        "n1_ss2noaogegh8",
-        "n1_z03vjh76tp82",
-        "n1_hwz0vafkvyw2",
-        "n1_bcyn8jxh76fp"
+        "n1_nr5ii7xd0zqu",
+        "n1_yf887egeagex",
+        "n1_kg1npiujacej",
+        "n1_dnwuy6et6vvg",
+        "n1_bcthfz5gbxqx",
+        "n1_5a8epogjt6k6",
+        "n1_t6i284zmbhkf",
+        "n1_00p549t4wn1a",
+        "n1_6nyru84lktx1",
+        "n1_pakk4gy5viqf",
+        "n1_oowrzjx5ntgl"
       ],
       "name": "サブ下位置左",
       "visible": true,
@@ -43,8 +43,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_0z45mt6paj3k": {
-      "id": "n1_0z45mt6paj3k",
+    "n1_nr5ii7xd0zqu": {
+      "id": "n1_nr5ii7xd0zqu",
       "type": "group",
       "x": -9,
       "y": 924,
@@ -62,14 +62,14 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_u9t5k13gacvh",
-        "n1_abw7ds7q9ufd",
-        "n1_hkw3r9ea0e9g"
+        "n1_zdzc4d8lhutq",
+        "n1_1w0zjsfit13k",
+        "n1_k62ntv29zfhj"
       ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_u9t5k13gacvh": {
-      "id": "n1_u9t5k13gacvh",
+    "n1_zdzc4d8lhutq": {
+      "id": "n1_zdzc4d8lhutq",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -86,15 +86,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_nkec2bq8g2kx",
+      "assetId": "a1_gme1q1trs0hy",
       "width": 588,
       "height": 89,
-      "parentId": "n1_0z45mt6paj3k"
+      "parentId": "n1_nr5ii7xd0zqu"
     },
-    "n1_abw7ds7q9ufd": {
-      "skewX": -6.275922439779979,
-      "skewY": 0,
-      "id": "n1_abw7ds7q9ufd",
+    "n1_1w0zjsfit13k": {
+      "id": "n1_1w0zjsfit13k",
       "type": "group",
       "x": 121,
       "y": -22,
@@ -103,22 +101,111 @@
       "scaleY": 1.1749999999999838,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": -6.275922439779979,
+      "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_dtzo4qm9byal",
-        "n1_clv561eo6scp"
-      ],
       "name": "チームカラーザブトン",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_0z45mt6paj3k"
+      "children": [
+        "n1_x9oylbk0xahz",
+        "n1_j8kk67ie00cb",
+        "n1_peffj4ia7zdk",
+        "n1_hti76bn92v49",
+        "n1_p5w7hfr4r1pk"
+      ],
+      "parentId": "n1_nr5ii7xd0zqu"
     },
-    "n1_dtzo4qm9byal": {
+    "n1_x9oylbk0xahz": {
+      "id": "n1_x9oylbk0xahz",
+      "type": "rect",
+      "x": -25,
+      "y": 18,
+      "rotation": -4,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
       "skewX": -5,
       "skewY": 4,
-      "id": "n1_dtzo4qm9byal",
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 35,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 5
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_1w0zjsfit13k"
+    },
+    "n1_j8kk67ie00cb": {
+      "id": "n1_j8kk67ie00cb",
+      "type": "rect",
+      "x": 18,
+      "y": 18,
+      "rotation": -4,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -5,
+      "skewY": 4,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 35,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 5
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_1w0zjsfit13k"
+    },
+    "n1_peffj4ia7zdk": {
+      "id": "n1_peffj4ia7zdk",
       "type": "rect",
       "x": -21,
       "y": 18,
@@ -127,7 +214,14 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": -5,
+      "skewY": 4,
       "opacity": 1,
+      "name": "ベースカラー",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "width": 39,
       "height": 35,
       "style": {
@@ -146,18 +240,49 @@
         ],
         "cornerRadius": 5
       },
-      "name": "ベースカラー",
+      "domId": "TeamColor",
+      "parentId": "n1_1w0zjsfit13k"
+    },
+    "n1_hti76bn92v49": {
+      "id": "n1_hti76bn92v49",
+      "type": "rect",
+      "x": -1.5,
+      "y": 18,
+      "rotation": -4,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -5,
+      "skewY": 4,
+      "opacity": 1,
+      "name": "カラー2",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_abw7ds7q9ufd",
-      "domId": "TeamColor"
+      "width": 19.5,
+      "height": 35,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect2"
+          }
+        ],
+        "cornerRadius": 5
+      },
+      "parentId": "n1_1w0zjsfit13k"
     },
-    "n1_clv561eo6scp": {
-      "skewX": -5,
-      "skewY": 4,
-      "id": "n1_clv561eo6scp",
+    "n1_p5w7hfr4r1pk": {
+      "id": "n1_p5w7hfr4r1pk",
       "type": "rect",
       "x": -21,
       "y": 18,
@@ -166,7 +291,14 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": -5,
+      "skewY": 4,
       "opacity": 1,
+      "name": "グラデーションマット",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "width": 39,
       "height": 35,
       "style": {
@@ -222,15 +354,10 @@
         ],
         "cornerRadius": 5
       },
-      "name": "グラデーションマット",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "parentId": "n1_abw7ds7q9ufd"
+      "parentId": "n1_1w0zjsfit13k"
     },
-    "n1_hkw3r9ea0e9g": {
-      "id": "n1_hkw3r9ea0e9g",
+    "n1_k62ntv29zfhj": {
+      "id": "n1_k62ntv29zfhj",
       "type": "text",
       "x": 130,
       "y": 0,
@@ -280,10 +407,10 @@
       },
       "height": 46,
       "keyexp": "学校名",
-      "parentId": "n1_0z45mt6paj3k"
+      "parentId": "n1_nr5ii7xd0zqu"
     },
-    "n1_uafa9yl3mzzm": {
-      "id": "n1_uafa9yl3mzzm",
+    "n1_yf887egeagex": {
+      "id": "n1_yf887egeagex",
       "type": "group",
       "x": 49,
       "y": 976,
@@ -300,21 +427,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_h71nr6ya5lwh",
+        "n1_6kgxx4vodl92",
+        "n1_8g9ir4o4xanr",
+        "n1_i39493yggfe4"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名1",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_bssnfiy3ha93",
-        "n1_si3zqs1ks5xc",
-        "n1_s4zlwh5aeykw",
-        "n1_ij6okwq02wsd"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_bssnfiy3ha93": {
-      "id": "n1_bssnfiy3ha93",
+    "n1_h71nr6ya5lwh": {
+      "id": "n1_h71nr6ya5lwh",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -331,15 +458,15 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_pr62732ayhe9",
+      "assetId": "a1_tz3h3y4ka5ns",
       "width": 318,
       "height": 46,
       "keepRatio": true,
       "keyexp": "ポジション1",
-      "parentId": "n1_uafa9yl3mzzm"
+      "parentId": "n1_yf887egeagex"
     },
-    "n1_si3zqs1ks5xc": {
-      "id": "n1_si3zqs1ks5xc",
+    "n1_6kgxx4vodl92": {
+      "id": "n1_6kgxx4vodl92",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -389,10 +516,10 @@
       },
       "height": 25,
       "keyexp": "学年1",
-      "parentId": "n1_uafa9yl3mzzm"
+      "parentId": "n1_yf887egeagex"
     },
-    "n1_s4zlwh5aeykw": {
-      "id": "n1_s4zlwh5aeykw",
+    "n1_8g9ir4o4xanr": {
+      "id": "n1_8g9ir4o4xanr",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -442,10 +569,10 @@
       },
       "height": 30,
       "keyexp": "選手名1",
-      "parentId": "n1_uafa9yl3mzzm"
+      "parentId": "n1_yf887egeagex"
     },
-    "n1_ij6okwq02wsd": {
-      "id": "n1_ij6okwq02wsd",
+    "n1_i39493yggfe4": {
+      "id": "n1_i39493yggfe4",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -495,10 +622,10 @@
       },
       "height": 30,
       "keyexp": "背番号1",
-      "parentId": "n1_uafa9yl3mzzm"
+      "parentId": "n1_yf887egeagex"
     },
-    "n1_a4g0nbxdqm1c": {
-      "id": "n1_a4g0nbxdqm1c",
+    "n1_kg1npiujacej": {
+      "id": "n1_kg1npiujacej",
       "type": "group",
       "x": 320,
       "y": 976,
@@ -515,21 +642,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_mgwovx0p3zhl",
+        "n1_svutb51i26sd",
+        "n1_42m5f8u05fyh",
+        "n1_xpvf9hhiz4j0"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名2",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_u79yf7bm1v83",
-        "n1_8pfi9p81uxo8",
-        "n1_ruz819ow7tnw",
-        "n1_5zdnha9orz9y"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_u79yf7bm1v83": {
-      "id": "n1_u79yf7bm1v83",
+    "n1_mgwovx0p3zhl": {
+      "id": "n1_mgwovx0p3zhl",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -546,14 +673,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_4f50dv389qdq",
+      "assetId": "a1_pc3d66tlx4rw",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション2",
-      "parentId": "n1_a4g0nbxdqm1c"
+      "parentId": "n1_kg1npiujacej"
     },
-    "n1_8pfi9p81uxo8": {
-      "id": "n1_8pfi9p81uxo8",
+    "n1_svutb51i26sd": {
+      "id": "n1_svutb51i26sd",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -603,10 +730,10 @@
       },
       "height": 25,
       "keyexp": "学年2",
-      "parentId": "n1_a4g0nbxdqm1c"
+      "parentId": "n1_kg1npiujacej"
     },
-    "n1_ruz819ow7tnw": {
-      "id": "n1_ruz819ow7tnw",
+    "n1_42m5f8u05fyh": {
+      "id": "n1_42m5f8u05fyh",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -656,10 +783,10 @@
       },
       "height": 30,
       "keyexp": "選手名2",
-      "parentId": "n1_a4g0nbxdqm1c"
+      "parentId": "n1_kg1npiujacej"
     },
-    "n1_5zdnha9orz9y": {
-      "id": "n1_5zdnha9orz9y",
+    "n1_xpvf9hhiz4j0": {
+      "id": "n1_xpvf9hhiz4j0",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -709,10 +836,10 @@
       },
       "height": 30,
       "keyexp": "背番号2",
-      "parentId": "n1_a4g0nbxdqm1c"
+      "parentId": "n1_kg1npiujacej"
     },
-    "n1_2qg3gmokvo2k": {
-      "id": "n1_2qg3gmokvo2k",
+    "n1_dnwuy6et6vvg": {
+      "id": "n1_dnwuy6et6vvg",
       "type": "group",
       "x": 585,
       "y": 976,
@@ -729,21 +856,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_h3xtqch766k6",
+        "n1_xwbchynq4fgd",
+        "n1_dekt6pmnhlhz",
+        "n1_pxryqybhsinc"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名3",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_y55ks35yu527",
-        "n1_mi0gowi7wyi4",
-        "n1_2qulfct9fk1x",
-        "n1_jweagqnozwba"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_y55ks35yu527": {
-      "id": "n1_y55ks35yu527",
+    "n1_h3xtqch766k6": {
+      "id": "n1_h3xtqch766k6",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -760,14 +887,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_4f50dv389qdq",
+      "assetId": "a1_pc3d66tlx4rw",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション3",
-      "parentId": "n1_2qg3gmokvo2k"
+      "parentId": "n1_dnwuy6et6vvg"
     },
-    "n1_mi0gowi7wyi4": {
-      "id": "n1_mi0gowi7wyi4",
+    "n1_xwbchynq4fgd": {
+      "id": "n1_xwbchynq4fgd",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -817,10 +944,10 @@
       },
       "height": 25,
       "keyexp": "学年3",
-      "parentId": "n1_2qg3gmokvo2k"
+      "parentId": "n1_dnwuy6et6vvg"
     },
-    "n1_2qulfct9fk1x": {
-      "id": "n1_2qulfct9fk1x",
+    "n1_dekt6pmnhlhz": {
+      "id": "n1_dekt6pmnhlhz",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -870,10 +997,10 @@
       },
       "height": 30,
       "keyexp": "選手名3",
-      "parentId": "n1_2qg3gmokvo2k"
+      "parentId": "n1_dnwuy6et6vvg"
     },
-    "n1_jweagqnozwba": {
-      "id": "n1_jweagqnozwba",
+    "n1_pxryqybhsinc": {
+      "id": "n1_pxryqybhsinc",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -923,10 +1050,10 @@
       },
       "height": 30,
       "keyexp": "背番号3",
-      "parentId": "n1_2qg3gmokvo2k"
+      "parentId": "n1_dnwuy6et6vvg"
     },
-    "n1_1l3t181m6bpy": {
-      "id": "n1_1l3t181m6bpy",
+    "n1_bcthfz5gbxqx": {
+      "id": "n1_bcthfz5gbxqx",
       "type": "group",
       "x": 846,
       "y": 976,
@@ -943,21 +1070,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_rpa3scekpx99",
+        "n1_gty8bpexo8o3",
+        "n1_z0gx1e53ifhw",
+        "n1_8iyg8f3jc5a6"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名4",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_9wvwf3fc4d67",
-        "n1_5jlw1c3z3m7x",
-        "n1_7knfx2tdoc7x",
-        "n1_56zuj6doqrk8"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_9wvwf3fc4d67": {
-      "id": "n1_9wvwf3fc4d67",
+    "n1_rpa3scekpx99": {
+      "id": "n1_rpa3scekpx99",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -974,14 +1101,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_4f50dv389qdq",
+      "assetId": "a1_pc3d66tlx4rw",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション4",
-      "parentId": "n1_1l3t181m6bpy"
+      "parentId": "n1_bcthfz5gbxqx"
     },
-    "n1_5jlw1c3z3m7x": {
-      "id": "n1_5jlw1c3z3m7x",
+    "n1_gty8bpexo8o3": {
+      "id": "n1_gty8bpexo8o3",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -1031,10 +1158,10 @@
       },
       "height": 30,
       "keyexp": "学年4",
-      "parentId": "n1_1l3t181m6bpy"
+      "parentId": "n1_bcthfz5gbxqx"
     },
-    "n1_7knfx2tdoc7x": {
-      "id": "n1_7knfx2tdoc7x",
+    "n1_z0gx1e53ifhw": {
+      "id": "n1_z0gx1e53ifhw",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -1084,10 +1211,10 @@
       },
       "height": 30,
       "keyexp": "選手名4",
-      "parentId": "n1_1l3t181m6bpy"
+      "parentId": "n1_bcthfz5gbxqx"
     },
-    "n1_56zuj6doqrk8": {
-      "id": "n1_56zuj6doqrk8",
+    "n1_8iyg8f3jc5a6": {
+      "id": "n1_8iyg8f3jc5a6",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -1137,10 +1264,10 @@
       },
       "height": 30,
       "keyexp": "背番号4",
-      "parentId": "n1_1l3t181m6bpy"
+      "parentId": "n1_bcthfz5gbxqx"
     },
-    "n1_l1k6nm1b3k91": {
-      "id": "n1_l1k6nm1b3k91",
+    "n1_5a8epogjt6k6": {
+      "id": "n1_5a8epogjt6k6",
       "type": "group",
       "x": 1112,
       "y": 976,
@@ -1157,21 +1284,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_p3gmcy8yr98y",
+        "n1_9dui49s4jtke",
+        "n1_i52njtp1wdaq",
+        "n1_z62len0l0ykc"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名5",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_969bbhzmu1as",
-        "n1_mmgsle6vydb5",
-        "n1_395l5x0bq4e2",
-        "n1_j4mulnq40teu"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_969bbhzmu1as": {
-      "id": "n1_969bbhzmu1as",
+    "n1_p3gmcy8yr98y": {
+      "id": "n1_p3gmcy8yr98y",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1188,14 +1315,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_fa64rxopazom",
+      "assetId": "a1_ackg7csoyjve",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション5",
-      "parentId": "n1_l1k6nm1b3k91"
+      "parentId": "n1_5a8epogjt6k6"
     },
-    "n1_mmgsle6vydb5": {
-      "id": "n1_mmgsle6vydb5",
+    "n1_9dui49s4jtke": {
+      "id": "n1_9dui49s4jtke",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -1245,10 +1372,10 @@
       },
       "height": 25,
       "keyexp": "学年5",
-      "parentId": "n1_l1k6nm1b3k91"
+      "parentId": "n1_5a8epogjt6k6"
     },
-    "n1_395l5x0bq4e2": {
-      "id": "n1_395l5x0bq4e2",
+    "n1_i52njtp1wdaq": {
+      "id": "n1_i52njtp1wdaq",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -1298,10 +1425,10 @@
       },
       "height": 30,
       "keyexp": "選手名5",
-      "parentId": "n1_l1k6nm1b3k91"
+      "parentId": "n1_5a8epogjt6k6"
     },
-    "n1_j4mulnq40teu": {
-      "id": "n1_j4mulnq40teu",
+    "n1_z62len0l0ykc": {
+      "id": "n1_z62len0l0ykc",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -1351,10 +1478,10 @@
       },
       "height": 30,
       "keyexp": "背番号5",
-      "parentId": "n1_l1k6nm1b3k91"
+      "parentId": "n1_5a8epogjt6k6"
     },
-    "n1_qrl6w2tlub24": {
-      "id": "n1_qrl6w2tlub24",
+    "n1_t6i284zmbhkf": {
+      "id": "n1_t6i284zmbhkf",
       "type": "group",
       "x": 1375,
       "y": 976,
@@ -1371,21 +1498,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_q3z47i9meu91",
+        "n1_f6fb3g8wtbp4",
+        "n1_8vqz2utc9rnl",
+        "n1_5gy2zsxogz2c"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名6",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_v60gpoq8dyar",
-        "n1_jtk6urzjvhng",
-        "n1_mvacq9gyzn8s",
-        "n1_u3fzn8thmn20"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_v60gpoq8dyar": {
-      "id": "n1_v60gpoq8dyar",
+    "n1_q3z47i9meu91": {
+      "id": "n1_q3z47i9meu91",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1402,14 +1529,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_fa64rxopazom",
+      "assetId": "a1_ackg7csoyjve",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション6",
-      "parentId": "n1_qrl6w2tlub24"
+      "parentId": "n1_t6i284zmbhkf"
     },
-    "n1_jtk6urzjvhng": {
-      "id": "n1_jtk6urzjvhng",
+    "n1_f6fb3g8wtbp4": {
+      "id": "n1_f6fb3g8wtbp4",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -1459,10 +1586,10 @@
       },
       "height": 25,
       "keyexp": "学年6",
-      "parentId": "n1_qrl6w2tlub24"
+      "parentId": "n1_t6i284zmbhkf"
     },
-    "n1_mvacq9gyzn8s": {
-      "id": "n1_mvacq9gyzn8s",
+    "n1_8vqz2utc9rnl": {
+      "id": "n1_8vqz2utc9rnl",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -1512,10 +1639,10 @@
       },
       "height": 30,
       "keyexp": "選手名6",
-      "parentId": "n1_qrl6w2tlub24"
+      "parentId": "n1_t6i284zmbhkf"
     },
-    "n1_u3fzn8thmn20": {
-      "id": "n1_u3fzn8thmn20",
+    "n1_5gy2zsxogz2c": {
+      "id": "n1_5gy2zsxogz2c",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -1565,10 +1692,10 @@
       },
       "height": 30,
       "keyexp": "背番号6",
-      "parentId": "n1_qrl6w2tlub24"
+      "parentId": "n1_t6i284zmbhkf"
     },
-    "n1_ss2noaogegh8": {
-      "id": "n1_ss2noaogegh8",
+    "n1_00p549t4wn1a": {
+      "id": "n1_00p549t4wn1a",
       "type": "group",
       "x": 49,
       "y": 1016,
@@ -1585,21 +1712,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_11vm1fq0ckmj",
+        "n1_xcg0i9i7oazd",
+        "n1_kwbseeirunpo",
+        "n1_eca9qm68fbn3"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名7",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_dckznvpjrkf9",
-        "n1_czb0rekhtdz3",
-        "n1_lbzvfwgmwwmu",
-        "n1_eiwye3rv15fl"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_dckznvpjrkf9": {
-      "id": "n1_dckznvpjrkf9",
+    "n1_11vm1fq0ckmj": {
+      "id": "n1_11vm1fq0ckmj",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1616,14 +1743,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_fa64rxopazom",
+      "assetId": "a1_ackg7csoyjve",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション7",
-      "parentId": "n1_ss2noaogegh8"
+      "parentId": "n1_00p549t4wn1a"
     },
-    "n1_czb0rekhtdz3": {
-      "id": "n1_czb0rekhtdz3",
+    "n1_xcg0i9i7oazd": {
+      "id": "n1_xcg0i9i7oazd",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -1673,10 +1800,10 @@
       },
       "height": 25,
       "keyexp": "学年7",
-      "parentId": "n1_ss2noaogegh8"
+      "parentId": "n1_00p549t4wn1a"
     },
-    "n1_lbzvfwgmwwmu": {
-      "id": "n1_lbzvfwgmwwmu",
+    "n1_kwbseeirunpo": {
+      "id": "n1_kwbseeirunpo",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -1726,10 +1853,10 @@
       },
       "height": 30,
       "keyexp": "選手名7",
-      "parentId": "n1_ss2noaogegh8"
+      "parentId": "n1_00p549t4wn1a"
     },
-    "n1_eiwye3rv15fl": {
-      "id": "n1_eiwye3rv15fl",
+    "n1_eca9qm68fbn3": {
+      "id": "n1_eca9qm68fbn3",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -1779,10 +1906,10 @@
       },
       "height": 30,
       "keyexp": "背番号7",
-      "parentId": "n1_ss2noaogegh8"
+      "parentId": "n1_00p549t4wn1a"
     },
-    "n1_z03vjh76tp82": {
-      "id": "n1_z03vjh76tp82",
+    "n1_6nyru84lktx1": {
+      "id": "n1_6nyru84lktx1",
       "type": "group",
       "x": 321,
       "y": 1016,
@@ -1799,21 +1926,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_uclg9mxkzfmv",
+        "n1_5hhjqhay1dev",
+        "n1_q1xg6w2z4tpd",
+        "n1_o4645pu689kj"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名8",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_ppmsp1j5it83",
-        "n1_6bl4ismn85wn",
-        "n1_n5ogndw2vceb",
-        "n1_aye7fpkzkpea"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_ppmsp1j5it83": {
-      "id": "n1_ppmsp1j5it83",
+    "n1_uclg9mxkzfmv": {
+      "id": "n1_uclg9mxkzfmv",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1830,14 +1957,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_7y43xobmga5c",
+      "assetId": "a1_gxw0wigo6xu2",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション8",
-      "parentId": "n1_z03vjh76tp82"
+      "parentId": "n1_6nyru84lktx1"
     },
-    "n1_6bl4ismn85wn": {
-      "id": "n1_6bl4ismn85wn",
+    "n1_5hhjqhay1dev": {
+      "id": "n1_5hhjqhay1dev",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -1887,10 +2014,10 @@
       },
       "height": 25,
       "keyexp": "学年8",
-      "parentId": "n1_z03vjh76tp82"
+      "parentId": "n1_6nyru84lktx1"
     },
-    "n1_n5ogndw2vceb": {
-      "id": "n1_n5ogndw2vceb",
+    "n1_q1xg6w2z4tpd": {
+      "id": "n1_q1xg6w2z4tpd",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -1940,10 +2067,10 @@
       },
       "height": 30,
       "keyexp": "選手名8",
-      "parentId": "n1_z03vjh76tp82"
+      "parentId": "n1_6nyru84lktx1"
     },
-    "n1_aye7fpkzkpea": {
-      "id": "n1_aye7fpkzkpea",
+    "n1_o4645pu689kj": {
+      "id": "n1_o4645pu689kj",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -1993,10 +2120,10 @@
       },
       "height": 30,
       "keyexp": "背番号8",
-      "parentId": "n1_z03vjh76tp82"
+      "parentId": "n1_6nyru84lktx1"
     },
-    "n1_hwz0vafkvyw2": {
-      "id": "n1_hwz0vafkvyw2",
+    "n1_pakk4gy5viqf": {
+      "id": "n1_pakk4gy5viqf",
       "type": "group",
       "x": 585,
       "y": 1016,
@@ -2013,21 +2140,21 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "children": [
+        "n1_2wz69p2jqhif",
+        "n1_jx7kyhszgpgm",
+        "n1_28ytdkr8jnel",
+        "n1_yuo79xrq30lf"
+      ],
       "visibilityCondition": {
         "enabled": true,
         "targetKeyexp": "選手名9",
         "operator": "not_empty"
       },
-      "children": [
-        "n1_8swzphjw84ne",
-        "n1_bscwaye5owmf",
-        "n1_9ij66qbd3j5h",
-        "n1_64kgfdscg6l9"
-      ],
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     },
-    "n1_8swzphjw84ne": {
-      "id": "n1_8swzphjw84ne",
+    "n1_2wz69p2jqhif": {
+      "id": "n1_2wz69p2jqhif",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -2044,14 +2171,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_7y43xobmga5c",
+      "assetId": "a1_gxw0wigo6xu2",
       "width": 318,
       "height": 46,
       "keyexp": "ポジション9",
-      "parentId": "n1_hwz0vafkvyw2"
+      "parentId": "n1_pakk4gy5viqf"
     },
-    "n1_bscwaye5owmf": {
-      "id": "n1_bscwaye5owmf",
+    "n1_jx7kyhszgpgm": {
+      "id": "n1_jx7kyhszgpgm",
       "type": "text",
       "x": 186,
       "y": 7,
@@ -2101,10 +2228,10 @@
       },
       "height": 25,
       "keyexp": "学年9",
-      "parentId": "n1_hwz0vafkvyw2"
+      "parentId": "n1_pakk4gy5viqf"
     },
-    "n1_9ij66qbd3j5h": {
-      "id": "n1_9ij66qbd3j5h",
+    "n1_28ytdkr8jnel": {
+      "id": "n1_28ytdkr8jnel",
       "type": "text",
       "x": 66,
       "y": 5,
@@ -2154,10 +2281,10 @@
       },
       "height": 30,
       "keyexp": "選手名9",
-      "parentId": "n1_hwz0vafkvyw2"
+      "parentId": "n1_pakk4gy5viqf"
     },
-    "n1_64kgfdscg6l9": {
-      "id": "n1_64kgfdscg6l9",
+    "n1_yuo79xrq30lf": {
+      "id": "n1_yuo79xrq30lf",
       "type": "text",
       "x": 33,
       "y": 4,
@@ -2207,10 +2334,10 @@
       },
       "height": 30,
       "keyexp": "背番号9",
-      "parentId": "n1_hwz0vafkvyw2"
+      "parentId": "n1_pakk4gy5viqf"
     },
-    "n1_bcyn8jxh76fp": {
-      "id": "n1_bcyn8jxh76fp",
+    "n1_oowrzjx5ntgl": {
+      "id": "n1_oowrzjx5ntgl",
       "type": "image",
       "x": 44,
       "y": 925,
@@ -2227,131 +2354,73 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_06w3nioxy17x",
+      "assetId": "a1_564l2z7qhx6r",
       "width": 55,
       "height": 40,
-      "parentId": "n1_kkushzqwncf2"
+      "parentId": "n1_fsyb0pbw6md3"
     }
   },
   "assets": {
-    "a1_06w3nioxy17x": {
-      "id": "a1_06w3nioxy17x",
+    "a1_564l2z7qhx6r": {
+      "id": "a1_564l2z7qhx6r",
       "kind": "image",
       "name": "HD2D_S00_MarkHighSchool.png",
       "src": "img/HD2D_S00_MarkHighSchool.png",
       "width": 84,
       "height": 57,
       "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
+      "ownerId": "n1_fsyb0pbw6md3"
     },
-    "a1_4f50dv389qdq": {
-      "id": "a1_4f50dv389qdq",
-      "kind": "image",
-      "name": "HD2D_F01_new_BaseDF_FIX.png",
-      "src": "img/HD2D_F01_new_BaseDF_FIX.png",
-      "width": 318,
-      "height": 46,
-      "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
-    },
-    "a1_7y43xobmga5c": {
-      "id": "a1_7y43xobmga5c",
-      "kind": "image",
-      "name": "HD2D_F01_new_BaseFW.png",
-      "src": "img/HD2D_F01_new_BaseFW.png",
-      "width": 318,
-      "height": 46,
-      "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
-    },
-    "a1_fa64rxopazom": {
-      "id": "a1_fa64rxopazom",
+    "a1_ackg7csoyjve": {
+      "id": "a1_ackg7csoyjve",
       "kind": "image",
       "name": "HD2D_F01_new_BaseMF_FIX.png",
       "src": "img/HD2D_F01_new_BaseMF_FIX.png",
       "width": 318,
       "height": 46,
       "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
+      "ownerId": "n1_fsyb0pbw6md3"
     },
-    "a1_nkec2bq8g2kx": {
-      "id": "a1_nkec2bq8g2kx",
+    "a1_gme1q1trs0hy": {
+      "id": "a1_gme1q1trs0hy",
       "kind": "image",
       "name": "HD2D_F09_SubMember_TeamZabu_001.png",
       "src": "img/HD2D_F09_SubMember_TeamZabu_001.png",
       "width": 588,
       "height": 89,
       "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
+      "ownerId": "n1_fsyb0pbw6md3"
     },
-    "a1_pr62732ayhe9": {
-      "id": "a1_pr62732ayhe9",
+    "a1_gxw0wigo6xu2": {
+      "id": "a1_gxw0wigo6xu2",
+      "kind": "image",
+      "name": "HD2D_F01_new_BaseFW.png",
+      "src": "img/HD2D_F01_new_BaseFW.png",
+      "width": 318,
+      "height": 46,
+      "groupId": null,
+      "ownerId": "n1_fsyb0pbw6md3"
+    },
+    "a1_pc3d66tlx4rw": {
+      "id": "a1_pc3d66tlx4rw",
+      "kind": "image",
+      "name": "HD2D_F01_new_BaseDF_FIX.png",
+      "src": "img/HD2D_F01_new_BaseDF_FIX.png",
+      "width": 318,
+      "height": 46,
+      "groupId": null,
+      "ownerId": "n1_fsyb0pbw6md3"
+    },
+    "a1_tz3h3y4ka5ns": {
+      "id": "a1_tz3h3y4ka5ns",
       "kind": "image",
       "name": "HD2D_F01_new_BaseGK_FIX.png",
       "src": "img/HD2D_F01_new_BaseGK_FIX.png",
       "width": 318,
       "height": 46,
       "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
-    },
-    "a1_zn5b5kn1yn9": {
-      "id": "a1_zn5b5kn1yn9",
-      "kind": "image",
-      "name": "HD2D_B00-EnbJA_Keriage (2).png",
-      "src": "img/HD2D_B00-EnbJA_Keriage (2).png",
-      "width": 55,
-      "height": 40,
-      "groupId": null,
-      "ownerId": "n1_kkushzqwncf2"
+      "ownerId": "n1_fsyb0pbw6md3"
     }
   },
-  "assetGroups": {
-    "ag_2tp9vr7rgjrm": {
-      "id": "ag_2tp9vr7rgjrm",
-      "name": "顔写真",
-      "order": 1,
-      "ownerId": "n1_es2xfsdwu7af"
-    },
-    "ag_5oyeyvh9": {
-      "id": "ag_5oyeyvh9",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_h34l97040ncv"
-    },
-    "ag_5p3jtppl49e4": {
-      "id": "ag_5p3jtppl49e4",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_nqlp71a7dlfe"
-    },
-    "ag_8cjhkps1gbgl": {
-      "id": "ag_8cjhkps1gbgl",
-      "name": "チーム名ベース左",
-      "order": 2,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_gmje0s0j5rh2": {
-      "id": "ag_gmje0s0j5rh2",
-      "name": "顔写真",
-      "order": 0
-    },
-    "ag_kp1ed02zjofg": {
-      "id": "ag_kp1ed02zjofg",
-      "name": "チーム名ベース右",
-      "order": 3,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_linnjxg7vpc8": {
-      "id": "ag_linnjxg7vpc8",
-      "name": "チーム名ベース左",
-      "order": 4,
-      "ownerId": "n1_6ua9hzcbdxox"
-    },
-    "ag_t8m4emyvjyk3": {
-      "id": "ag_t8m4emyvjyk3",
-      "name": "チーム名ベース右",
-      "order": 5,
-      "ownerId": "n1_6ua9hzcbdxox"
-    }
-  }
+  "assetGroups": {}
 }

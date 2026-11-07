@@ -10,6 +10,7 @@ import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
 import { StatsData, buildStatsPayload } from '../utils/stats';
 import { useOaTeamSettings, useScoreSideChange } from '../utils/useScoreSideChange';
+import { teamColorSet, teamColorKeys } from '../utils/teamColor';
 
 // スタッツの型・ペイロードは utils/stats に移した（サイド反転の共通処理からも使うため）。既存の import 先として再公開する
 export { buildStatsPayload } from '../utils/stats';
@@ -41,7 +42,7 @@ export default function WeatherStatsSubControl() {
     const leftScore = smallScoreTelop.data['左チーム得点'] || bigScoreTelop.data['左チーム得点'] || '0';
     const rightScore = smallScoreTelop.data['右チーム得点'] || bigScoreTelop.data['右チーム得点'] || '0';
     // チームカラーは TeamSettings の OA 左チーム・右チームの色（Match Score と同じ求め方）
-    const { leftColor, rightColor } = useOaTeamSettings();
+    const { leftSet, rightSet } = useOaTeamSettings();
 
     // サイドチェンジ: Match Score の 🔄 サイド反転と同じ処理（OA 左右チームも入れ替えるので、色がテレコにならない）
     const handleSideChange = useScoreSideChange();
@@ -77,7 +78,7 @@ export default function WeatherStatsSubControl() {
 
     // Send Stats (得点は小得点とリンク！)
     const sendStats = (isTake: boolean = true) => {
-        const payload = buildStatsPayload({ leftName: leftTeamName, rightName: rightTeamName, leftScore, rightScore, leftColor, rightColor }, statsData);
+        const payload = buildStatsPayload({ leftName: leftTeamName, rightName: rightTeamName, leftScore, rightScore, leftSet, rightSet }, statsData);
 
         statsTelop.setData(payload);
         if (isTake) {
@@ -344,7 +345,8 @@ function useSubTeams() {
     return {
         schoolOf,
         // TeamSettings のチームカラー（未設定時は画面の左右カラー）
-        colorOf: (side: Side) => teams.find(t => t.name === schoolOf(side))?.color || (side === 'right' ? '#0dcaf0' : '#198754'),
+        // チームカラー一式（カラー1・カラー2・エッジ）
+        colorsOf: (side: Side) => teamColorSet(teams.find(t => t.name === schoolOf(side)), side === 'right' ? 'right' : 'left'),
         isRegistered: (side: Side) => hasRegistered(lineupOf(side)),
         startersOf: (side: Side) => registeredStarters(lineupOf(side), players || []),
         subsOf: (side: Side) => registeredSubs(lineupOf(side), players || []),
@@ -425,7 +427,7 @@ export function Sub1Control() {
         const inPlayer = teams.findPlayer(sub1Data.inPlayerId);
         return {
             '高校名テキスト': teams.schoolOf(sub1Data.side),
-            'ColorRect': teams.colorOf(sub1Data.side), // CG の チームカラーザブトン (KeyExp: ColorRect)
+            ...teamColorKeys(teams.colorsOf(sub1Data.side)), // CG の チームカラーザブトン (ColorRect / ColorRect2 / ColorEdge)
             'OUT背番号': outPlayer?.number || '',
             'OUT選手名': outPlayer?.name || '',
             'OUT学年': formatGrade(outPlayer?.grade),
@@ -513,7 +515,7 @@ export function Sub2Control() {
         ];
         const payload: Record<string, string> = {
             '高校名テキスト': teams.schoolOf(sub2Data.side),
-            'ColorRect': teams.colorOf(sub2Data.side) // CG の チームカラーザブトン (KeyExp: ColorRect)
+            ...teamColorKeys(teams.colorsOf(sub2Data.side)) // CG の チームカラーザブトン (ColorRect / ColorRect2 / ColorEdge)
         };
         rows.forEach(({ n, out, in: inP }) => {
             payload[`OUT背番号${n}`] = out?.number || '';

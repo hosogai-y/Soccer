@@ -37,7 +37,7 @@ export function useScorerCg() {
         '右チーム名': big['右チーム名'] || oa.rightBigName,
         '左チーム得点': big['左チーム得点'] || '0',
         '右チーム得点': big['右チーム得点'] || '0',
-        ...scoreColorKeys(oa.leftColor, oa.rightColor),
+        ...scoreColorKeys(oa.leftSet, oa.rightSet),
         ...scorerRowKeys(left, right, p)
     }), [big, oa, left, right]);
 

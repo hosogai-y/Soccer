@@ -1,3 +1,5 @@
+import { TeamColorSet, teamColorKeys } from './teamColor';
+
 export type StatsData = {
     leftShoot: string;
     rightShoot: string;
@@ -35,13 +37,13 @@ export function swapStats(s?: StatsData | null): StatsData {
 
 /** スタッツテロップのペイロード（チーム名・得点・チームカラーは小得点とリンク） */
 export function buildStatsPayload(
-    score: { leftName: string, rightName: string, leftScore: string, rightScore: string, leftColor?: string, rightColor?: string },
+    score: { leftName: string, rightName: string, leftScore: string, rightScore: string, leftSet?: TeamColorSet, rightSet?: TeamColorSet },
     statsData?: StatsData | null
 ) {
     return {
-        // チームカラーザブトン（KeyExp: ColorRectL / ColorRectR）。色が分からないときは送らずテロップの色のまま
-        ...(score.leftColor ? { 'ColorRectL': score.leftColor } : {}),
-        ...(score.rightColor ? { 'ColorRectR': score.rightColor } : {}),
+        // チームカラーザブトン（ColorRectL/L2・ColorEdgeL など）。色が分からないときは送らずテロップの色のまま
+        ...(score.leftSet ? teamColorKeys(score.leftSet, 'L') : {}),
+        ...(score.rightSet ? teamColorKeys(score.rightSet, 'R') : {}),
         '左側チーム名': score.leftName,
         '右側チーム名': score.rightName,
         'Left得点数値': score.leftScore,

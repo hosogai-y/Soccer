@@ -1,6 +1,8 @@
 {
   "OUTポジション": "img/HD2D_S04_BaseOUT_MF.png",
+  "ColorEdge": "#ffffff",
   "ColorRect": "#bd39fb",
+  "ColorRect2": "#bd39fb",
   "OUT背番号": "8",
   "OUT選手名": "工藤　大河",
   "OUT学年": "（3年）",

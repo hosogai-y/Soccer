@@ -10,6 +10,7 @@ import {
 } from '../utils/lineup';
 import { Point, defaultPositions, resolvePositions, roleMap } from '../utils/formationLayout';
 import { useCgQueue } from '../utils/cgQueue';
+import { teamColorSet } from '../utils/teamColor';
 
 // Mirror map for horizontally flipping left formation onto right formation
 const MIRROR_SLOT_MAP: Record<string, string> = {
@@ -136,9 +137,8 @@ export default function LineupEditor() {
 
         const telop = teamMode === 'left' ? formationLeftTelop : formationRightTelop;
         if (telop.isVisible) {
-            // TeamSettings のチームカラー（未設定時は画面の左右カラー）
-            const color = currentTeamConfig?.color || (teamMode === 'right' ? '#0dcaf0' : '#198754');
-            const payload = buildFormationPayload(saved, players || [], formationSchoolName, teamMode, fallbackSystem, color);
+            // TeamSettings のチームカラー一式（未設定時は画面の左右カラー）
+            const payload = buildFormationPayload(saved, players || [], formationSchoolName, teamMode, fallbackSystem, teamColorSet(currentTeamConfig, teamMode));
             telop.setData(payload);
             telop.update(payload);
         }

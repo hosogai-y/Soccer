@@ -1,6 +1,10 @@
 {
+  "ColorEdgeL": "#ffffff",
   "ColorRectL": "#bd39fb",
+  "ColorRectL2": "#bd39fb",
+  "ColorEdgeR": "#ffffff",
   "ColorRectR": "#bd39fb",
+  "ColorRectR2": "#bd39fb",
   "左チーム得点": "0",
   "右チーム得点": "0",
   "左チーム名": "帯広北",

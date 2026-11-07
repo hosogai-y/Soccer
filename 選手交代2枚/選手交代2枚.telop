@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_72mocvj69ktn",
+  "rootId": "n1_sifluph5ukzi",
   "nodesById": {
-    "n1_72mocvj69ktn": {
-      "id": "n1_72mocvj69ktn",
+    "n1_sifluph5ukzi": {
+      "id": "n1_sifluph5ukzi",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,16 +24,16 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_vd9t4r1agej4",
-        "n1_rrm82w4qgbr5",
-        "n1_08qiofojsu6i",
-        "n1_lt4scyattfg8",
-        "n1_aebi42isy3b2",
-        "n1_wy51npwcqk6i",
-        "n1_ibkfd2z3dpls",
-        "n1_n9fclvsqzjja",
-        "n1_7uk5uj2d3c69",
-        "n1_d1l89di8cx51"
+        "n1_4xgof4gfwivh",
+        "n1_lm6hkk5c2hf6",
+        "n1_ofwn737un3py",
+        "n1_7b8epn3ni7vd",
+        "n1_ulcoxeglg5jy",
+        "n1_86dwhrc20kwa",
+        "n1_pl1xonmzcf7t",
+        "n1_rfy8557jica0",
+        "n1_n2ygyowtcmaa",
+        "n1_3uzy9bfuyj95"
       ],
       "name": "選手交代2枚",
       "visible": true,
@@ -52,8 +52,8 @@
       ],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_vd9t4r1agej4": {
-      "id": "n1_vd9t4r1agej4",
+    "n1_4xgof4gfwivh": {
+      "id": "n1_4xgof4gfwivh",
       "type": "group",
       "x": 314,
       "y": 908,
@@ -71,16 +71,16 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_xghin9f85zlh",
-        "n1_aa9bzr4qlvdl",
-        "n1_e9u3s4srqjs2",
-        "n1_3q4qt3qex73k",
-        "n1_9gz76bazuf91"
+        "n1_p95iiqlthbay",
+        "n1_lbfgdb45s2dq",
+        "n1_fk0dmdxc5eu9",
+        "n1_o579y9k7lirf",
+        "n1_49672d9dotsx"
       ],
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_xghin9f85zlh": {
-      "id": "n1_xghin9f85zlh",
+    "n1_p95iiqlthbay": {
+      "id": "n1_p95iiqlthbay",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -97,14 +97,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_lfx65agttp1p",
+      "assetId": "a1_4g2n1sgo259g",
       "width": 602,
       "height": 98,
       "keyexp": "OUTポジション2",
-      "parentId": "n1_vd9t4r1agej4"
+      "parentId": "n1_4xgof4gfwivh"
     },
-    "n1_aa9bzr4qlvdl": {
-      "id": "n1_aa9bzr4qlvdl",
+    "n1_lbfgdb45s2dq": {
+      "id": "n1_lbfgdb45s2dq",
       "type": "group",
       "x": 207,
       "y": 11,
@@ -122,13 +122,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_3vz4rgpqcxcy",
-        "n1_r6o4duncmrdt"
+        "n1_5ik9ut5k9lbq",
+        "n1_vweac7xtl2bi",
+        "n1_mrq5155gvfmp",
+        "n1_3fps23b3b5k0",
+        "n1_e0vrp1k3h7g8"
       ],
-      "parentId": "n1_vd9t4r1agej4"
+      "parentId": "n1_4xgof4gfwivh"
     },
-    "n1_3vz4rgpqcxcy": {
-      "id": "n1_3vz4rgpqcxcy",
+    "n1_5ik9ut5k9lbq": {
+      "id": "n1_5ik9ut5k9lbq",
+      "type": "rect",
+      "x": -31,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_lbfgdb45s2dq"
+    },
+    "n1_vweac7xtl2bi": {
+      "id": "n1_vweac7xtl2bi",
+      "type": "rect",
+      "x": 18,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_lbfgdb45s2dq"
+    },
+    "n1_mrq5155gvfmp": {
+      "id": "n1_mrq5155gvfmp",
       "type": "rect",
       "x": -27,
       "y": -3,
@@ -164,10 +253,48 @@
         "cornerRadius": 0
       },
       "domId": "TeamColor",
-      "parentId": "n1_aa9bzr4qlvdl"
+      "parentId": "n1_lbfgdb45s2dq"
     },
-    "n1_r6o4duncmrdt": {
-      "id": "n1_r6o4duncmrdt",
+    "n1_3fps23b3b5k0": {
+      "id": "n1_3fps23b3b5k0",
+      "type": "rect",
+      "x": -4.5,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 22.5,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_lbfgdb45s2dq"
+    },
+    "n1_e0vrp1k3h7g8": {
+      "id": "n1_e0vrp1k3h7g8",
       "type": "rect",
       "x": -27,
       "y": -3,
@@ -239,10 +366,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_aa9bzr4qlvdl"
+      "parentId": "n1_lbfgdb45s2dq"
     },
-    "n1_e9u3s4srqjs2": {
-      "id": "n1_e9u3s4srqjs2",
+    "n1_fk0dmdxc5eu9": {
+      "id": "n1_fk0dmdxc5eu9",
       "type": "text",
       "x": 242,
       "y": 18,
@@ -292,10 +419,10 @@
       },
       "height": 40,
       "keyexp": "OUT選手名2",
-      "parentId": "n1_vd9t4r1agej4"
+      "parentId": "n1_4xgof4gfwivh"
     },
-    "n1_3q4qt3qex73k": {
-      "id": "n1_3q4qt3qex73k",
+    "n1_o579y9k7lirf": {
+      "id": "n1_o579y9k7lirf",
       "type": "text",
       "x": 174,
       "y": 17,
@@ -345,10 +472,10 @@
       },
       "height": 44,
       "keyexp": "OUT背番号2",
-      "parentId": "n1_vd9t4r1agej4"
+      "parentId": "n1_4xgof4gfwivh"
     },
-    "n1_9gz76bazuf91": {
-      "id": "n1_9gz76bazuf91",
+    "n1_49672d9dotsx": {
+      "id": "n1_49672d9dotsx",
       "type": "text",
       "x": 504,
       "y": 22,
@@ -398,10 +525,10 @@
       },
       "height": 36,
       "keyexp": "OUT学年2",
-      "parentId": "n1_vd9t4r1agej4"
+      "parentId": "n1_4xgof4gfwivh"
     },
-    "n1_rrm82w4qgbr5": {
-      "id": "n1_rrm82w4qgbr5",
+    "n1_lm6hkk5c2hf6": {
+      "id": "n1_lm6hkk5c2hf6",
       "type": "group",
       "x": 314,
       "y": 977,
@@ -419,16 +546,16 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_nswqmgape6rf",
-        "n1_ofujzeh5f1al",
-        "n1_uto248vfvuc3",
-        "n1_sd1s5f8pg423",
-        "n1_393dx7mbhqtm"
+        "n1_6va27gtvan8m",
+        "n1_dnyi3rfc7gte",
+        "n1_cldnq2euwr61",
+        "n1_aq75c86f5l1f",
+        "n1_a1spnf5xk8qw"
       ],
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_nswqmgape6rf": {
-      "id": "n1_nswqmgape6rf",
+    "n1_6va27gtvan8m": {
+      "id": "n1_6va27gtvan8m",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -445,14 +572,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_t6ipg2b5xtqt",
+      "assetId": "a1_n7wzw2uzj7h8",
       "width": 602,
       "height": 98,
       "keyexp": "OUTポジション1",
-      "parentId": "n1_rrm82w4qgbr5"
+      "parentId": "n1_lm6hkk5c2hf6"
     },
-    "n1_ofujzeh5f1al": {
-      "id": "n1_ofujzeh5f1al",
+    "n1_dnyi3rfc7gte": {
+      "id": "n1_dnyi3rfc7gte",
       "type": "group",
       "x": 207,
       "y": 12,
@@ -470,13 +597,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_g29xje6mm46r",
-        "n1_wq5io8pjwdcf"
+        "n1_848aebrpwccx",
+        "n1_0ip0w5x2opib",
+        "n1_st0tgzkta9r4",
+        "n1_ytkr6nv9b3nf",
+        "n1_ch6oe7ks23k1"
       ],
-      "parentId": "n1_rrm82w4qgbr5"
+      "parentId": "n1_lm6hkk5c2hf6"
     },
-    "n1_g29xje6mm46r": {
-      "id": "n1_g29xje6mm46r",
+    "n1_848aebrpwccx": {
+      "id": "n1_848aebrpwccx",
+      "type": "rect",
+      "x": -31,
+      "y": -4,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 52,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_dnyi3rfc7gte"
+    },
+    "n1_0ip0w5x2opib": {
+      "id": "n1_0ip0w5x2opib",
+      "type": "rect",
+      "x": 18,
+      "y": -4,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 52,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_dnyi3rfc7gte"
+    },
+    "n1_st0tgzkta9r4": {
+      "id": "n1_st0tgzkta9r4",
       "type": "rect",
       "x": -27,
       "y": -4,
@@ -512,10 +728,48 @@
         "cornerRadius": 0
       },
       "domId": "TeamColor",
-      "parentId": "n1_ofujzeh5f1al"
+      "parentId": "n1_dnyi3rfc7gte"
     },
-    "n1_wq5io8pjwdcf": {
-      "id": "n1_wq5io8pjwdcf",
+    "n1_ytkr6nv9b3nf": {
+      "id": "n1_ytkr6nv9b3nf",
+      "type": "rect",
+      "x": -4.5,
+      "y": -4,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 22.5,
+      "height": 52,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_dnyi3rfc7gte"
+    },
+    "n1_ch6oe7ks23k1": {
+      "id": "n1_ch6oe7ks23k1",
       "type": "rect",
       "x": -27,
       "y": -4,
@@ -587,10 +841,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_ofujzeh5f1al"
+      "parentId": "n1_dnyi3rfc7gte"
     },
-    "n1_uto248vfvuc3": {
-      "id": "n1_uto248vfvuc3",
+    "n1_cldnq2euwr61": {
+      "id": "n1_cldnq2euwr61",
       "type": "text",
       "x": 174,
       "y": 18,
@@ -640,10 +894,10 @@
       },
       "height": 44,
       "keyexp": "OUT背番号1",
-      "parentId": "n1_rrm82w4qgbr5"
+      "parentId": "n1_lm6hkk5c2hf6"
     },
-    "n1_sd1s5f8pg423": {
-      "id": "n1_sd1s5f8pg423",
+    "n1_aq75c86f5l1f": {
+      "id": "n1_aq75c86f5l1f",
       "type": "text",
       "x": 242,
       "y": 19,
@@ -693,10 +947,10 @@
       },
       "height": 40,
       "keyexp": "OUT選手名1",
-      "parentId": "n1_rrm82w4qgbr5"
+      "parentId": "n1_lm6hkk5c2hf6"
     },
-    "n1_393dx7mbhqtm": {
-      "id": "n1_393dx7mbhqtm",
+    "n1_a1spnf5xk8qw": {
+      "id": "n1_a1spnf5xk8qw",
       "type": "text",
       "x": 504,
       "y": 22,
@@ -746,10 +1000,10 @@
       },
       "height": 36,
       "keyexp": "OUT学年1",
-      "parentId": "n1_rrm82w4qgbr5"
+      "parentId": "n1_lm6hkk5c2hf6"
     },
-    "n1_08qiofojsu6i": {
-      "id": "n1_08qiofojsu6i",
+    "n1_ofwn737un3py": {
+      "id": "n1_ofwn737un3py",
       "type": "group",
       "x": 1001,
       "y": 977,
@@ -767,16 +1021,16 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_p2g0rl67rmt2",
-        "n1_882b7yaqa983",
-        "n1_0r0d3ho4k1bf",
-        "n1_itjqpro3zskd",
-        "n1_3j158e95rm11"
+        "n1_jq73u2mi0ema",
+        "n1_nfqm2fqbvuh1",
+        "n1_j8hdtviuuui3",
+        "n1_lzfrguum1pkz",
+        "n1_kazv3w1d5681"
       ],
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_p2g0rl67rmt2": {
-      "id": "n1_p2g0rl67rmt2",
+    "n1_jq73u2mi0ema": {
+      "id": "n1_jq73u2mi0ema",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -793,14 +1047,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_p9pgw40eqtf6",
+      "assetId": "a1_2ec2svdrmczg",
       "width": 602,
       "height": 98,
       "keyexp": "INポジション1",
-      "parentId": "n1_08qiofojsu6i"
+      "parentId": "n1_ofwn737un3py"
     },
-    "n1_882b7yaqa983": {
-      "id": "n1_882b7yaqa983",
+    "n1_nfqm2fqbvuh1": {
+      "id": "n1_nfqm2fqbvuh1",
       "type": "group",
       "x": 207,
       "y": 11,
@@ -818,13 +1072,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_oalyjkol03ck",
-        "n1_19ff1p9sryp4"
+        "n1_l1boncm1lk05",
+        "n1_vy1fc7dkpmkf",
+        "n1_wb8zmz6hz1h2",
+        "n1_ooyt5cpggkhz",
+        "n1_bg55g1935ywt"
       ],
-      "parentId": "n1_08qiofojsu6i"
+      "parentId": "n1_ofwn737un3py"
     },
-    "n1_oalyjkol03ck": {
-      "id": "n1_oalyjkol03ck",
+    "n1_l1boncm1lk05": {
+      "id": "n1_l1boncm1lk05",
+      "type": "rect",
+      "x": -31,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_nfqm2fqbvuh1"
+    },
+    "n1_vy1fc7dkpmkf": {
+      "id": "n1_vy1fc7dkpmkf",
+      "type": "rect",
+      "x": 18,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_nfqm2fqbvuh1"
+    },
+    "n1_wb8zmz6hz1h2": {
+      "id": "n1_wb8zmz6hz1h2",
       "type": "rect",
       "x": -27,
       "y": -3,
@@ -860,10 +1203,48 @@
         "cornerRadius": 0
       },
       "domId": "TeamColor",
-      "parentId": "n1_882b7yaqa983"
+      "parentId": "n1_nfqm2fqbvuh1"
     },
-    "n1_19ff1p9sryp4": {
-      "id": "n1_19ff1p9sryp4",
+    "n1_ooyt5cpggkhz": {
+      "id": "n1_ooyt5cpggkhz",
+      "type": "rect",
+      "x": -4.5,
+      "y": -3,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 22.5,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_nfqm2fqbvuh1"
+    },
+    "n1_bg55g1935ywt": {
+      "id": "n1_bg55g1935ywt",
       "type": "rect",
       "x": -27,
       "y": -3,
@@ -935,10 +1316,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_882b7yaqa983"
+      "parentId": "n1_nfqm2fqbvuh1"
     },
-    "n1_0r0d3ho4k1bf": {
-      "id": "n1_0r0d3ho4k1bf",
+    "n1_j8hdtviuuui3": {
+      "id": "n1_j8hdtviuuui3",
       "type": "text",
       "x": 240,
       "y": 19,
@@ -988,10 +1369,10 @@
       },
       "height": 44,
       "keyexp": "IN選手名1",
-      "parentId": "n1_08qiofojsu6i"
+      "parentId": "n1_ofwn737un3py"
     },
-    "n1_itjqpro3zskd": {
-      "id": "n1_itjqpro3zskd",
+    "n1_lzfrguum1pkz": {
+      "id": "n1_lzfrguum1pkz",
       "type": "text",
       "x": 174,
       "y": 18,
@@ -1041,10 +1422,10 @@
       },
       "height": 44,
       "keyexp": "IN背番号1",
-      "parentId": "n1_08qiofojsu6i"
+      "parentId": "n1_ofwn737un3py"
     },
-    "n1_3j158e95rm11": {
-      "id": "n1_3j158e95rm11",
+    "n1_kazv3w1d5681": {
+      "id": "n1_kazv3w1d5681",
       "type": "text",
       "x": 503,
       "y": 22,
@@ -1094,10 +1475,10 @@
       },
       "height": 36,
       "keyexp": "IN学年1",
-      "parentId": "n1_08qiofojsu6i"
+      "parentId": "n1_ofwn737un3py"
     },
-    "n1_lt4scyattfg8": {
-      "id": "n1_lt4scyattfg8",
+    "n1_7b8epn3ni7vd": {
+      "id": "n1_7b8epn3ni7vd",
       "type": "group",
       "x": 1001,
       "y": 908,
@@ -1115,16 +1496,16 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_gnvrl705taed",
-        "n1_keh2pb1anjdm",
-        "n1_7e6pob9yofto",
-        "n1_dacfd1avoqb8",
-        "n1_fn3ipd8v86jx"
+        "n1_q4u07ir75m3f",
+        "n1_dnefboyvcg50",
+        "n1_cuwb57f4qq8g",
+        "n1_ld6x3ebluj85",
+        "n1_34jbfd5q2adx"
       ],
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_gnvrl705taed": {
-      "id": "n1_gnvrl705taed",
+    "n1_q4u07ir75m3f": {
+      "id": "n1_q4u07ir75m3f",
       "type": "image",
       "x": -3,
       "y": 0,
@@ -1141,14 +1522,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_ieg8reiaivji",
+      "assetId": "a1_2j025o0fgs5c",
       "width": 602,
       "height": 98,
       "keyexp": "INポジション2",
-      "parentId": "n1_lt4scyattfg8"
+      "parentId": "n1_7b8epn3ni7vd"
     },
-    "n1_keh2pb1anjdm": {
-      "id": "n1_keh2pb1anjdm",
+    "n1_dnefboyvcg50": {
+      "id": "n1_dnefboyvcg50",
       "type": "group",
       "x": 207,
       "y": 8,
@@ -1166,13 +1547,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_cvkf2pn86gtl",
-        "n1_vfx1kw4dco06"
+        "n1_sxzk0ji2g8fa",
+        "n1_wegabaix6pb7",
+        "n1_wbt8fq11ndm2",
+        "n1_i757byde3bd3",
+        "n1_3y7ayssldz9t"
       ],
-      "parentId": "n1_lt4scyattfg8"
+      "parentId": "n1_7b8epn3ni7vd"
     },
-    "n1_cvkf2pn86gtl": {
-      "id": "n1_cvkf2pn86gtl",
+    "n1_sxzk0ji2g8fa": {
+      "id": "n1_sxzk0ji2g8fa",
+      "type": "rect",
+      "x": -31,
+      "y": -1,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_dnefboyvcg50"
+    },
+    "n1_wegabaix6pb7": {
+      "id": "n1_wegabaix6pb7",
+      "type": "rect",
+      "x": 18,
+      "y": -1,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_dnefboyvcg50"
+    },
+    "n1_wbt8fq11ndm2": {
+      "id": "n1_wbt8fq11ndm2",
       "type": "rect",
       "x": -27,
       "y": -1,
@@ -1208,10 +1678,48 @@
         "cornerRadius": 0
       },
       "domId": "TeamColor",
-      "parentId": "n1_keh2pb1anjdm"
+      "parentId": "n1_dnefboyvcg50"
     },
-    "n1_vfx1kw4dco06": {
-      "id": "n1_vfx1kw4dco06",
+    "n1_i757byde3bd3": {
+      "id": "n1_i757byde3bd3",
+      "type": "rect",
+      "x": -4.5,
+      "y": -1,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 22.5,
+      "height": 51,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_dnefboyvcg50"
+    },
+    "n1_3y7ayssldz9t": {
+      "id": "n1_3y7ayssldz9t",
       "type": "rect",
       "x": -27,
       "y": -1,
@@ -1283,10 +1791,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_keh2pb1anjdm"
+      "parentId": "n1_dnefboyvcg50"
     },
-    "n1_7e6pob9yofto": {
-      "id": "n1_7e6pob9yofto",
+    "n1_cuwb57f4qq8g": {
+      "id": "n1_cuwb57f4qq8g",
       "type": "text",
       "x": 240,
       "y": 20,
@@ -1336,10 +1844,10 @@
       },
       "height": 40,
       "keyexp": "IN選手名2",
-      "parentId": "n1_lt4scyattfg8"
+      "parentId": "n1_7b8epn3ni7vd"
     },
-    "n1_dacfd1avoqb8": {
-      "id": "n1_dacfd1avoqb8",
+    "n1_ld6x3ebluj85": {
+      "id": "n1_ld6x3ebluj85",
       "type": "text",
       "x": 174,
       "y": 19,
@@ -1389,10 +1897,10 @@
       },
       "height": 44,
       "keyexp": "IN背番号2",
-      "parentId": "n1_lt4scyattfg8"
+      "parentId": "n1_7b8epn3ni7vd"
     },
-    "n1_fn3ipd8v86jx": {
-      "id": "n1_fn3ipd8v86jx",
+    "n1_34jbfd5q2adx": {
+      "id": "n1_34jbfd5q2adx",
       "type": "text",
       "x": 503,
       "y": 23,
@@ -1442,10 +1950,10 @@
       },
       "height": 36,
       "keyexp": "IN学年2",
-      "parentId": "n1_lt4scyattfg8"
+      "parentId": "n1_7b8epn3ni7vd"
     },
-    "n1_aebi42isy3b2": {
-      "id": "n1_aebi42isy3b2",
+    "n1_ulcoxeglg5jy": {
+      "id": "n1_ulcoxeglg5jy",
       "type": "image",
       "x": 916,
       "y": 988,
@@ -1462,13 +1970,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_fkc2w25g0lwq",
+      "assetId": "a1_rcjsq011e94d",
       "width": 121,
       "height": 57,
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_wy51npwcqk6i": {
-      "id": "n1_wy51npwcqk6i",
+    "n1_86dwhrc20kwa": {
+      "id": "n1_86dwhrc20kwa",
       "type": "image",
       "x": 916,
       "y": 918,
@@ -1485,13 +1993,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_fkc2w25g0lwq",
+      "assetId": "a1_rcjsq011e94d",
       "width": 121,
       "height": 57,
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_ibkfd2z3dpls": {
-      "id": "n1_ibkfd2z3dpls",
+    "n1_pl1xonmzcf7t": {
+      "id": "n1_pl1xonmzcf7t",
       "type": "image",
       "x": 314,
       "y": 859,
@@ -1508,13 +2016,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_4vywnzlp7oj2",
+      "assetId": "a1_p2otq367frbq",
       "width": 585,
       "height": 86,
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_n9fclvsqzjja": {
-      "id": "n1_n9fclvsqzjja",
+    "n1_rfy8557jica0": {
+      "id": "n1_rfy8557jica0",
       "type": "group",
       "x": 1080,
       "y": 1140,
@@ -1532,13 +2040,102 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_df1hthjaz5q0",
-        "n1_xzz6uw66nilu"
+        "n1_2md6ut57mwv6",
+        "n1_q9bubi6mmjkw",
+        "n1_947j6bqz75bv",
+        "n1_kkrku3wzpooo",
+        "n1_bzfl4adoenbw"
       ],
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_df1hthjaz5q0": {
-      "id": "n1_df1hthjaz5q0",
+    "n1_2md6ut57mwv6": {
+      "id": "n1_2md6ut57mwv6",
+      "type": "rect",
+      "x": -590,
+      "y": -228,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ左",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 34,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_rfy8557jica0"
+    },
+    "n1_q9bubi6mmjkw": {
+      "id": "n1_q9bubi6mmjkw",
+      "type": "rect",
+      "x": -569,
+      "y": -228,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "エッジ右",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 4,
+      "height": 34,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorEdge"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "ColorEdge",
+        "operator": "not_empty"
+      },
+      "parentId": "n1_rfy8557jica0"
+    },
+    "n1_947j6bqz75bv": {
+      "id": "n1_947j6bqz75bv",
       "type": "rect",
       "x": -586,
       "y": -228,
@@ -1574,10 +2171,48 @@
         "cornerRadius": 0
       },
       "domId": "TeamColor",
-      "parentId": "n1_n9fclvsqzjja"
+      "parentId": "n1_rfy8557jica0"
     },
-    "n1_xzz6uw66nilu": {
-      "id": "n1_xzz6uw66nilu",
+    "n1_kkrku3wzpooo": {
+      "id": "n1_kkrku3wzpooo",
+      "type": "rect",
+      "x": -577.5,
+      "y": -228,
+      "rotation": -1,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -1,
+      "skewY": 1,
+      "opacity": 1,
+      "name": "カラー2",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 8.5,
+      "height": 34,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#bd39fb",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRect2"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_rfy8557jica0"
+    },
+    "n1_bzfl4adoenbw": {
+      "id": "n1_bzfl4adoenbw",
       "type": "rect",
       "x": -586,
       "y": -228,
@@ -1649,10 +2284,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_n9fclvsqzjja"
+      "parentId": "n1_rfy8557jica0"
     },
-    "n1_7uk5uj2d3c69": {
-      "id": "n1_7uk5uj2d3c69",
+    "n1_n2ygyowtcmaa": {
+      "id": "n1_n2ygyowtcmaa",
       "type": "image",
       "x": 349,
       "y": 871,
@@ -1669,13 +2304,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_zag0cva968bl",
+      "assetId": "a1_w84x7lu9f2lj",
       "width": 84,
       "height": 57,
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     },
-    "n1_d1l89di8cx51": {
-      "id": "n1_d1l89di8cx51",
+    "n1_3uzy9bfuyj95": {
+      "id": "n1_3uzy9bfuyj95",
       "type": "text",
       "x": 452,
       "y": 871,
@@ -1725,119 +2360,79 @@
       },
       "height": 37,
       "keyexp": "高校名テキスト",
-      "parentId": "n1_72mocvj69ktn"
+      "parentId": "n1_sifluph5ukzi"
     }
   },
   "assets": {
-    "a1_28w317s5tx1y": {
-      "id": "a1_28w317s5tx1y",
-      "kind": "image",
-      "name": "HD2D_S04_BaseOUT_FW.png",
-      "src": "img/HD2D_S04_BaseOUT_FW.png",
-      "width": 602,
-      "height": 98,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_4vywnzlp7oj2": {
-      "id": "a1_4vywnzlp7oj2",
-      "kind": "image",
-      "name": "HD2D_S04_Base_001.png",
-      "src": "img/HD2D_S04_Base_001.png",
-      "width": 585,
-      "height": 86,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_75mmce8fdxem": {
-      "id": "a1_75mmce8fdxem",
-      "kind": "image",
-      "name": "HD2D_S04_BaseIN_GK.png",
-      "src": "img/HD2D_S04_BaseIN_GK.png",
-      "width": 602,
-      "height": 98,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_fkc2w25g0lwq": {
-      "id": "a1_fkc2w25g0lwq",
-      "kind": "image",
-      "name": "HD2D_F01_new_YajirushiL.png",
-      "src": "img/HD2D_F01_new_YajirushiL.png",
-      "width": 121,
-      "height": 57,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_i6p6hr8h1drg": {
-      "id": "a1_i6p6hr8h1drg",
-      "kind": "image",
-      "name": "HD2D_S04_BaseOUT_MF.png",
-      "src": "img/HD2D_S04_BaseOUT_MF.png",
-      "width": 602,
-      "height": 98,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_ieg8reiaivji": {
-      "id": "a1_ieg8reiaivji",
-      "kind": "image",
-      "name": "HD2D_S04_BaseIN_DF.png",
-      "src": "img/HD2D_S04_BaseIN_DF.png",
-      "width": 602,
-      "height": 98,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_lfx65agttp1p": {
-      "id": "a1_lfx65agttp1p",
-      "kind": "image",
-      "name": "HD2D_S04_BaseOUT_GK.png",
-      "src": "img/HD2D_S04_BaseOUT_GK.png",
-      "width": 602,
-      "height": 98,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_md2q82q144gm": {
-      "id": "a1_md2q82q144gm",
-      "kind": "image",
-      "name": "HD2D_S04_BaseIN_FW.png",
-      "src": "img/HD2D_S04_BaseIN_FW.png",
-      "width": 602,
-      "height": 98,
-      "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
-    },
-    "a1_p9pgw40eqtf6": {
-      "id": "a1_p9pgw40eqtf6",
+    "a1_2ec2svdrmczg": {
+      "id": "a1_2ec2svdrmczg",
       "kind": "image",
       "name": "HD2D_S04_BaseIN_MF.png",
       "src": "img/HD2D_S04_BaseIN_MF.png",
       "width": 602,
       "height": 98,
       "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
+      "ownerId": "n1_sifluph5ukzi"
     },
-    "a1_t6ipg2b5xtqt": {
-      "id": "a1_t6ipg2b5xtqt",
+    "a1_2j025o0fgs5c": {
+      "id": "a1_2j025o0fgs5c",
+      "kind": "image",
+      "name": "HD2D_S04_BaseIN_DF.png",
+      "src": "img/HD2D_S04_BaseIN_DF.png",
+      "width": 602,
+      "height": 98,
+      "groupId": null,
+      "ownerId": "n1_sifluph5ukzi"
+    },
+    "a1_4g2n1sgo259g": {
+      "id": "a1_4g2n1sgo259g",
+      "kind": "image",
+      "name": "HD2D_S04_BaseOUT_GK.png",
+      "src": "img/HD2D_S04_BaseOUT_GK.png",
+      "width": 602,
+      "height": 98,
+      "groupId": null,
+      "ownerId": "n1_sifluph5ukzi"
+    },
+    "a1_n7wzw2uzj7h8": {
+      "id": "a1_n7wzw2uzj7h8",
       "kind": "image",
       "name": "HD2D_S04_BaseOUT_DF.png",
       "src": "img/HD2D_S04_BaseOUT_DF.png",
       "width": 602,
       "height": 98,
       "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
+      "ownerId": "n1_sifluph5ukzi"
     },
-    "a1_zag0cva968bl": {
-      "id": "a1_zag0cva968bl",
+    "a1_p2otq367frbq": {
+      "id": "a1_p2otq367frbq",
+      "kind": "image",
+      "name": "HD2D_S04_Base_001.png",
+      "src": "img/HD2D_S04_Base_001.png",
+      "width": 585,
+      "height": 86,
+      "groupId": null,
+      "ownerId": "n1_sifluph5ukzi"
+    },
+    "a1_rcjsq011e94d": {
+      "id": "a1_rcjsq011e94d",
+      "kind": "image",
+      "name": "HD2D_F01_new_YajirushiL.png",
+      "src": "img/HD2D_F01_new_YajirushiL.png",
+      "width": 121,
+      "height": 57,
+      "groupId": null,
+      "ownerId": "n1_sifluph5ukzi"
+    },
+    "a1_w84x7lu9f2lj": {
+      "id": "a1_w84x7lu9f2lj",
       "kind": "image",
       "name": "MarkHighSchool.png",
       "src": "img/MarkHighSchool.png",
       "width": 84,
       "height": 57,
       "groupId": null,
-      "ownerId": "n1_72mocvj69ktn"
+      "ownerId": "n1_sifluph5ukzi"
     }
   },
   "assetGroups": {}

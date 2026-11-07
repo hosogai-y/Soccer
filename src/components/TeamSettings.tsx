@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useSyncedState } from '@sdk/TelopHubSDK';
+import { teamColorSet, teamColorCss } from '../utils/teamColor';
 
 export interface TeamConfig {
     id: string; // 固有ID
     name: string; // １）チーム名 (例: 札幌創成)
-    color: string; // ２）チームカラー (例: #198754)
+    color: string; // ２）チームカラー (例: #198754)。2 色のときはカラー1（ザブトンの左半分）
+    color2Enabled?: boolean; // チームカラーを 2 色にする
+    color2?: string; // カラー2（ザブトンの右半分）
+    edgeEnabled?: boolean; // ザブトンの左右にエッジ（4px）を付ける
+    edgeColor?: string; // エッジの色
     smallScoreName: string; // ３）小得点のチーム名表記 (例: 創成)
     oneShotName: string; // ４）１SHOTの上段部分のチーム名表記 (例: 札幌創成)
     bigScoreName: string; // ５）大得点のチーム名表記 (例: 札幌創成)
@@ -54,6 +59,28 @@ export const DEFAULT_TEAM_CONFIGS: TeamConfig[] = [
         formationTelopName: '北海'
     }
 ];
+
+/** 色の入力（カラーピッカー + 16 進） */
+function ColorField({ value, onChange, disabled }: { value: string, onChange: (v: string) => void, disabled?: boolean }) {
+    return (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', opacity: disabled ? 0.4 : 1 }}>
+            <input
+                type="color"
+                value={value}
+                disabled={disabled}
+                onChange={e => onChange(e.target.value)}
+                style={{ width: 44, height: 40, border: 'none', borderRadius: 6, cursor: disabled ? 'default' : 'pointer', background: 'none' }}
+            />
+            <input
+                className="form-input"
+                style={{ flex: 1, fontFamily: 'monospace', fontWeight: 'bold' }}
+                value={value}
+                disabled={disabled}
+                onChange={e => onChange(e.target.value)}
+            />
+        </div>
+    );
+}
 
 export const FORMATION_OPTIONS =['4-4-2', '4-3-3', '4-2-3-1', '3-4-2-1', '3-5-2', '4-1-4-1', '5-3-2'];
 
@@ -232,7 +259,9 @@ export default function TeamSettings() {
                                             width: 24, 
                                             height: 24, 
                                             borderRadius: '50%', 
-                                            background: t.color,
+                                            background: teamColorCss(teamColorSet(t)),
+                                            borderLeft: t.edgeEnabled ? `2px solid ${t.edgeColor || '#ffffff'}` : undefined,
+                                            borderRight: t.edgeEnabled ? `2px solid ${t.edgeColor || '#ffffff'}` : undefined,
                                             boxShadow: `0 0 8px ${t.color}`,
                                             border: '2px solid rgba(255,255,255,0.5)'
                                         }} />
@@ -313,20 +342,36 @@ export default function TeamSettings() {
                                 <label className="form-label" style={{ fontWeight: 'bold', color: '#ffca28' }}>
                                     ２）チームカラー (帯・ザブトン) *
                                 </label>
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                    <input 
-                                        type="color" 
-                                        value={form.color || '#198754'} 
-                                        onChange={e => setForm({ ...form, color: e.target.value })} 
-                                        style={{ width: 44, height: 40, border: 'none', borderRadius: 6, cursor: 'pointer', background: 'none' }}
-                                    />
-                                    <input 
-                                        className="form-input" 
-                                        style={{ flex: 1, fontFamily: 'monospace', fontWeight: 'bold' }}
-                                        value={form.color || '#198754'} 
-                                        onChange={e => setForm({ ...form, color: e.target.value })} 
-                                    />
-                                </div>
+                                <ColorField value={form.color || '#198754'} onChange={v => setForm({ ...form, color: v })} />
+                            </div>
+                        </div>
+
+                        {/* 2色目・エッジ（すべての CG のチームカラーザブトンに反映） */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 150px', gap: 16, marginBottom: 20, alignItems: 'end' }}>
+                            <div className="form-group" style={{ margin: 0 }}>
+                                <label className="form-label" style={{ fontWeight: 'bold', color: '#ffca28', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={!!form.color2Enabled} onChange={e => setForm({ ...form, color2Enabled: e.target.checked, color2: form.color2 || '#ffffff' })} />
+                                    2色にする（カラー2 = ザブトンの右半分）
+                                </label>
+                                <ColorField value={form.color2 || '#ffffff'} onChange={v => setForm({ ...form, color2: v })} disabled={!form.color2Enabled} />
+                            </div>
+                            <div className="form-group" style={{ margin: 0 }}>
+                                <label className="form-label" style={{ fontWeight: 'bold', color: '#ffca28', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={!!form.edgeEnabled} onChange={e => setForm({ ...form, edgeEnabled: e.target.checked, edgeColor: form.edgeColor || '#ffffff' })} />
+                                    エッジあり（左右 4px）
+                                </label>
+                                <ColorField value={form.edgeColor || '#ffffff'} onChange={v => setForm({ ...form, edgeColor: v })} disabled={!form.edgeEnabled} />
+                            </div>
+                            {/* ザブトンの見え方（プレビュー） */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: '0.72rem', color: '#888' }}>ザブトン見本</span>
+                                <div style={{
+                                    width: 40, height: 52, transform: 'skewX(-12deg)',
+                                    background: teamColorCss(teamColorSet(form)),
+                                    borderLeft: form.edgeEnabled ? `4px solid ${form.edgeColor || '#ffffff'}` : 'none',
+                                    borderRight: form.edgeEnabled ? `4px solid ${form.edgeColor || '#ffffff'}` : 'none',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
+                                }} />
                             </div>
                         </div>
 

@@ -1177,8 +1177,6 @@ export default {
               "type": "group",
               "name": "チームカラーザブトン",
               "raw": {
-                "skewX": -12.556492647850591,
-                "skewY": 0,
                 "x": 689,
                 "y": 5,
                 "rotation": 0,
@@ -1186,6 +1184,8 @@ export default {
                 "scaleY": 1.1749999999999874,
                 "pivotX": 0,
                 "pivotY": 0,
+                "skewX": -12.556492647850591,
+                "skewY": 0,
                 "opacity": 1,
                 "visible": true,
                 "locked": false,
@@ -1195,12 +1195,100 @@ export default {
               "children": [
                 {
                   "type": "rect",
+                  "name": "エッジ左",
+                  "w": 4,
+                  "h": 42,
+                  "raw": {
+                    "x": -285,
+                    "y": 19,
+                    "rotation": -22,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 42,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "エッジ右",
+                  "w": 4,
+                  "h": 42,
+                  "raw": {
+                    "x": -264,
+                    "y": 19,
+                    "rotation": -22,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
+                    "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "width": 4,
+                    "height": 42,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#ffffff",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorEdge"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visibilityCondition": {
+                      "enabled": true,
+                      "targetKeyexp": "ColorEdge",
+                      "operator": "not_empty"
+                    }
+                  }
+                },
+                {
+                  "type": "rect",
                   "name": "ベースカラー",
                   "w": 17,
                   "h": 42,
                   "raw": {
-                    "skewX": 1,
-                    "skewY": 21.999999999999996,
                     "x": -281,
                     "y": 19,
                     "rotation": -22,
@@ -1208,7 +1296,13 @@ export default {
                     "scaleY": 0.9,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 17,
                     "height": 42,
                     "style": {
@@ -1227,11 +1321,47 @@ export default {
                       ],
                       "cornerRadius": 0
                     },
+                    "domId": "TeamColor"
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "カラー2",
+                  "w": 8.5,
+                  "h": 42,
+                  "raw": {
+                    "x": -272.5,
+                    "y": 19,
+                    "rotation": -22,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
+                    "opacity": 1,
                     "visible": true,
                     "locked": false,
                     "blendMode": "normal",
                     "effects": [],
-                    "domId": "TeamColor"
+                    "width": 8.5,
+                    "height": 42,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect2"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    }
                   }
                 },
                 {
@@ -1240,8 +1370,6 @@ export default {
                   "w": 17,
                   "h": 42,
                   "raw": {
-                    "skewX": 1,
-                    "skewY": 21.999999999999996,
                     "x": -281,
                     "y": 19,
                     "rotation": -22,
@@ -1249,7 +1377,13 @@ export default {
                     "scaleY": 0.9,
                     "pivotX": 0,
                     "pivotY": 0,
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
                     "opacity": 1,
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
                     "width": 17,
                     "height": 42,
                     "style": {
@@ -1304,11 +1438,7 @@ export default {
                         }
                       ],
                       "cornerRadius": 0
-                    },
-                    "visible": true,
-                    "locked": false,
-                    "blendMode": "normal",
-                    "effects": []
+                    }
                   }
                 }
               ]

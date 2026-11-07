@@ -7,10 +7,8 @@ const BASE = [
   {
     "type": "image",
     "name": "大得点チーム名ベース左",
-    "src": "../../大得点/img/チーム名ベース左/HD2D_A00_BaseL_M122.png",
+    "src": "../../大得点/img/HD2D_A00_BaseL_M122.png",
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 397,
       "y": 947,
       "rotation": 0,
@@ -18,23 +16,23 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 563,
-      "height": 106,
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "width": 563,
+      "height": 106,
       "keyexp": ""
     }
   },
   {
     "type": "image",
     "name": "大得点チーム名ベース右",
-    "src": "../../大得点/img/チーム名ベース右/HD2D_A00_BaseR_M121.png",
+    "src": "../../大得点/img/HD2D_A00_BaseR_M121.png",
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 960,
       "y": 947,
       "rotation": 0,
@@ -42,13 +40,15 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 563,
-      "height": 106,
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "width": 563,
+      "height": 106,
       "keyexp": ""
     }
   },
@@ -58,8 +58,6 @@ const BASE = [
     "text": "11",
     "w": 67,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 893,
       "y": 972,
       "rotation": 0,
@@ -67,10 +65,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 67,
-      "height": 42,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "11",
+      "width": 67,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "middle",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -96,13 +103,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "none",
+      "height": 42,
       "keyexp": "左チーム得点"
     }
   },
@@ -112,8 +113,6 @@ const BASE = [
     "text": "11",
     "w": 67,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 960,
       "y": 970,
       "rotation": 0,
@@ -121,10 +120,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 67,
-      "height": 46,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "11",
+      "width": 67,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "middle",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -150,13 +158,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "none",
+      "height": 46,
       "keyexp": "右チーム得点"
     }
   },
@@ -166,8 +168,6 @@ const BASE = [
     "text": "-",
     "w": 42,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 939,
       "y": 974,
       "rotation": 0,
@@ -175,10 +175,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 42,
-      "height": 36,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "-",
+      "width": 42,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "middle",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -204,13 +213,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "none"
+      "height": 36
     }
   },
   {
@@ -219,8 +222,6 @@ const BASE = [
     "text": "札幌大谷",
     "w": 290,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 568,
       "y": 968,
       "rotation": 0,
@@ -228,10 +229,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 290,
-      "height": 53,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "札幌大谷",
+      "width": 290,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "middle",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -257,13 +267,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "shrink_x",
+      "height": 53,
       "keyexp": "左チーム名"
     }
   },
@@ -273,8 +277,6 @@ const BASE = [
     "text": "札幌大谷",
     "w": 290,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 1067,
       "y": 968,
       "rotation": 0,
@@ -282,10 +284,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 290,
-      "height": 53,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "札幌大谷",
+      "width": 290,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "middle",
+      "fitMode": "shrink_x",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 40,
@@ -311,13 +322,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "shrink_x",
+      "height": 53,
       "keyexp": "右チーム名"
     }
   },
@@ -325,8 +330,6 @@ const BASE = [
     "type": "group",
     "name": "LeftTeamColorRect",
     "raw": {
-      "skewX": 12.409689987270337,
-      "skewY": 0,
       "x": 507,
       "y": 955,
       "rotation": 0,
@@ -334,6 +337,8 @@ const BASE = [
       "scaleY": 1.5542581353781675,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 12.409689987270337,
+      "skewY": 0,
       "opacity": 1,
       "visible": true,
       "locked": false,
@@ -343,12 +348,100 @@ const BASE = [
     "children": [
       {
         "type": "rect",
+        "name": "エッジ左",
+        "w": 4,
+        "h": 45,
+        "raw": {
+          "x": -4,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 0.9999999999999999,
+          "pivotX": 0,
+          "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
+          "width": 4,
+          "height": 45,
+          "style": {
+            "appearances": [
+              {
+                "enabled": true,
+                "fillEnabled": true,
+                "fill": "#ffffff",
+                "strokeEnabled": false,
+                "color": "#000000",
+                "thickness": 2,
+                "lineJoin": "miter",
+                "miterLimit": 10,
+                "fillKeyexp": "ColorEdgeL"
+              }
+            ],
+            "cornerRadius": 0
+          },
+          "visibilityCondition": {
+            "enabled": true,
+            "targetKeyexp": "ColorEdgeL",
+            "operator": "not_empty"
+          }
+        }
+      },
+      {
+        "type": "rect",
+        "name": "エッジ右",
+        "w": 4,
+        "h": 45,
+        "raw": {
+          "x": 37,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 0.9999999999999999,
+          "pivotX": 0,
+          "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
+          "width": 4,
+          "height": 45,
+          "style": {
+            "appearances": [
+              {
+                "enabled": true,
+                "fillEnabled": true,
+                "fill": "#ffffff",
+                "strokeEnabled": false,
+                "color": "#000000",
+                "thickness": 2,
+                "lineJoin": "miter",
+                "miterLimit": 10,
+                "fillKeyexp": "ColorEdgeL"
+              }
+            ],
+            "cornerRadius": 0
+          },
+          "visibilityCondition": {
+            "enabled": true,
+            "targetKeyexp": "ColorEdgeL",
+            "operator": "not_empty"
+          }
+        }
+      },
+      {
+        "type": "rect",
         "name": "Rectangle",
         "w": 37,
         "h": 45,
         "raw": {
-          "skewX": 0,
-          "skewY": 0,
           "x": 0,
           "y": 0,
           "rotation": 0,
@@ -356,7 +449,13 @@ const BASE = [
           "scaleY": 0.9999999999999999,
           "pivotX": 0,
           "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
           "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
           "width": 37,
           "height": 45,
           "style": {
@@ -375,11 +474,47 @@ const BASE = [
             ],
             "cornerRadius": 0
           },
+          "domId": "LeftTeamColorLargePoint"
+        }
+      },
+      {
+        "type": "rect",
+        "name": "カラー2",
+        "w": 18.5,
+        "h": 45,
+        "raw": {
+          "x": 18.5,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 0.9999999999999999,
+          "pivotX": 0,
+          "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "opacity": 1,
           "visible": true,
           "locked": false,
           "blendMode": "normal",
           "effects": [],
-          "domId": "LeftTeamColorLargePoint"
+          "width": 18.5,
+          "height": 45,
+          "style": {
+            "appearances": [
+              {
+                "enabled": true,
+                "fillEnabled": true,
+                "fill": "#bd39fb",
+                "strokeEnabled": false,
+                "color": "#000000",
+                "thickness": 2,
+                "lineJoin": "miter",
+                "miterLimit": 10,
+                "fillKeyexp": "ColorRectL2"
+              }
+            ],
+            "cornerRadius": 0
+          }
         }
       },
       {
@@ -388,8 +523,6 @@ const BASE = [
         "w": 37,
         "h": 45,
         "raw": {
-          "skewX": 0,
-          "skewY": 0,
           "x": 0,
           "y": 0,
           "rotation": 0,
@@ -397,7 +530,13 @@ const BASE = [
           "scaleY": 0.9999999999999999,
           "pivotX": 0,
           "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
           "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
           "width": 37,
           "height": 45,
           "style": {
@@ -452,11 +591,7 @@ const BASE = [
               }
             ],
             "cornerRadius": 0
-          },
-          "visible": true,
-          "locked": false,
-          "blendMode": "normal",
-          "effects": []
+          }
         }
       }
     ]
@@ -465,8 +600,6 @@ const BASE = [
     "type": "group",
     "name": "RightTeamColorRect",
     "raw": {
-      "skewX": -12,
-      "skewY": 0,
       "x": 1391,
       "y": 955,
       "rotation": 0,
@@ -474,6 +607,8 @@ const BASE = [
       "scaleY": 1.5542581353781675,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": -12,
+      "skewY": 0,
       "opacity": 1,
       "visible": true,
       "locked": false,
@@ -483,12 +618,100 @@ const BASE = [
     "children": [
       {
         "type": "rect",
+        "name": "エッジ左",
+        "w": 4,
+        "h": 45,
+        "raw": {
+          "x": -4,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 0.9999999999999999,
+          "pivotX": 0,
+          "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
+          "width": 4,
+          "height": 45,
+          "style": {
+            "appearances": [
+              {
+                "enabled": true,
+                "fillEnabled": true,
+                "fill": "#ffffff",
+                "strokeEnabled": false,
+                "color": "#000000",
+                "thickness": 2,
+                "lineJoin": "miter",
+                "miterLimit": 10,
+                "fillKeyexp": "ColorEdgeR"
+              }
+            ],
+            "cornerRadius": 0
+          },
+          "visibilityCondition": {
+            "enabled": true,
+            "targetKeyexp": "ColorEdgeR",
+            "operator": "not_empty"
+          }
+        }
+      },
+      {
+        "type": "rect",
+        "name": "エッジ右",
+        "w": 4,
+        "h": 45,
+        "raw": {
+          "x": 37,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 0.9999999999999999,
+          "pivotX": 0,
+          "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
+          "width": 4,
+          "height": 45,
+          "style": {
+            "appearances": [
+              {
+                "enabled": true,
+                "fillEnabled": true,
+                "fill": "#ffffff",
+                "strokeEnabled": false,
+                "color": "#000000",
+                "thickness": 2,
+                "lineJoin": "miter",
+                "miterLimit": 10,
+                "fillKeyexp": "ColorEdgeR"
+              }
+            ],
+            "cornerRadius": 0
+          },
+          "visibilityCondition": {
+            "enabled": true,
+            "targetKeyexp": "ColorEdgeR",
+            "operator": "not_empty"
+          }
+        }
+      },
+      {
+        "type": "rect",
         "name": "Rectangle",
         "w": 37,
         "h": 45,
         "raw": {
-          "skewX": 0,
-          "skewY": 0,
           "x": 0,
           "y": 0,
           "rotation": 0,
@@ -496,7 +719,13 @@ const BASE = [
           "scaleY": 0.9999999999999999,
           "pivotX": 0,
           "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
           "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
           "width": 37,
           "height": 45,
           "style": {
@@ -515,11 +744,47 @@ const BASE = [
             ],
             "cornerRadius": 0
           },
+          "domId": "RightTeamColorLargePoint"
+        }
+      },
+      {
+        "type": "rect",
+        "name": "カラー2",
+        "w": 18.5,
+        "h": 45,
+        "raw": {
+          "x": 18.5,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 0.9999999999999999,
+          "pivotX": 0,
+          "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "opacity": 1,
           "visible": true,
           "locked": false,
           "blendMode": "normal",
           "effects": [],
-          "domId": "RightTeamColorLargePoint"
+          "width": 18.5,
+          "height": 45,
+          "style": {
+            "appearances": [
+              {
+                "enabled": true,
+                "fillEnabled": true,
+                "fill": "#bd39fb",
+                "strokeEnabled": false,
+                "color": "#000000",
+                "thickness": 2,
+                "lineJoin": "miter",
+                "miterLimit": 10,
+                "fillKeyexp": "ColorRectR2"
+              }
+            ],
+            "cornerRadius": 0
+          }
         }
       },
       {
@@ -528,8 +793,6 @@ const BASE = [
         "w": 37,
         "h": 45,
         "raw": {
-          "skewX": 0,
-          "skewY": 0,
           "x": 0,
           "y": 0,
           "rotation": 0,
@@ -537,7 +800,13 @@ const BASE = [
           "scaleY": 0.9999999999999999,
           "pivotX": 0,
           "pivotY": 0,
+          "skewX": 0,
+          "skewY": 0,
           "opacity": 1,
+          "visible": true,
+          "locked": false,
+          "blendMode": "normal",
+          "effects": [],
           "width": 37,
           "height": 45,
           "style": {
@@ -592,11 +861,7 @@ const BASE = [
               }
             ],
             "cornerRadius": 0
-          },
-          "visible": true,
-          "locked": false,
-          "blendMode": "normal",
-          "effects": []
+          }
         }
       }
     ]
@@ -607,8 +872,6 @@ const BASE = [
     "text": "#bd39fb",
     "w": 52,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 893,
       "y": 927,
       "rotation": 0,
@@ -616,10 +879,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 52,
-      "height": 20,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "#bd39fb",
+      "width": 52,
+      "padding": 0,
+      "align": "left",
+      "verticalAlign": "middle",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 10,
@@ -645,13 +917,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "left",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "none",
+      "height": 20,
       "keyexp": "LeftTeamColor"
     }
   },
@@ -661,8 +927,6 @@ const BASE = [
     "text": "#bd39fb",
     "w": 52,
     "raw": {
-      "skewX": 0,
-      "skewY": 0,
       "x": 981,
       "y": 927,
       "rotation": 0,
@@ -670,10 +934,19 @@ const BASE = [
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 52,
-      "height": 20,
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "#bd39fb",
+      "width": 52,
+      "padding": 0,
+      "align": "left",
+      "verticalAlign": "middle",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 10,
@@ -699,13 +972,7 @@ const BASE = [
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "left",
-      "verticalAlign": "middle",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
-      "fitMode": "none",
+      "height": 20,
       "keyexp": "RigtTeamColor"
     }
   }
@@ -732,13 +999,27 @@ const plate = (dir) => ({
 });
 const highlight = { type: 'rect', name: 'ハイライト', x: 0, y: 0, w: ROW_W, h: 1, fill: '#ffffff30' };
 
+// 行のチームカラー帯（幅 BAR_W）: カラー1 → カラー2（右半分）＋ 左右のエッジ（4px・空なら非表示）。キーは大得点と同じ
+const BAR_W = 8;
+const EDGE_W = 4;
+const edgeStrip = (name, x, s) => ({
+    type: 'rect', name, x, y: 0, w: EDGE_W, h: ROW_H, fill: '#ffffff', fillKey: `ColorEdge${s}`,
+    showIf: { key: `ColorEdge${s}`, op: 'not_empty' }
+});
+const colorBar = (x, s) => [
+    edgeStrip('エッジ左', x - EDGE_W, s),
+    { type: 'rect', name: 'チームカラー', x, y: 0, w: BAR_W, h: ROW_H, fill: '#bd39fb', fillKey: `ColorRect${s}` },
+    { type: 'rect', name: 'カラー2', x: x + BAR_W / 2, y: 0, w: BAR_W / 2, h: ROW_H, fill: '#bd39fb', fillKey: `ColorRect${s}2` },
+    edgeStrip('エッジ右', x + BAR_W, s)
+];
+
 const leftRow = n => ({
     type: 'group', name: `左得点者行${n}`, x: LEFT_X, y: rowY(n),
     showIf: { key: `左得点者${n}`, op: 'not_empty' },
     children: [
         plate('left'),
         highlight,
-        { type: 'rect', name: 'チームカラー', x: 0, y: 0, w: 6, h: ROW_H, fill: '#bd39fb', fillKey: 'ColorRectL' },
+        ...colorBar(0, 'L'),
         { type: 'text', name: '得点者', key: `左得点者${n}`, text: '', x: 16, y: 0, w: NAME_W, h: ROW_H,
           font: FONT, size: NAME_SIZE, weight: 'bold', fill: '#ffffff', align: 'left', valign: 'middle', fit: 'shrink_x' },
         { type: 'text', name: '得点時間', key: `左得点時間${n}`, text: '', x: 16 + NAME_W + 10, y: 0, w: TIME_W, h: ROW_H,
@@ -752,7 +1033,7 @@ const rightRow = n => ({
     children: [
         plate('right'),
         highlight,
-        { type: 'rect', name: 'チームカラー', x: ROW_W - 6, y: 0, w: 6, h: ROW_H, fill: '#bd39fb', fillKey: 'ColorRectR' },
+        ...colorBar(ROW_W - BAR_W, 'R'),
         { type: 'text', name: '得点者', key: `右得点者${n}`, text: '', x: ROW_W - 16 - NAME_W, y: 0, w: NAME_W, h: ROW_H,
           font: FONT, size: NAME_SIZE, weight: 'bold', fill: '#ffffff', align: 'right', valign: 'middle', fit: 'shrink_x' },
         { type: 'text', name: '得点時間', key: `右得点時間${n}`, text: '', x: ROW_W - 16 - NAME_W - 10 - TIME_W, y: 0, w: TIME_W, h: ROW_H,
@@ -765,7 +1046,11 @@ for (let n = 1; n <= ROWS; n++) rows.push(leftRow(n), rightRow(n));
 
 const empty = {};
 for (let n = 1; n <= ROWS; n++) Object.assign(empty, { [`左得点者${n}`]: '', [`左得点時間${n}`]: '', [`右得点者${n}`]: '', [`右得点時間${n}`]: '' });
-const base = { '左チーム名': '札幌大谷', '右チーム名': '帯広北', ColorRectL: '#1f4fa8', ColorRectR: '#d32f2f', LeftTeamColor: '#1f4fa8', RigtTeamColor: '#d32f2f' };
+// 左: 2 色（青・白）+ 黄色エッジ / 右: 1 色（赤）エッジなし
+const base = { '左チーム名': '札幌大谷', '右チーム名': '帯広北',
+    ColorRectL: '#1f4fa8', ColorRectL2: '#ffffff', ColorEdgeL: '#ffd54f',
+    ColorRectR: '#d32f2f', ColorRectR2: '#d32f2f', ColorEdgeR: '',
+    LeftTeamColor: '#1f4fa8', RigtTeamColor: '#d32f2f' };
 
 export default {
     telops: [{

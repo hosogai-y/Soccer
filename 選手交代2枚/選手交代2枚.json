@@ -1,6 +1,8 @@
 {
   "OUTポジション2": "img/HD2D_S04_BaseOUT_GK.png",
+  "ColorEdge": "#ffffff",
   "ColorRect": "#bd39fb",
+  "ColorRect2": "#bd39fb",
   "OUT選手名2": "花井　耀",
   "OUT背番号2": "13",
   "OUT学年2": "（3年）",
