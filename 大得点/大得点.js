@@ -3,8 +3,38 @@
 let projectData = null;
 let assetCache = {};
 
-// 2. Controller Logic (Editable)
-// @telop-editor-default-template: If you modify this file, remove this line to prevent TelopEditor from overwriting your changes.
+// 2. Controller Logic (Customized: TAKE 時に下からせり上がる)
+
+/*
+ * TAKE（showTelop）のたびに、グラフィックを下から 0.5 秒でせり上げて今の位置に収める。
+ * 今の位置の下端より下は見せない（下端の線から押し出されて出てくるように見える）。
+ * TelopHub の送出ページはこのページを content-visibility: hidden の入れ物に入れ、updateTelop を差し替えて
+ * showTelop() をデータなしで呼ぶことがある。requestAnimationFrame を待たず、showTelop の中で Web Animations を予約する。
+ * 範囲はテロップの配置（チーム名ベース左右: y 947〜1053）から決めた固定値。
+ * 動かすのは SVG（window.telopApp）、下端で切るのは入れ物（#player-container）。同じ要素に付けると切る線も一緒に動くため分ける。
+ */
+const RISE = { top: 940, bottom: 1060, canvasHeight: 1080, duration: 500, easing: 'ease-out' };
+let riseAnimations = [];
+function startRiseIn() {
+    const box = document.getElementById(window.containerId || 'player-container');
+    const svg = window.telopApp;
+    if (!box || !svg || !box.animate || !svg.animate) return;
+    stopRise();
+    const pct = y => (y / RISE.canvasHeight * 100).toFixed(3) + '%';
+    const timing = { duration: RISE.duration, easing: RISE.easing, fill: 'backwards' };
+    // グラフィックの高さぶん下から、今の位置まで
+    riseAnimations.push(svg.animate(
+        [{ transform: `translateY(${pct(RISE.bottom - RISE.top)})` }, { transform: 'translateY(0)' }],
+        timing
+    ));
+    // 動いている間は、今の位置の下端より下を切る
+    const clip = `inset(0 0 ${pct(RISE.canvasHeight - RISE.bottom)} 0)`;
+    riseAnimations.push(box.animate([{ clipPath: clip }, { clipPath: clip }], { ...timing, easing: 'linear' }));
+}
+function stopRise() {
+    riseAnimations.forEach(a => a.cancel());
+    riseAnimations = [];
+}
 
 // --- External Control API ---
 window._pendingRenderableObject = null;
@@ -48,6 +78,8 @@ window.showTelop = function (rendarableObject) {
             }
         }
     }
+
+    startRiseIn();
 };
 
 /**
@@ -240,6 +272,7 @@ window.updateTelop = function (rendarableObject) {
  * テロップを非表示にする関数
  */
 window.hideTelop = function () {
+    stopRise();
     const divElement = document.getElementById(window.containerId || 'player-container');
     if (divElement) {
         divElement.classList.remove(...divElement.classList);
