@@ -18,7 +18,9 @@ const STAFF_LAYOUT = {
     roleText: 'ポジション',
     numberText: '背番号',
     leftLimitNode: '蹴り上げマーク', // ザブトンはこのノードの右端より左へは伸ばさない
-    padding: 8 // 文字とザブトン端の余白 (px)
+    padding: 8, // 文字とザブトン端の余白 (px)
+    unitText: '年(単位)', // 学年単位（スタッフは「歳」）
+    unitShiftX: 5 // スタッフ表示では年齢の数字と「歳」が重なるので右へずらす (px)
 };
 let staffLayoutOn = false;
 // 元の配置・色。telopDoc のノードは projectData と同じオブジェクトなので、書き換える前に複製しておく
@@ -40,7 +42,7 @@ function applyStaffLayout(d, values) {
     if (!staffLayoutOrig) {
         staffLayoutOrig = {};
         Object.values(d.nodesById).forEach(n => {
-            if (n && [STAFF_LAYOUT.roleText, ...STAFF_LAYOUT.zabutonRects].includes(n.name)) {
+            if (n && [STAFF_LAYOUT.roleText, STAFF_LAYOUT.unitText, ...STAFF_LAYOUT.zabutonRects].includes(n.name)) {
                 staffLayoutOrig[n.id] = cloneJson({ x: n.x, y: n.y, width: n.width, height: n.height, style: n.style });
             }
         });
@@ -48,17 +50,20 @@ function applyStaffLayout(d, values) {
     const group = findByName(d, STAFF_LAYOUT.zabutonGroup);
     const role = findByName(d, STAFF_LAYOUT.roleText);
     const number = findByName(d, STAFF_LAYOUT.numberText);
+    const unit = findByName(d, STAFF_LAYOUT.unitText);
     if (!group || !role || !number) return [];
     const rects = (group.children || []).map(id => d.nodesById[id]).filter(n => n && STAFF_LAYOUT.zabutonRects.includes(n.name));
     const o = id => staffLayoutOrig[id];
-    const before = JSON.stringify([role.x, role.y, role.width, role.height, role.style, rects.map(r => [r.x, r.width])]);
+    const before = JSON.stringify([role.x, role.y, role.width, role.height, role.style, rects.map(r => [r.x, r.width]), unit && unit.x]);
 
     // まず元の配置・色に戻す
     ['x', 'y', 'width', 'height'].forEach(k => { if (o(role.id)) role[k] = o(role.id)[k]; });
     if (o(role.id)) role.style = cloneJson(o(role.id).style);
     rects.forEach(r => { if (o(r.id)) { r.x = o(r.id).x; r.width = o(r.id).width; } });
+    if (unit && o(unit.id)) unit.x = o(unit.id).x;
 
     if (staffLayoutOn) {
+        if (unit && o(unit.id)) unit.x = o(unit.id).x + STAFF_LAYOUT.unitShiftX;
         const parent = group.parentId ? d.nodesById[group.parentId] : null;
         const scaleX = group.scaleX || 1;
         const baseRect = rects[0];
@@ -87,8 +92,8 @@ function applyStaffLayout(d, values) {
             role.style = Object.assign({}, role.style, { appearances: cloneJson(number.style.appearances) });
         }
     }
-    const after = JSON.stringify([role.x, role.y, role.width, role.height, role.style, rects.map(r => [r.x, r.width])]);
-    return before === after ? [] : [role.id, group.id];
+    const after = JSON.stringify([role.x, role.y, role.width, role.height, role.style, rects.map(r => [r.x, r.width]), unit && unit.x]);
+    return before === after ? [] : [role.id, group.id, ...(unit ? [unit.id] : [])];
 }
 
 /**
