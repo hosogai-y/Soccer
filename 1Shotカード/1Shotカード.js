@@ -305,11 +305,11 @@ function applyCardCustom(rendarableObject, options = {}) {
         setCard('img/Red_15.png');
         place(0);
     } else {
-        // --- イエロー1枚: 1Shot が出てから 1 秒後、座布団の背面から左へ 1.5 秒でスライドイン ---
+        // --- イエロー1枚: 1Shot が出てから 0.5 秒後、座布団の背面から左へ 0.3 秒でスライドイン ---
         setCard('img/Yellow1_15.png');
         place(0);
         if (animate) {
-            slideCard(mover, CARD_HIDDEN_X, 0, { delay: 1000, duration: 1500, easing: 'ease-out', fill: 'backwards' });
+            slideCard(mover, CARD_HIDDEN_X, 0, { delay: 500, duration: 300, easing: 'ease-out', fill: 'backwards' });
         }
     }
 }
