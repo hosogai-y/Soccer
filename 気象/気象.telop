@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_1nrgnzhk55fh",
+  "rootId": "n1_dcbme7k9rerl",
   "nodesById": {
-    "n1_1nrgnzhk55fh": {
-      "id": "n1_1nrgnzhk55fh",
+    "n1_dcbme7k9rerl": {
+      "id": "n1_dcbme7k9rerl",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,17 +24,18 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_m0yzy4uyga9y",
-        "n1_64caokadys9g",
-        "n1_e9v7dozeag9c",
-        "n1_8fp64o2hobb5",
-        "n1_f6azfzd2gpp6",
-        "n1_71k4psf9o571",
-        "n1_rc5oq1pp3xu6",
-        "n1_y98ku8w2ssj8",
-        "n1_sfx4hxayjy7f",
-        "n1_ucwiyktgc7gd",
-        "n1_ucicfgy93qfw"
+        "n1_ud8ygg9es182",
+        "n1_t4ilpr2fpdr5",
+        "n1_zxkk1djaiz87",
+        "n1_07uw8vrc7jph",
+        "n1_6jgweyvvqrsm",
+        "n1_1qc783i3zitn",
+        "n1_wilwz0q7hhab",
+        "n1_kr9ryfkt8ep8",
+        "n1_2hj8ihd4owig",
+        "n1_00jmvm9i7kiq",
+        "n1_6t4tko8k26ie",
+        "n1_0xiwo685notm"
       ],
       "name": "気象",
       "visible": true,
@@ -43,8 +44,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_m0yzy4uyga9y": {
-      "id": "n1_m0yzy4uyga9y",
+    "n1_ud8ygg9es182": {
+      "id": "n1_ud8ygg9es182",
       "type": "image",
       "x": 34,
       "y": 1000,
@@ -61,13 +62,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_5xj8s3b92ty0",
+      "assetId": "a1_u6dp07khatfb",
       "width": 318,
       "height": 76,
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_64caokadys9g": {
-      "id": "n1_64caokadys9g",
+    "n1_t4ilpr2fpdr5": {
+      "id": "n1_t4ilpr2fpdr5",
       "type": "image",
       "x": 34,
       "y": 956,
@@ -84,13 +85,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_5xj8s3b92ty0",
+      "assetId": "a1_u6dp07khatfb",
       "width": 318,
       "height": 76,
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_e9v7dozeag9c": {
-      "id": "n1_e9v7dozeag9c",
+    "n1_zxkk1djaiz87": {
+      "id": "n1_zxkk1djaiz87",
       "type": "image",
       "x": 34,
       "y": 912,
@@ -107,13 +108,18 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_5xj8s3b92ty0",
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "屋内施設",
+        "operator": "empty"
+      },
+      "assetId": "a1_u6dp07khatfb",
       "width": 318,
       "height": 76,
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_8fp64o2hobb5": {
-      "id": "n1_8fp64o2hobb5",
+    "n1_07uw8vrc7jph": {
+      "id": "n1_07uw8vrc7jph",
       "type": "text",
       "x": 168,
       "y": 1005,
@@ -163,10 +169,10 @@
       },
       "height": 47,
       "keyexp": "湿度テキスト",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_f6azfzd2gpp6": {
-      "id": "n1_f6azfzd2gpp6",
+    "n1_6jgweyvvqrsm": {
+      "id": "n1_6jgweyvvqrsm",
       "type": "text",
       "x": 168,
       "y": 967,
@@ -218,10 +224,10 @@
       },
       "height": 41,
       "keyexp": "気温テキスト",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_71k4psf9o571": {
-      "id": "n1_71k4psf9o571",
+    "n1_1qc783i3zitn": {
+      "id": "n1_1qc783i3zitn",
       "type": "text",
       "x": 185,
       "y": 922,
@@ -238,6 +244,11 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "屋内施設",
+        "operator": "empty"
+      },
       "text": "晴れ",
       "width": 73,
       "padding": 0,
@@ -273,10 +284,10 @@
       },
       "height": 41,
       "keyexp": "天候テキスト",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_rc5oq1pp3xu6": {
-      "id": "n1_rc5oq1pp3xu6",
+    "n1_wilwz0q7hhab": {
+      "id": "n1_wilwz0q7hhab",
       "type": "text",
       "x": 63,
       "y": 1009,
@@ -326,10 +337,10 @@
       },
       "height": 40,
       "keyexp": "",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_y98ku8w2ssj8": {
-      "id": "n1_y98ku8w2ssj8",
+    "n1_kr9ryfkt8ep8": {
+      "id": "n1_kr9ryfkt8ep8",
       "type": "text",
       "x": 63,
       "y": 966,
@@ -379,10 +390,10 @@
       },
       "height": 40,
       "keyexp": "",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_sfx4hxayjy7f": {
-      "id": "n1_sfx4hxayjy7f",
+    "n1_2hj8ihd4owig": {
+      "id": "n1_2hj8ihd4owig",
       "type": "text",
       "x": 63,
       "y": 922,
@@ -399,6 +410,11 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
+      "visibilityCondition": {
+        "enabled": true,
+        "targetKeyexp": "屋内施設",
+        "operator": "empty"
+      },
       "text": "天候",
       "width": 63,
       "padding": 0,
@@ -432,10 +448,10 @@
       },
       "height": 40,
       "keyexp": "",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_ucwiyktgc7gd": {
-      "id": "n1_ucwiyktgc7gd",
+    "n1_00jmvm9i7kiq": {
+      "id": "n1_00jmvm9i7kiq",
       "type": "text",
       "x": 228,
       "y": 1008,
@@ -485,10 +501,10 @@
       },
       "height": 45,
       "keyexp": "",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
     },
-    "n1_ucicfgy93qfw": {
-      "id": "n1_ucicfgy93qfw",
+    "n1_6t4tko8k26ie": {
+      "id": "n1_6t4tko8k26ie",
       "type": "text",
       "x": 240,
       "y": 964,
@@ -538,68 +554,63 @@
       },
       "height": 45,
       "keyexp": "",
-      "parentId": "n1_1nrgnzhk55fh"
+      "parentId": "n1_dcbme7k9rerl"
+    },
+    "n1_0xiwo685notm": {
+      "id": "n1_0xiwo685notm",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "屋内施設",
+      "visible": false,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "text": "",
+      "keyexp": "屋内施設",
+      "width": 40,
+      "padding": 0,
+      "align": "left",
+      "verticalAlign": "top",
+      "fitMode": "none",
+      "style": {
+        "fontFamily": "Noto Sans JP",
+        "fontSize": 48,
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#ffffff",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 0,
+            "lineJoin": "round",
+            "miterLimit": 10
+          }
+        ]
+      },
+      "parentId": "n1_dcbme7k9rerl"
     }
   },
   "assets": {
-    "a1_5xj8s3b92ty0": {
-      "id": "a1_5xj8s3b92ty0",
+    "a1_u6dp07khatfb": {
+      "id": "a1_u6dp07khatfb",
       "kind": "image",
       "name": "T02_Base_Mini.png",
       "src": "img/T02_Base_Mini.png",
       "width": 318,
       "height": 76,
       "groupId": null,
-      "ownerId": "n1_1nrgnzhk55fh"
+      "ownerId": "n1_dcbme7k9rerl"
     }
   },
-  "assetGroups": {
-    "ag_2tp9vr7rgjrm": {
-      "id": "ag_2tp9vr7rgjrm",
-      "name": "顔写真",
-      "order": 1,
-      "ownerId": "n1_es2xfsdwu7af"
-    },
-    "ag_5oyeyvh9": {
-      "id": "ag_5oyeyvh9",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_h34l97040ncv"
-    },
-    "ag_5p3jtppl49e4": {
-      "id": "ag_5p3jtppl49e4",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_nqlp71a7dlfe"
-    },
-    "ag_8cjhkps1gbgl": {
-      "id": "ag_8cjhkps1gbgl",
-      "name": "チーム名ベース左",
-      "order": 2,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_gmje0s0j5rh2": {
-      "id": "ag_gmje0s0j5rh2",
-      "name": "顔写真",
-      "order": 0
-    },
-    "ag_kp1ed02zjofg": {
-      "id": "ag_kp1ed02zjofg",
-      "name": "チーム名ベース右",
-      "order": 3,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_linnjxg7vpc8": {
-      "id": "ag_linnjxg7vpc8",
-      "name": "チーム名ベース左",
-      "order": 4,
-      "ownerId": "n1_6ua9hzcbdxox"
-    },
-    "ag_t8m4emyvjyk3": {
-      "id": "ag_t8m4emyvjyk3",
-      "name": "チーム名ベース右",
-      "order": 5,
-      "ownerId": "n1_6ua9hzcbdxox"
-    }
-  }
+  "assetGroups": {}
 }

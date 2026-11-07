@@ -166,6 +166,27 @@ window.updateTelop = function (rendarableObject) {
                         }
                         hasUpdates = true;
                     }
+                } else if (target.type === 'appearance_gradient_stop' || target.type === 'bg_appearance_gradient_stop') {
+                    // Replace only this stop's color; the gradient itself stays. Empty values keep the current color.
+                    const strVal = String(val);
+                    const isBg = target.type === 'bg_appearance_gradient_stop';
+                    const holder = isBg ? target.nodeData.background : target.nodeData.style;
+                    const app = holder?.appearances?.[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = (isBg ? docNode?.background : docNode?.style)?.appearances?.[target.appearanceIndex];
+                    const setStop = (a) => {
+                        const stops = a?.gradientConfig?.stops;
+                        const stop = stops?.[target.stopIndex];
+                        if (!stop || stop.color === strVal) return false;
+                        stop.color = strVal;
+                        if (Array.isArray(a.fill) && a.fill.length === stops.length) a.fill[target.stopIndex] = strVal;
+                        return true;
+                    };
+                    if (strVal !== "") {
+                        const changed = setStop(app);
+                        if (docApp && docApp !== app) setStop(docApp);
+                        if (changed) hasUpdates = true;
+                    }
                 } else if (target.type === 'appearance_color_rule' || target.type === 'bg_appearance_color_rule' || target.type === 'visibility_condition' || target.type === 'image_reference_condition') {
                     hasUpdates = true;
                 }

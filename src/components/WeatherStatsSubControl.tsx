@@ -265,12 +265,15 @@ export function WeatherControl() {
         temp: '22.3',
         humidity: '81'
     });
+    // 屋内施設: ON なら天候の行（天候のベース・タイトル・テキスト）を出さずに送出する（テロップ側の showIf 屋内施設）
+    const [indoor, setIndoor] = useSyncedState<boolean>('weather_indoor', false);
 
     const sendWeather = () => {
         const payload = {
             '天候テキスト': weatherData.condition,
             '気温テキスト': weatherData.temp,
-            '湿度テキスト': weatherData.humidity
+            '湿度テキスト': weatherData.humidity,
+            '屋内施設': indoor ? '1' : ''
         };
         weatherTelop.setData(payload);
         // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
@@ -320,6 +323,11 @@ export function WeatherControl() {
             <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn btn-success" style={{ flex: 1, padding: '6px', whiteSpace: 'nowrap' }} onClick={sendWeather}>TAKE 気象</button>
             </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', fontSize: '0.85rem', cursor: 'pointer' }}
+                title="ON にすると、天候を出さずに気温・湿度だけを送出します">
+                <input type="checkbox" checked={indoor} onChange={e => setIndoor(e.target.checked)} />
+                屋内施設
+            </label>
         </div>
     );
 }
