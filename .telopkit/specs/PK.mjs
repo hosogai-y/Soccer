@@ -1,5 +1,6 @@
 // Pulled from telop "PK" by telopkit, then given data keys (keyexp), the 6th-kick show/hide (showIf 6回目表示)
 // and a 0-0 / blank initial state. Images live in ./assets.
+// 5本のときは PK用ベース5回（6本目の枠を詰めた画像）と 得点5回 を出し、6回目表示 があれば6本用に切り替える。
 export default {
   "title": "soccer",
   "canvas": {
@@ -67,6 +68,37 @@ export default {
                 "locked": false,
                 "blendMode": "normal",
                 "effects": []
+              },
+              "showIf": {
+                "key": "6回目表示",
+                "op": "not_empty"
+              }
+            },
+            {
+              "type": "image",
+              "name": "PK用ベース5回",
+              "src": "../../PK/img/HD2D_P07_PKBase_05.png",
+              "raw": {
+                "skewX": 0,
+                "skewY": 0,
+                "x": 0,
+                "y": 0,
+                "rotation": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "opacity": 1,
+                "width": 852,
+                "height": 220,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": []
+              },
+              "showIf": {
+                "key": "6回目表示",
+                "op": "empty"
               }
             },
             {
@@ -229,6 +261,68 @@ export default {
                 "effects": [],
                 "keyexp": "後攻得点",
                 "fitMode": "shrink_x"
+              },
+              "showIf": {
+                "key": "6回目表示",
+                "op": "not_empty"
+              }
+            },
+            {
+              "type": "text",
+              "name": "後攻得点5回",
+              "text": "0",
+              "w": 55,
+              "raw": {
+                "skewX": 0,
+                "skewY": 0,
+                "x": 751,
+                "y": 124,
+                "rotation": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "opacity": 1,
+                "width": 55,
+                "height": 45,
+                "text": "0",
+                "style": {
+                  "fontFamily": "Noto Sans JP",
+                  "fontSize": 45,
+                  "fontWeight": 300,
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": "#ffd41b",
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "shadowEnabled": false,
+                      "shadowColor": "#000000",
+                      "shadowBlur": 0,
+                      "shadowAlpha": 1,
+                      "shadowOffsetX": 4,
+                      "shadowOffsetY": 4
+                    }
+                  ],
+                  "letterSpacing": 0,
+                  "lineHeight": 1.2
+                },
+                "align": "center",
+                "verticalAlign": "top",
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "keyexp": "後攻得点",
+                "fitMode": "shrink_x"
+              },
+              "showIf": {
+                "key": "6回目表示",
+                "op": "empty"
               }
             },
             {
@@ -283,6 +377,68 @@ export default {
                 "effects": [],
                 "keyexp": "先攻得点",
                 "fitMode": "shrink_x"
+              },
+              "showIf": {
+                "key": "6回目表示",
+                "op": "not_empty"
+              }
+            },
+            {
+              "type": "text",
+              "name": "先攻得点5回",
+              "text": "0",
+              "w": 55,
+              "raw": {
+                "skewX": 0,
+                "skewY": 0,
+                "x": 751,
+                "y": 67,
+                "rotation": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "pivotX": 0,
+                "pivotY": 0,
+                "opacity": 1,
+                "width": 55,
+                "height": 45,
+                "text": "0",
+                "style": {
+                  "fontFamily": "Noto Sans JP",
+                  "fontSize": 45,
+                  "fontWeight": 300,
+                  "appearances": [
+                    {
+                      "enabled": true,
+                      "fillEnabled": true,
+                      "fill": "#ffd41b",
+                      "strokeEnabled": false,
+                      "color": "#000000",
+                      "thickness": 2,
+                      "lineJoin": "miter",
+                      "miterLimit": 10,
+                      "shadowEnabled": false,
+                      "shadowColor": "#000000",
+                      "shadowBlur": 0,
+                      "shadowAlpha": 1,
+                      "shadowOffsetX": 4,
+                      "shadowOffsetY": 4
+                    }
+                  ],
+                  "letterSpacing": 0,
+                  "lineHeight": 1.2
+                },
+                "align": "center",
+                "verticalAlign": "top",
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": [],
+                "keyexp": "先攻得点",
+                "fitMode": "shrink_x"
+              },
+              "showIf": {
+                "key": "6回目表示",
+                "op": "empty"
               }
             }
           ]
