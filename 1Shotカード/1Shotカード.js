@@ -323,8 +323,12 @@ function applyCardCustom(rendarableObject, options = {}) {
             { transform: 'translateX(0px)' }
         ], { delay: 1950, duration: 300, easing: 'ease-out', fill: 'both' });
     } else if (cardType === 'red') {
+        // --- レッドカード: イエロー1枚と同じ。1Shot が出てから 0.5 秒後、座布団の背面から左へ 0.3 秒でスライドイン ---
         setCard('img/Red_15.png');
         place(0);
+        if (animate) {
+            slideCard(mover, CARD_HIDDEN_X, 0, { delay: 500, duration: 300, easing: 'ease-out', fill: 'backwards' });
+        }
     } else {
         // --- イエロー1枚: 1Shot が出てから 0.5 秒後、座布団の背面から左へ 0.3 秒でスライドイン ---
         setCard('img/Yellow1_15.png');
