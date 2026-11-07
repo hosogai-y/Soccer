@@ -13,6 +13,8 @@ It previews them with the real player and checks that the project still opens in
 - New telop: write `.telopkit/specs/<Name>.mjs`, then run `push .telopkit/specs/<Name>.mjs`.
 - Change an existing telop: run `pull <Telop>` to get a lossless spec in `.telopkit/specs/<Telop>.mjs`, edit it, then `push` it.
 - `push` replaces only the telops in the spec and backs up the old folder to `.telopkit/backup/`.
+- Common keys (a value every telop shares, such as a language flag): run `common` to list them,
+  `common set <key> [value] [--options a,b]` to change one in every telop, `common remove <key>` to drop the definition.
 - It prints PNG paths. **Look at them before you report.**
 
 How to write specs, the player's pitfalls, and design guidance are in the `telop-design` skill (`.claude/skills/telop-design/SKILL.md`).
@@ -21,7 +23,7 @@ Rules:
 - Don't hand-edit `project.json`, `*.telop`, `viewer/`, or a telop's generated `.html` / `.js`.
   TelopEditor rewrites them; go through telopkit.
 - If TelopEditor is open on this project, its next save overwrites what you pushed.
-  Ask the user to save and close the editor before you push, and to reopen it (or reload TelopHub) afterwards to see the result.
+  Ask the user to save and close the editor before you push or run `common set`, and to reopen it (or reload TelopHub) afterwards to see the result.
 
 ## Dashboard (when `package.json` and `src/` exist)
 

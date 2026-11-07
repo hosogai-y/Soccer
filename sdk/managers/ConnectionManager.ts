@@ -13,7 +13,21 @@ export class ConnectionManager {
 
     public initPeer() {
         if (this.client.isDestroyed) return;
-        
+        let origin = '';
+        if (this.client.config.socketUrl) {
+            try { origin = new URL(this.client.config.socketUrl).origin; } catch (e) {}
+        }
+        // Fetch TURN credentials from the server first; fall back to STUN only
+        fetch(`${origin}/api/ice-servers`)
+            .then((res) => (res.ok ? res.json() : null))
+            .catch(() => null)
+            .then((data) => {
+                if (this.client.isDestroyed || this.peer) return;
+                this.createPeer(Array.isArray(data?.iceServers) ? data.iceServers : null);
+            });
+    }
+
+    private createPeer(iceServers: RTCIceServer[] | null) {
         let host = window.location.hostname;
         let port = parseInt(window.location.port) || (window.location.protocol === 'https:' ? 443 : 80);
         
@@ -35,7 +49,7 @@ export class ConnectionManager {
             port: peerPort,
             secure: isHttps,
             config: {
-                iceServers: [
+                iceServers: iceServers || [
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' }
                 ]

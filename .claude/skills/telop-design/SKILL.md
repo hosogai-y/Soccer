@@ -50,7 +50,7 @@ class (DOM class for CSS), domId, showIf, ignoreInLayout, blend, effects, raw`.
 |---|---|
 | `text` | `text, key, w (required), h, font, size, weight ("normal"/"bold"/700), italic, align, valign, fit, letterSpacing, lineHeight, padding` + paint |
 | `rect` | `w, h, radius` + paint |
-| `image` | `src` (path relative to the spec), `key, w, h` (give one to keep the aspect ratio), `keepRatio` |
+| `image` | `src` (path relative to the spec), `key, w, h` (give one to keep the aspect ratio), `keepRatio, fit, align, valign` |
 | `group` | `children, clip (true or {x,y,w,h,radius}), layout {dir, gap, padding, align, justify}, repeat {count, var}, bg` |
 
 Paint: `fill` (`"#rrggbb[aa]"`; a gradient `{ angle, stops: ["#a", "#b"] or [[0,"#a"],[1,"#b"]], type: "radial", centerX, centerY, radius }`; or `null`),
@@ -64,6 +64,9 @@ For several stacked looks, use `layers: [top, ..., bottom]` (for example a thick
 - A key that only drives `showIf` / `fillKey` gets no sample value. To give it one, add a hidden holder:
   `{ type: "text", key: "ball", text: "2", w: 40, visible: false }`.
 - `fit`: `shrink_x` (condensed type, the usual choice for names), `shrink_font`, `scale_to_fit`, `expand_xy`, or `none` (clips to the box).
+- Image `fit`: `fill` (default; stretches to `w × h`), `cover` (keeps the ratio and crops; use it for keyed photos whose
+  ratio you do not control, with `valign: "top"` for faces), or `contain` (keeps the ratio and fits inside; logos).
+  `align` / `valign` pick where cover / contain anchor the image.
 - Repeat (rankings, lists): a `layout` group with `repeat: { count }` and exactly one template child.
   `{i}` in keys and texts becomes the row number (`key: "name{i}"` gives `name1` … `nameN`).
 

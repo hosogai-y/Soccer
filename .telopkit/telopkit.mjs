@@ -37,9 +37,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/process-nextick-args/index.js
+// vendor/TelopEditor/node_modules/process-nextick-args/index.js
 var require_process_nextick_args = __commonJS({
-  "node_modules/process-nextick-args/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/process-nextick-args/index.js"(exports, module) {
     "use strict";
     if (typeof process === "undefined" || !process.version || process.version.indexOf("v0.") === 0 || process.version.indexOf("v1.") === 0 && process.version.indexOf("v1.8.") !== 0) {
       module.exports = { nextTick };
@@ -82,9 +82,9 @@ var require_process_nextick_args = __commonJS({
   }
 });
 
-// node_modules/isarray/index.js
+// vendor/TelopEditor/node_modules/isarray/index.js
 var require_isarray = __commonJS({
-  "node_modules/isarray/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/isarray/index.js"(exports, module) {
     var toString = {}.toString;
     module.exports = Array.isArray || function(arr) {
       return toString.call(arr) == "[object Array]";
@@ -92,16 +92,16 @@ var require_isarray = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/internal/streams/stream.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/internal/streams/stream.js
 var require_stream = __commonJS({
-  "node_modules/readable-stream/lib/internal/streams/stream.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/internal/streams/stream.js"(exports, module) {
     module.exports = __require("stream");
   }
 });
 
-// node_modules/readable-stream/node_modules/safe-buffer/index.js
+// vendor/TelopEditor/node_modules/safe-buffer/index.js
 var require_safe_buffer = __commonJS({
-  "node_modules/readable-stream/node_modules/safe-buffer/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/safe-buffer/index.js"(exports, module) {
     var buffer = __require("buffer");
     var Buffer2 = buffer.Buffer;
     function copyProps(src, dst) {
@@ -156,9 +156,9 @@ var require_safe_buffer = __commonJS({
   }
 });
 
-// node_modules/core-util-is/lib/util.js
+// vendor/TelopEditor/node_modules/core-util-is/lib/util.js
 var require_util = __commonJS({
-  "node_modules/core-util-is/lib/util.js"(exports) {
+  "vendor/TelopEditor/node_modules/core-util-is/lib/util.js"(exports) {
     function isArray(arg) {
       if (Array.isArray) {
         return Array.isArray(arg);
@@ -226,9 +226,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/inherits/inherits_browser.js
+// vendor/TelopEditor/node_modules/inherits/inherits_browser.js
 var require_inherits_browser = __commonJS({
-  "node_modules/inherits/inherits_browser.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/inherits/inherits_browser.js"(exports, module) {
     if (typeof Object.create === "function") {
       module.exports = function inherits(ctor, superCtor) {
         if (superCtor) {
@@ -258,9 +258,9 @@ var require_inherits_browser = __commonJS({
   }
 });
 
-// node_modules/inherits/inherits.js
+// vendor/TelopEditor/node_modules/inherits/inherits.js
 var require_inherits = __commonJS({
-  "node_modules/inherits/inherits.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/inherits/inherits.js"(exports, module) {
     try {
       util = __require("util");
       if (typeof util.inherits !== "function") throw "";
@@ -272,9 +272,9 @@ var require_inherits = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/internal/streams/BufferList.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/internal/streams/BufferList.js
 var require_BufferList = __commonJS({
-  "node_modules/readable-stream/lib/internal/streams/BufferList.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/internal/streams/BufferList.js"(exports, module) {
     "use strict";
     function _classCallCheck(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -350,9 +350,9 @@ var require_BufferList = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/internal/streams/destroy.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/internal/streams/destroy.js
 var require_destroy = __commonJS({
-  "node_modules/readable-stream/lib/internal/streams/destroy.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/internal/streams/destroy.js"(exports, module) {
     "use strict";
     var pna = require_process_nextick_args();
     function destroy(err, cb) {
@@ -419,16 +419,16 @@ var require_destroy = __commonJS({
   }
 });
 
-// node_modules/util-deprecate/node.js
+// vendor/TelopEditor/node_modules/util-deprecate/node.js
 var require_node = __commonJS({
-  "node_modules/util-deprecate/node.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/util-deprecate/node.js"(exports, module) {
     module.exports = __require("util").deprecate;
   }
 });
 
-// node_modules/readable-stream/lib/_stream_writable.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/_stream_writable.js
 var require_stream_writable = __commonJS({
-  "node_modules/readable-stream/lib/_stream_writable.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/_stream_writable.js"(exports, module) {
     "use strict";
     var pna = require_process_nextick_args();
     module.exports = Writable;
@@ -866,9 +866,9 @@ var require_stream_writable = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/_stream_duplex.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/_stream_duplex.js
 var require_stream_duplex = __commonJS({
-  "node_modules/readable-stream/lib/_stream_duplex.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/_stream_duplex.js"(exports, module) {
     "use strict";
     var pna = require_process_nextick_args();
     var objectKeys = Object.keys || function(obj) {
@@ -943,9 +943,9 @@ var require_stream_duplex = __commonJS({
   }
 });
 
-// node_modules/readable-stream/node_modules/string_decoder/lib/string_decoder.js
+// vendor/TelopEditor/node_modules/string_decoder/lib/string_decoder.js
 var require_string_decoder = __commonJS({
-  "node_modules/readable-stream/node_modules/string_decoder/lib/string_decoder.js"(exports) {
+  "vendor/TelopEditor/node_modules/string_decoder/lib/string_decoder.js"(exports) {
     "use strict";
     var Buffer2 = require_safe_buffer().Buffer;
     var isEncoding = Buffer2.isEncoding || function(encoding) {
@@ -1181,9 +1181,9 @@ var require_string_decoder = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/_stream_readable.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/_stream_readable.js
 var require_stream_readable = __commonJS({
-  "node_modules/readable-stream/lib/_stream_readable.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/_stream_readable.js"(exports, module) {
     "use strict";
     var pna = require_process_nextick_args();
     module.exports = Readable;
@@ -1867,9 +1867,9 @@ var require_stream_readable = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/_stream_transform.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/_stream_transform.js
 var require_stream_transform = __commonJS({
-  "node_modules/readable-stream/lib/_stream_transform.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/_stream_transform.js"(exports, module) {
     "use strict";
     module.exports = Transform;
     var Duplex = require_stream_duplex();
@@ -1967,9 +1967,9 @@ var require_stream_transform = __commonJS({
   }
 });
 
-// node_modules/readable-stream/lib/_stream_passthrough.js
+// vendor/TelopEditor/node_modules/readable-stream/lib/_stream_passthrough.js
 var require_stream_passthrough = __commonJS({
-  "node_modules/readable-stream/lib/_stream_passthrough.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/lib/_stream_passthrough.js"(exports, module) {
     "use strict";
     module.exports = PassThrough;
     var Transform = require_stream_transform();
@@ -1986,9 +1986,9 @@ var require_stream_passthrough = __commonJS({
   }
 });
 
-// node_modules/readable-stream/readable.js
+// vendor/TelopEditor/node_modules/readable-stream/readable.js
 var require_readable = __commonJS({
-  "node_modules/readable-stream/readable.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/readable-stream/readable.js"(exports, module) {
     var Stream = __require("stream");
     if (process.env.READABLE_STREAM === "disable" && Stream) {
       module.exports = Stream;
@@ -2011,9 +2011,9 @@ var require_readable = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/support.js
+// vendor/TelopEditor/node_modules/jszip/lib/support.js
 var require_support = __commonJS({
-  "node_modules/jszip/lib/support.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/support.js"(exports) {
     "use strict";
     exports.base64 = true;
     exports.array = true;
@@ -2051,9 +2051,9 @@ var require_support = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/base64.js
+// vendor/TelopEditor/node_modules/jszip/lib/base64.js
 var require_base64 = __commonJS({
-  "node_modules/jszip/lib/base64.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/base64.js"(exports) {
     "use strict";
     var utils = require_utils();
     var support = require_support();
@@ -2128,9 +2128,9 @@ var require_base64 = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/nodejsUtils.js
+// vendor/TelopEditor/node_modules/jszip/lib/nodejsUtils.js
 var require_nodejsUtils = __commonJS({
-  "node_modules/jszip/lib/nodejsUtils.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/nodejsUtils.js"(exports, module) {
     "use strict";
     module.exports = {
       /**
@@ -2184,9 +2184,9 @@ var require_nodejsUtils = __commonJS({
   }
 });
 
-// node_modules/immediate/lib/index.js
+// vendor/TelopEditor/node_modules/immediate/lib/index.js
 var require_lib = __commonJS({
-  "node_modules/immediate/lib/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/immediate/lib/index.js"(exports, module) {
     "use strict";
     var Mutation = global.MutationObserver || global.WebKitMutationObserver;
     var scheduleDrain;
@@ -2258,9 +2258,9 @@ var require_lib = __commonJS({
   }
 });
 
-// node_modules/lie/lib/index.js
+// vendor/TelopEditor/node_modules/lie/lib/index.js
 var require_lib2 = __commonJS({
-  "node_modules/lie/lib/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/lie/lib/index.js"(exports, module) {
     "use strict";
     var immediate = require_lib();
     function INTERNAL() {
@@ -2528,9 +2528,9 @@ var require_lib2 = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/external.js
+// vendor/TelopEditor/node_modules/jszip/lib/external.js
 var require_external = __commonJS({
-  "node_modules/jszip/lib/external.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/external.js"(exports, module) {
     "use strict";
     var ES6Promise = null;
     if (typeof Promise !== "undefined") {
@@ -2544,9 +2544,9 @@ var require_external = __commonJS({
   }
 });
 
-// node_modules/setimmediate/setImmediate.js
+// vendor/TelopEditor/node_modules/setimmediate/setImmediate.js
 var require_setImmediate = __commonJS({
-  "node_modules/setimmediate/setImmediate.js"(exports) {
+  "vendor/TelopEditor/node_modules/setimmediate/setImmediate.js"(exports) {
     (function(global2, undefined2) {
       "use strict";
       if (global2.setImmediate) {
@@ -2692,9 +2692,9 @@ var require_setImmediate = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/utils.js
+// vendor/TelopEditor/node_modules/jszip/lib/utils.js
 var require_utils = __commonJS({
-  "node_modules/jszip/lib/utils.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/utils.js"(exports) {
     "use strict";
     var support = require_support();
     var base64 = require_base64();
@@ -3017,9 +3017,9 @@ var require_utils = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/GenericWorker.js
+// vendor/TelopEditor/node_modules/jszip/lib/stream/GenericWorker.js
 var require_GenericWorker = __commonJS({
-  "node_modules/jszip/lib/stream/GenericWorker.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/stream/GenericWorker.js"(exports, module) {
     "use strict";
     function GenericWorker(name) {
       this.name = name || "default";
@@ -3244,9 +3244,9 @@ var require_GenericWorker = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/utf8.js
+// vendor/TelopEditor/node_modules/jszip/lib/utf8.js
 var require_utf8 = __commonJS({
-  "node_modules/jszip/lib/utf8.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/utf8.js"(exports) {
     "use strict";
     var utils = require_utils();
     var support = require_support();
@@ -3434,9 +3434,9 @@ var require_utf8 = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/ConvertWorker.js
+// vendor/TelopEditor/node_modules/jszip/lib/stream/ConvertWorker.js
 var require_ConvertWorker = __commonJS({
-  "node_modules/jszip/lib/stream/ConvertWorker.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/stream/ConvertWorker.js"(exports, module) {
     "use strict";
     var GenericWorker = require_GenericWorker();
     var utils = require_utils();
@@ -3455,9 +3455,9 @@ var require_ConvertWorker = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/nodejs/NodejsStreamOutputAdapter.js
+// vendor/TelopEditor/node_modules/jszip/lib/nodejs/NodejsStreamOutputAdapter.js
 var require_NodejsStreamOutputAdapter = __commonJS({
-  "node_modules/jszip/lib/nodejs/NodejsStreamOutputAdapter.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/nodejs/NodejsStreamOutputAdapter.js"(exports, module) {
     "use strict";
     var Readable = require_readable().Readable;
     var utils = require_utils();
@@ -3486,9 +3486,9 @@ var require_NodejsStreamOutputAdapter = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/StreamHelper.js
+// vendor/TelopEditor/node_modules/jszip/lib/stream/StreamHelper.js
 var require_StreamHelper = __commonJS({
-  "node_modules/jszip/lib/stream/StreamHelper.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/stream/StreamHelper.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var ConvertWorker = require_ConvertWorker();
@@ -3646,9 +3646,9 @@ var require_StreamHelper = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/defaults.js
+// vendor/TelopEditor/node_modules/jszip/lib/defaults.js
 var require_defaults = __commonJS({
-  "node_modules/jszip/lib/defaults.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/defaults.js"(exports) {
     "use strict";
     exports.base64 = false;
     exports.binary = false;
@@ -3663,9 +3663,9 @@ var require_defaults = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/DataWorker.js
+// vendor/TelopEditor/node_modules/jszip/lib/stream/DataWorker.js
 var require_DataWorker = __commonJS({
-  "node_modules/jszip/lib/stream/DataWorker.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/stream/DataWorker.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var GenericWorker = require_GenericWorker();
@@ -3751,9 +3751,9 @@ var require_DataWorker = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/crc32.js
+// vendor/TelopEditor/node_modules/jszip/lib/crc32.js
 var require_crc32 = __commonJS({
-  "node_modules/jszip/lib/crc32.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/crc32.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     function makeTable() {
@@ -3798,9 +3798,9 @@ var require_crc32 = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/Crc32Probe.js
+// vendor/TelopEditor/node_modules/jszip/lib/stream/Crc32Probe.js
 var require_Crc32Probe = __commonJS({
-  "node_modules/jszip/lib/stream/Crc32Probe.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/stream/Crc32Probe.js"(exports, module) {
     "use strict";
     var GenericWorker = require_GenericWorker();
     var crc32 = require_crc32();
@@ -3818,9 +3818,9 @@ var require_Crc32Probe = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/DataLengthProbe.js
+// vendor/TelopEditor/node_modules/jszip/lib/stream/DataLengthProbe.js
 var require_DataLengthProbe = __commonJS({
-  "node_modules/jszip/lib/stream/DataLengthProbe.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/stream/DataLengthProbe.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var GenericWorker = require_GenericWorker();
@@ -3841,9 +3841,9 @@ var require_DataLengthProbe = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/compressedObject.js
+// vendor/TelopEditor/node_modules/jszip/lib/compressedObject.js
 var require_compressedObject = __commonJS({
-  "node_modules/jszip/lib/compressedObject.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/compressedObject.js"(exports, module) {
     "use strict";
     var external = require_external();
     var DataWorker = require_DataWorker();
@@ -3886,9 +3886,9 @@ var require_compressedObject = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/zipObject.js
+// vendor/TelopEditor/node_modules/jszip/lib/zipObject.js
 var require_zipObject = __commonJS({
-  "node_modules/jszip/lib/zipObject.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/zipObject.js"(exports, module) {
     "use strict";
     var StreamHelper = require_StreamHelper();
     var DataWorker = require_DataWorker();
@@ -4003,9 +4003,9 @@ var require_zipObject = __commonJS({
   }
 });
 
-// node_modules/pako/lib/utils/common.js
+// vendor/TelopEditor/node_modules/pako/lib/utils/common.js
 var require_common = __commonJS({
-  "node_modules/pako/lib/utils/common.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/utils/common.js"(exports) {
     "use strict";
     var TYPED_OK = typeof Uint8Array !== "undefined" && typeof Uint16Array !== "undefined" && typeof Int32Array !== "undefined";
     function _has(obj, key2) {
@@ -4094,9 +4094,9 @@ var require_common = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/trees.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/trees.js
 var require_trees = __commonJS({
-  "node_modules/pako/lib/zlib/trees.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/trees.js"(exports) {
     "use strict";
     var utils = require_common();
     var Z_FIXED = 4;
@@ -4736,9 +4736,9 @@ var require_trees = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/adler32.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/adler32.js
 var require_adler32 = __commonJS({
-  "node_modules/pako/lib/zlib/adler32.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/adler32.js"(exports, module) {
     "use strict";
     function adler32(adler, buf, len, pos) {
       var s1 = adler & 65535 | 0, s2 = adler >>> 16 & 65535 | 0, n = 0;
@@ -4758,9 +4758,9 @@ var require_adler32 = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/crc32.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/crc32.js
 var require_crc322 = __commonJS({
-  "node_modules/pako/lib/zlib/crc32.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/crc32.js"(exports, module) {
     "use strict";
     function makeTable() {
       var c, table = [];
@@ -4786,9 +4786,9 @@ var require_crc322 = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/messages.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/messages.js
 var require_messages = __commonJS({
-  "node_modules/pako/lib/zlib/messages.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/messages.js"(exports, module) {
     "use strict";
     module.exports = {
       2: "need dictionary",
@@ -4813,9 +4813,9 @@ var require_messages = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/deflate.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/deflate.js
 var require_deflate = __commonJS({
-  "node_modules/pako/lib/zlib/deflate.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/deflate.js"(exports) {
     "use strict";
     var utils = require_common();
     var trees = require_trees();
@@ -5862,9 +5862,9 @@ var require_deflate = __commonJS({
   }
 });
 
-// node_modules/pako/lib/utils/strings.js
+// vendor/TelopEditor/node_modules/pako/lib/utils/strings.js
 var require_strings = __commonJS({
-  "node_modules/pako/lib/utils/strings.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/utils/strings.js"(exports) {
     "use strict";
     var utils = require_common();
     var STR_APPLY_OK = true;
@@ -6004,9 +6004,9 @@ var require_strings = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/zstream.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/zstream.js
 var require_zstream = __commonJS({
-  "node_modules/pako/lib/zlib/zstream.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/zstream.js"(exports, module) {
     "use strict";
     function ZStream() {
       this.input = null;
@@ -6026,9 +6026,9 @@ var require_zstream = __commonJS({
   }
 });
 
-// node_modules/pako/lib/deflate.js
+// vendor/TelopEditor/node_modules/pako/lib/deflate.js
 var require_deflate2 = __commonJS({
-  "node_modules/pako/lib/deflate.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/deflate.js"(exports) {
     "use strict";
     var zlib_deflate = require_deflate();
     var utils = require_common();
@@ -6187,9 +6187,9 @@ var require_deflate2 = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/inffast.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/inffast.js
 var require_inffast = __commonJS({
-  "node_modules/pako/lib/zlib/inffast.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/inffast.js"(exports, module) {
     "use strict";
     var BAD = 30;
     var TYPE = 12;
@@ -6416,9 +6416,9 @@ var require_inffast = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/inftrees.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/inftrees.js
 var require_inftrees = __commonJS({
-  "node_modules/pako/lib/zlib/inftrees.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/inftrees.js"(exports, module) {
     "use strict";
     var utils = require_common();
     var MAXBITS = 15;
@@ -6732,9 +6732,9 @@ var require_inftrees = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/inflate.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/inflate.js
 var require_inflate = __commonJS({
-  "node_modules/pako/lib/zlib/inflate.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/inflate.js"(exports) {
     "use strict";
     var utils = require_common();
     var adler32 = require_adler32();
@@ -7948,9 +7948,9 @@ var require_inflate = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/constants.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/constants.js
 var require_constants = __commonJS({
-  "node_modules/pako/lib/zlib/constants.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/constants.js"(exports, module) {
     "use strict";
     module.exports = {
       /* Allowed flush values; see deflate() and inflate() below for details */
@@ -7995,9 +7995,9 @@ var require_constants = __commonJS({
   }
 });
 
-// node_modules/pako/lib/zlib/gzheader.js
+// vendor/TelopEditor/node_modules/pako/lib/zlib/gzheader.js
 var require_gzheader = __commonJS({
-  "node_modules/pako/lib/zlib/gzheader.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/lib/zlib/gzheader.js"(exports, module) {
     "use strict";
     function GZheader() {
       this.text = 0;
@@ -8015,9 +8015,9 @@ var require_gzheader = __commonJS({
   }
 });
 
-// node_modules/pako/lib/inflate.js
+// vendor/TelopEditor/node_modules/pako/lib/inflate.js
 var require_inflate2 = __commonJS({
-  "node_modules/pako/lib/inflate.js"(exports) {
+  "vendor/TelopEditor/node_modules/pako/lib/inflate.js"(exports) {
     "use strict";
     var zlib_inflate = require_inflate();
     var utils = require_common();
@@ -8189,9 +8189,9 @@ var require_inflate2 = __commonJS({
   }
 });
 
-// node_modules/pako/index.js
+// vendor/TelopEditor/node_modules/pako/index.js
 var require_pako = __commonJS({
-  "node_modules/pako/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/pako/index.js"(exports, module) {
     "use strict";
     var assign = require_common().assign;
     var deflate = require_deflate2();
@@ -8203,9 +8203,9 @@ var require_pako = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/flate.js
+// vendor/TelopEditor/node_modules/jszip/lib/flate.js
 var require_flate = __commonJS({
-  "node_modules/jszip/lib/flate.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/flate.js"(exports) {
     "use strict";
     var USE_TYPEDARRAY = typeof Uint8Array !== "undefined" && typeof Uint16Array !== "undefined" && typeof Uint32Array !== "undefined";
     var pako = require_pako();
@@ -8262,9 +8262,9 @@ var require_flate = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/compressions.js
+// vendor/TelopEditor/node_modules/jszip/lib/compressions.js
 var require_compressions = __commonJS({
-  "node_modules/jszip/lib/compressions.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/compressions.js"(exports) {
     "use strict";
     var GenericWorker = require_GenericWorker();
     exports.STORE = {
@@ -8280,9 +8280,9 @@ var require_compressions = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/signature.js
+// vendor/TelopEditor/node_modules/jszip/lib/signature.js
 var require_signature = __commonJS({
-  "node_modules/jszip/lib/signature.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/signature.js"(exports) {
     "use strict";
     exports.LOCAL_FILE_HEADER = "PK";
     exports.CENTRAL_FILE_HEADER = "PK";
@@ -8293,9 +8293,9 @@ var require_signature = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/generate/ZipFileWorker.js
+// vendor/TelopEditor/node_modules/jszip/lib/generate/ZipFileWorker.js
 var require_ZipFileWorker = __commonJS({
-  "node_modules/jszip/lib/generate/ZipFileWorker.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/generate/ZipFileWorker.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var GenericWorker = require_GenericWorker();
@@ -8577,9 +8577,9 @@ var require_ZipFileWorker = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/generate/index.js
+// vendor/TelopEditor/node_modules/jszip/lib/generate/index.js
 var require_generate = __commonJS({
-  "node_modules/jszip/lib/generate/index.js"(exports) {
+  "vendor/TelopEditor/node_modules/jszip/lib/generate/index.js"(exports) {
     "use strict";
     var compressions = require_compressions();
     var ZipFileWorker = require_ZipFileWorker();
@@ -8618,9 +8618,9 @@ var require_generate = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/nodejs/NodejsStreamInputAdapter.js
+// vendor/TelopEditor/node_modules/jszip/lib/nodejs/NodejsStreamInputAdapter.js
 var require_NodejsStreamInputAdapter = __commonJS({
-  "node_modules/jszip/lib/nodejs/NodejsStreamInputAdapter.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/nodejs/NodejsStreamInputAdapter.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var GenericWorker = require_GenericWorker();
@@ -8677,9 +8677,9 @@ var require_NodejsStreamInputAdapter = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/object.js
+// vendor/TelopEditor/node_modules/jszip/lib/object.js
 var require_object = __commonJS({
-  "node_modules/jszip/lib/object.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/object.js"(exports, module) {
     "use strict";
     var utf8 = require_utf8();
     var utils = require_utils();
@@ -8950,9 +8950,9 @@ var require_object = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/reader/DataReader.js
+// vendor/TelopEditor/node_modules/jszip/lib/reader/DataReader.js
 var require_DataReader = __commonJS({
-  "node_modules/jszip/lib/reader/DataReader.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/reader/DataReader.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     function DataReader(data) {
@@ -9072,9 +9072,9 @@ var require_DataReader = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/reader/ArrayReader.js
+// vendor/TelopEditor/node_modules/jszip/lib/reader/ArrayReader.js
 var require_ArrayReader = __commonJS({
-  "node_modules/jszip/lib/reader/ArrayReader.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/reader/ArrayReader.js"(exports, module) {
     "use strict";
     var DataReader = require_DataReader();
     var utils = require_utils();
@@ -9114,9 +9114,9 @@ var require_ArrayReader = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/reader/StringReader.js
+// vendor/TelopEditor/node_modules/jszip/lib/reader/StringReader.js
 var require_StringReader = __commonJS({
-  "node_modules/jszip/lib/reader/StringReader.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/reader/StringReader.js"(exports, module) {
     "use strict";
     var DataReader = require_DataReader();
     var utils = require_utils();
@@ -9144,9 +9144,9 @@ var require_StringReader = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/reader/Uint8ArrayReader.js
+// vendor/TelopEditor/node_modules/jszip/lib/reader/Uint8ArrayReader.js
 var require_Uint8ArrayReader = __commonJS({
-  "node_modules/jszip/lib/reader/Uint8ArrayReader.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/reader/Uint8ArrayReader.js"(exports, module) {
     "use strict";
     var ArrayReader = require_ArrayReader();
     var utils = require_utils();
@@ -9167,9 +9167,9 @@ var require_Uint8ArrayReader = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/reader/NodeBufferReader.js
+// vendor/TelopEditor/node_modules/jszip/lib/reader/NodeBufferReader.js
 var require_NodeBufferReader = __commonJS({
-  "node_modules/jszip/lib/reader/NodeBufferReader.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/reader/NodeBufferReader.js"(exports, module) {
     "use strict";
     var Uint8ArrayReader = require_Uint8ArrayReader();
     var utils = require_utils();
@@ -9187,9 +9187,9 @@ var require_NodeBufferReader = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/reader/readerFor.js
+// vendor/TelopEditor/node_modules/jszip/lib/reader/readerFor.js
 var require_readerFor = __commonJS({
-  "node_modules/jszip/lib/reader/readerFor.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/reader/readerFor.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var support = require_support();
@@ -9214,9 +9214,9 @@ var require_readerFor = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/zipEntry.js
+// vendor/TelopEditor/node_modules/jszip/lib/zipEntry.js
 var require_zipEntry = __commonJS({
-  "node_modules/jszip/lib/zipEntry.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/zipEntry.js"(exports, module) {
     "use strict";
     var readerFor = require_readerFor();
     var utils = require_utils();
@@ -9432,9 +9432,9 @@ var require_zipEntry = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/zipEntries.js
+// vendor/TelopEditor/node_modules/jszip/lib/zipEntries.js
 var require_zipEntries = __commonJS({
-  "node_modules/jszip/lib/zipEntries.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/zipEntries.js"(exports, module) {
     "use strict";
     var readerFor = require_readerFor();
     var utils = require_utils();
@@ -9630,9 +9630,9 @@ var require_zipEntries = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/load.js
+// vendor/TelopEditor/node_modules/jszip/lib/load.js
 var require_load = __commonJS({
-  "node_modules/jszip/lib/load.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/load.js"(exports, module) {
     "use strict";
     var utils = require_utils();
     var external = require_external();
@@ -9709,9 +9709,9 @@ var require_load = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/index.js
+// vendor/TelopEditor/node_modules/jszip/lib/index.js
 var require_lib3 = __commonJS({
-  "node_modules/jszip/lib/index.js"(exports, module) {
+  "vendor/TelopEditor/node_modules/jszip/lib/index.js"(exports, module) {
     "use strict";
     function JSZip4() {
       if (!(this instanceof JSZip4)) {
@@ -12996,7 +12996,8 @@ var PLAYER_JS_CONTENT = `
             // Animation targeting:
             // When an element is a direct child of a telop:
             // If it has clipRect, the frame (root) stays static at fixed position, and its content (.content-wrapper) animates.
-            // If it does not have clipRect, the element (root) animates.
+            // If it does not have clipRect, the parent wraps it in a plain <g class="anim-target"> (see the children loop below),
+            // because root carries the node's position in its transform attribute and a CSS transform animation would replace it.
             // IMPORTANT: Invisible nodes MUST NOT receive anim-target to prevent animation from forcing them visible!
             const shouldBeAnimTarget = isTelopChild && isEffectivelyVisible;
 
@@ -13011,9 +13012,6 @@ var PLAYER_JS_CONTENT = `
                     if (classes.length) content.classList.add(...classes);
                 }
             } else {
-                if (shouldBeAnimTarget) {
-                    root.classList.add("anim-target");
-                }
                 if (node.domId) root.setAttribute("id", node.domId);
                 if (node.domClass) {
                     const classes = node.domClass.trim().split(/\\s+/).filter(Boolean);
@@ -13152,11 +13150,15 @@ var PLAYER_JS_CONTENT = `
                 const img = createSVGElement("image");
                 const asset = (activeDoc.assets && activeDoc.assets[node.assetId]) || (projectData.assets ? projectData.assets[node.assetId] : null);
                 const src = asset ? asset.src : null;
-                setAttributes(img, { 
-                    width: node.width || 100, 
-                    height: node.height || 100, 
-                    href: (src && assetCache[src]) ? assetCache[src] : (src || ""), 
-                    preserveAspectRatio: "none" 
+                // \u5408\u308F\u305B\u65B9\uFF08domain/projectdoc/imageFit.ts \u306E imagePreserveAspectRatio \u3068\u540C\u3058\uFF09
+                const fit = node.imageFit || "fill";
+                const fitX = node.imageAlign === "left" ? "xMin" : node.imageAlign === "right" ? "xMax" : "xMid";
+                const fitY = node.imageVAlign === "top" ? "YMin" : node.imageVAlign === "bottom" ? "YMax" : "YMid";
+                setAttributes(img, {
+                    width: node.width || 100,
+                    height: node.height || 100,
+                    href: (src && assetCache[src]) ? assetCache[src] : (src || ""),
+                    preserveAspectRatio: fit === "fill" ? "none" : \`\${fitX}\${fitY} \${fit === "cover" ? "slice" : "meet"}\`
                 });
                 content.appendChild(img);
             } else if (node.type === 'group' || node.type === 'telop' || node.type === 'plane') {
@@ -13280,7 +13282,17 @@ var PLAYER_JS_CONTENT = `
                 node.children.forEach(cid => {
                     const override = autoLayoutPositions ? autoLayoutPositions[cid] : null;
                     const c = window.createNode(cid, override, childrenAreTelopChildren);
-                    if (c) targetWrapper.appendChild(c);
+                    if (!c) return;
+                    if (childrenAreTelopChildren && !activeDoc.nodesById[cid]?.clipRect) {
+                        // The wrapper has no position of its own, so in/out animations can use transform without moving the node.
+                        // It stays even while the child is hidden: Hub swaps and shows the child in place, inside this wrapper.
+                        const animHost = createSVGElement("g");
+                        animHost.classList.add("anim-target");
+                        animHost.appendChild(c);
+                        targetWrapper.appendChild(animHost);
+                    } else {
+                        targetWrapper.appendChild(c);
+                    }
                 });
             }
 
@@ -14212,6 +14224,17 @@ window.addEventListener('load', async () => {
 function getCommonKeys(doc) {
   return doc.meta.commonKeys ?? [];
 }
+function findKeyTextNodes(doc, telopId, keyexp) {
+  const found = [];
+  const visit = (id) => {
+    const node = doc.nodesById[id];
+    if (!node) return;
+    if (node.type === "text" && (node.keyexp || "").trim() === keyexp) found.push(node);
+    if ("children" in node) node.children.forEach(visit);
+  };
+  visit(telopId);
+  return found;
+}
 function flagNodeCommand(telopId, keyexp, value) {
   return {
     kind: "AddNode",
@@ -14244,6 +14267,11 @@ function flagNodeCommand(telopId, keyexp, value) {
       effects: []
     }
   };
+}
+function syncTelopCommands(doc, telopId, keyexp, value) {
+  const nodes = findKeyTextNodes(doc, telopId, keyexp);
+  if (nodes.length === 0) return [flagNodeCommand(telopId, keyexp, value)];
+  return nodes.filter((n) => n.text !== value).map((n) => ({ kind: "SetProps", nodeId: n.id, patch: { text: value } }));
 }
 function buildEnsureCommonKeysCommands(doc, telopId) {
   return getCommonKeys(doc).map((key2) => flagNodeCommand(telopId, key2.keyexp, key2.value));
@@ -14474,7 +14502,10 @@ var Builder = class {
       width: w,
       height: h,
       ...s.key ? { keyexp: s.key } : {},
-      ...s.keepRatio !== void 0 ? { keepRatio: s.keepRatio } : {}
+      ...s.keepRatio !== void 0 ? { keepRatio: s.keepRatio } : {},
+      ...s.fit ? { imageFit: s.fit } : {},
+      ...s.align ? { imageAlign: s.align } : {},
+      ...s.valign ? { imageVAlign: s.valign } : {}
     };
   }
   groupProps(s, telopId, label) {
@@ -15106,6 +15137,78 @@ function pullTelop(p, telopName, outFile) {
   ].join("\n"));
   return outFile;
 }
+function readCommonKeys(p) {
+  if (!p.projectJson) throw new Error(`no project.json in ${p.dir}: common keys belong to a project`);
+  return p.projectJson.meta?.commonKeys ?? [];
+}
+function listCommonKeys(p) {
+  return readCommonKeys(p).map((key2) => ({
+    ...key2,
+    differs: p.telops.filter((t) => {
+      const nodes = findKeyTextNodes(t.sub, t.id, key2.keyexp);
+      return nodes.length === 0 || nodes.some((n) => n.text !== key2.value);
+    }).map((t) => t.name)
+  }));
+}
+function applyToTelopFile(sub, cmd) {
+  if (cmd.kind === "SetProps") {
+    const id = cmd.nodeId;
+    return { ...sub, nodesById: { ...sub.nodesById, [id]: { ...sub.nodesById[id], ...cmd.patch } } };
+  }
+  if (cmd.kind === "AddNode") {
+    const parentId = cmd.parentId;
+    const parent = sub.nodesById[parentId];
+    const id = cmd.node.id;
+    return {
+      ...sub,
+      nodesById: {
+        ...sub.nodesById,
+        [parentId]: { ...parent, children: [...parent.children, id] },
+        [id]: { ...cmd.node, parentId }
+      }
+    };
+  }
+  throw new Error(`unexpected command for a telop file: ${cmd.kind}`);
+}
+function writeCommonKeys(p, keys) {
+  p.projectJson.meta = { ...p.projectJson.meta, commonKeys: keys };
+  fs4.writeFileSync(path4.join(p.dir, "project.json"), JSON.stringify(p.projectJson, null, 2));
+}
+function setCommonKey(projectDir, keyexp, value, options) {
+  const p = readProject(projectDir);
+  const keys = readCommonKeys(p);
+  const existing = keys.find((k8) => k8.keyexp === keyexp);
+  const nextOptions = options ?? existing?.options;
+  const nextValue = value ?? existing?.value ?? (nextOptions?.[0] || "");
+  if (nextOptions?.length && !nextOptions.includes(nextValue)) {
+    throw new Error(`"${nextValue}" is not one of the options of ${keyexp}: ${nextOptions.join(", ")}`);
+  }
+  const key2 = { keyexp, value: nextValue };
+  if (nextOptions?.length) key2.options = nextOptions;
+  const stamp = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+  const backup = path4.join(projectDir, KIT_DIR, "backup", stamp);
+  const updates = p.telops.flatMap((t) => {
+    const commands = syncTelopCommands(t.sub, t.id, keyexp, nextValue);
+    const sampleFile = path4.join(t.dir, `${t.name}.json`);
+    const sample = fs4.existsSync(sampleFile) ? JSON.parse(fs4.readFileSync(sampleFile, "utf8")) : {};
+    if (commands.length === 0 && sample[keyexp] === nextValue) return [];
+    return [{ t, doc: commands.reduce(applyToTelopFile, t.sub), sampleFile, sample: { ...sample, [keyexp]: nextValue } }];
+  });
+  for (const { t, doc, sampleFile, sample } of updates) {
+    copyDir(t.dir, path4.join(backup, t.name));
+    fs4.writeFileSync(path4.join(t.dir, `${t.name}.telop`), JSON.stringify(doc, null, 2));
+    fs4.writeFileSync(sampleFile, JSON.stringify(sample, null, 2));
+  }
+  const changed = updates.map((u) => u.t.name);
+  writeCommonKeys(p, existing ? keys.map((k8) => k8 === existing ? key2 : k8) : [...keys, key2]);
+  return { key: key2, changed, backup: changed.length ? backup : void 0 };
+}
+function removeCommonKey(projectDir, keyexp) {
+  const p = readProject(projectDir);
+  const keys = readCommonKeys(p);
+  if (!keys.some((k8) => k8.keyexp === keyexp)) throw new Error(`no common key named ${keyexp}`);
+  writeCommonKeys(p, keys.filter((k8) => k8.keyexp !== keyexp));
+}
 async function pushSpec(projectDir, spec, specDir) {
   const before = readProject(projectDir);
   const pj = before.projectJson;
@@ -15186,6 +15289,9 @@ In a TelopHub project (default project: the folder that holds .telopkit/telopkit
   push <spec.mjs> [--project DIR] [--no-preview] [preview flags]
                                             add / replace the spec's telops in the project, then preview + check
   preview [--project DIR] [--telop NAME]... [preview flags]
+  common [--project DIR]                    common keys, and the telops whose value differs
+  common set <key> [value] [--options a,b]  define a common key and rewrite it in every telop (--options "" clears them)
+  common remove <key>                       remove the definition (the nodes stay in each telop)
 
 Stand-alone (writes a separate project folder + zip):
   build <spec.mjs> [--out DIR]
@@ -15331,6 +15437,28 @@ async function main() {
         errors: report.errors,
         note: "Reopen the project in TelopEditor (or reload the TelopHub page) to see the change."
       });
+      return;
+    }
+    case "common": {
+      const projectDir = resolveProjectDir(args);
+      const [, , key2, value] = args._;
+      if (!target || target === "list") {
+        print({ project: projectDir, commonKeys: listCommonKeys(readProject(projectDir)) });
+      } else if (target === "set" && key2?.trim()) {
+        const raw = flag(args, "options");
+        const options = raw === void 0 ? void 0 : raw.split(",").map((v) => v.trim()).filter(Boolean);
+        print({
+          ok: true,
+          project: projectDir,
+          ...setCommonKey(projectDir, key2.trim(), value, options),
+          note: "Reopen the project in TelopEditor (or reload the TelopHub page) to see the change."
+        });
+      } else if (target === "remove" && key2?.trim()) {
+        removeCommonKey(projectDir, key2.trim());
+        print({ ok: true, project: projectDir, removed: key2.trim() });
+      } else {
+        throw new Error("usage: common [list] | common set <key> [value] [--options a,b] | common remove <key>");
+      }
       return;
     }
     case "build": {

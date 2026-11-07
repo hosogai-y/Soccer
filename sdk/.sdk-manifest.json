@@ -1,0 +1,20 @@
+{
+  "version": "b5130bd20caa8433",
+  "files": {
+    "IDBStateStore.ts": "86a8233c3443b851a2f0e50a4a5ad40309ce9dd3d36b0e2a989dc011b4a81b01",
+    "README.md": "e3d998c1efc9808c723a1f210a9a1228f3667b5717cea905792e41fe0ef2c915",
+    "TelopHubClient.ts": "b6b0249ed33056f0635eca8094eb5c42aa50d4593206ec157776cf14f85c8e10",
+    "TelopHubSDK.tsx": "8b8903e298b38af618607d0cae1190c134a25db12a91f6222a9dc03cbe38f175",
+    "index.ts": "7881c8fc9d05e9a847328603d487d8219b7122e4303b864eccdb0ce29c99634f",
+    "managers/ActionDispatcher.ts": "d213aa179a4abd8f3cc02ba465fc1ef41a275a35f780b650c9c222cebd4323d2",
+    "managers/AssetManager.ts": "331c247708e11c98ba579eab359486bb76eff03981338312d45b77490ef8c286",
+    "managers/ConnectionManager.ts": "a6976d032ac991a904dbdc063cd1ed1a4b167be7adb80bb08e60376cd58749bd",
+    "managers/StateManager.ts": "461e24439b8454e1544e1afe77ef544e2ae7f7f67b48f6bd3d0d867a7184fa86",
+    "react/TelopHubContext.tsx": "26b303ed1810e3dfb9033beb01faa0540f77ee787c0bc6dcb6b2a6a0dda85cd0",
+    "react/hooks.ts": "e3e1e16f1d729ac52b09b28c3f02c15fae565041500169505098edecc741c057",
+    "relay.ts": "fb16e28100653d5aaf011c60808494184e553c44257577acb79e10b39288715c",
+    "stateUtils.ts": "69521c1cf18d53da543da9fbb0454423a2a40e5386f4e2d162e7a8dc90685c59",
+    "timers.ts": "4d7a2d17e26406c8c10405c0d95d0d17c303521b3746023dedc22b9bae3df72c",
+    "types.ts": "a64309fccc1d03d742ec1915796d7ef31e94d32e68bfcd1ac374538d9778ad92"
+  }
+}

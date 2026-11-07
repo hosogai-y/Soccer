@@ -32,9 +32,9 @@
     mod
   ));
 
-  // node_modules/jszip/dist/jszip.min.js
+  // vendor/TelopEditor/node_modules/jszip/dist/jszip.min.js
   var require_jszip_min = __commonJS({
-    "node_modules/jszip/dist/jszip.min.js"(exports, module) {
+    "vendor/TelopEditor/node_modules/jszip/dist/jszip.min.js"(exports, module) {
       !function(e) {
         if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();
         else if ("function" == typeof define && define.amd) define([], e);

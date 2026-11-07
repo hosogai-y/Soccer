@@ -66,7 +66,11 @@ export function safeDeepMergeState(current: any, incomingRaw: any): any {
                 // Deep merge array elements (e.g., players) to preserve Base64 photos/logos if incoming items have empty strings
                 result[k] = incVal.map((incItem: any, idx: number) => {
                     if (incItem && typeof incItem === 'object') {
-                        const curItem = curVal.find((c: any) => c && c.id && incItem.id && c.id === incItem.id) || curVal[idx];
+                        // Items with an id only merge into the item with the same id. Falling back to the same index
+                        // would carry the previous item's fields (e.g. another player's photo) over to a new item.
+                        const curItem = incItem.id
+                            ? curVal.find((c: any) => c && c.id === incItem.id)
+                            : curVal[idx];
                         if (curItem && typeof curItem === 'object') {
                             return safeDeepMergeState(curItem, incItem);
                         }

@@ -11,9 +11,15 @@ import DataManager from './components/DataManager';
 
 const PROJECT_NAME = "Telops/soccer";
 
+// TelopHub passes ?hub=... when it opens the dashboard; fall back to the last-used hub, then the default one.
+const HUB_URL =
+    new URLSearchParams(window.location.search).get('hub') ||
+    localStorage.getItem('telop-hub-url') ||
+    'https://telophub.duckdns.org';
+
 export default function App() {
     return (
-        <TelopHubProvider projectName={PROJECT_NAME} config={{ socketUrl: 'https://telophub.onrender.com' }}>
+        <TelopHubProvider projectName={PROJECT_NAME} config={{ socketUrl: HUB_URL }}>
             <GlobalTimerManager />
             <HashRouter>
                 <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
