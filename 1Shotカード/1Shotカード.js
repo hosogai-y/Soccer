@@ -6,7 +6,6 @@ let assetCache = {};
 window._pendingRenderableObject = null;
 window._pendingShow = false;
 window._currentCardData = null;
-let cardAnimationTimer = null;
 
 function showNode(node) {
     if (!node) return;
@@ -185,14 +184,16 @@ function resolveCommentTexts(data) {
     };
 }
 
-function applyCardCustom(rendarableObject) {
+function applyCardCustom(rendarableObject, options = {}) {
     const app = window.telopApp;
     if (!app || !rendarableObject) return;
 
-    // 1. 顔写真の制御 (keyExp: 顔写真 / ID: n1_n33e7b0yh1qf)
+    // cardOnly: TelopHub の送出ページが中身を反映済みのとき。顔写真・コメントは触らずカードの演出だけ行う
+    if (!options.cardOnly) {
+    // 1. 顔写真の制御 (keyExp: 顔写真)
     const keyExpTargets = window.keyExpMap ? window.keyExpMap.get('顔写真') : null;
     const targetEl = keyExpTargets && keyExpTargets[0] ? keyExpTargets[0].element : null;
-    const faceEl = app.querySelector('[data-node-id="n1_n33e7b0yh1qf"]') || targetEl;
+    const faceEl = targetEl;
     if (faceEl) {
         const photoSrc = rendarableObject['顔写真'] || rendarableObject.photo;
         const isPhotoVisible = rendarableObject['顔写真_visible'] !== false &&
@@ -212,10 +213,10 @@ function applyCardCustom(rendarableObject) {
     }
 
     // 2. モード制御 (pro2 / today / total)
-    const pro2Yellow = app.querySelector('[data-node-id="n1_ps2jlxo2g71t"]'); // プロ2コメント黄色
-    const pro2White = app.querySelector('[data-node-id="n1_xxqucbuht4t7"]');  // プロ2コメント
-    const totalGoalEl = app.querySelector('[data-node-id="n1_c2vku62tmae7"]'); // TOTALゴール
-    const todayGoalEl = app.querySelector('[data-node-id="n1_yjbu3t7emvx5"]'); // TODAYゴール
+    const pro2Yellow = keyExpElement('プロ2コメント黄色');
+    const pro2White = keyExpElement('プロ2コメント');
+    const totalGoalEl = null; // TOTALゴール（1Shotカードでは常に非表示）
+    const todayGoalEl = null; // TODAYゴール（1Shotカードでは常に非表示）
 
     const { isYellow, yellowText, whiteText, isPro2Mode } = resolveCommentTexts(rendarableObject);
     const mode = rendarableObject.mode || (rendarableObject.todayGoalSelected ? 'today' : (rendarableObject.totalGoalSelected ? 'total' : 'pro2'));
@@ -254,61 +255,113 @@ function applyCardCustom(rendarableObject) {
         }
     }
 
-    // 3. カード制御 & アニメーション (ID: n1_koiwwq62cmdp)
-    const cardEl = app.querySelector('[data-node-id="n1_koiwwq62cmdp"]');
+    }
+
+    // 3. カード制御 & アニメーション（keyExp「カード」のノード。ノード ID は push で振り直されるので使わない）
+    const cardEl = keyExpElement('カード');
     if (!cardEl) return;
     const cardImg = cardEl.querySelector('image');
-    if (!cardImg) return;
+    // 動かすのは中身（content-wrapper）。ノード本体の transform 属性は位置なので、CSS transform で上書きしない
+    const mover = cardEl.querySelector('.content-wrapper') || cardImg;
+    if (!cardImg || !mover) return;
+    ensureCardClip(cardEl);
 
-    if (cardAnimationTimer) {
-        clearTimeout(cardAnimationTimer);
-        cardAnimationTimer = null;
-    }
+    stopCardAnimations();
 
     const cardType = rendarableObject.cardType || (rendarableObject['カード']?.includes('Red') ? 'red' : (rendarableObject['カード']?.includes('Yellow2') ? 'yellow2' : 'yellow1'));
+    const setCard = (src) => {
+        cardImg.setAttribute('href', src);
+        cardImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src);
+    };
+    // 止まっているときの位置（アニメーションが終わるとこの位置になる）
+    const place = (x) => {
+        mover.style.transition = 'none';
+        mover.style.transform = `translateX(${x}px)`;
+        mover.style.opacity = '1';
+    };
+    // スライドの演出は送出（TAKE）したときだけ。送出中の UPDATE では最後の状態で出す
+    const animate = !!options.fromShow;
 
     if (cardType === 'yellow2') {
-        // --- イエロー2枚 -> スライドアウト -> レッド スライドイン演出 ---
-        // 最初: イエロー2枚を表示
-        cardImg.setAttribute('href', 'img/Yellow2_15.png');
-        cardEl.style.transition = 'none';
-        cardEl.style.transform = 'translateX(0)';
-        cardEl.style.opacity = '1';
-
-        // 1.2秒後、右（1Shot座布団側）へスライドアウト
-        cardAnimationTimer = setTimeout(() => {
-            cardEl.style.transition = 'transform 0.35s ease-in, opacity 0.3s ease-in';
-            cardEl.style.transform = 'translateX(200px)';
-            cardEl.style.opacity = '0';
-
-            // スライドアウト完了後にレッドカードに切り替えてスライドイン
-            setTimeout(() => {
-                cardImg.setAttribute('href', 'img/Red_15.png');
-                cardEl.style.transition = 'none';
-                cardEl.style.transform = 'translateX(200px)';
-                
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        cardEl.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out';
-                        cardEl.style.transform = 'translateX(0)';
-                        cardEl.style.opacity = '1';
-                    });
-                });
-            }, 380);
-        }, 1200);
-
+        // --- イエロー2枚 -> 1.2 秒後に座布団の背面へスライドアウト -> レッドが背面からスライドイン ---
+        if (!animate) {
+            setCard('img/Red_15.png');
+            place(0);
+            return;
+        }
+        setCard('img/Yellow2_15.png');
+        place(0);
+        const out = slideCard(mover, 0, CARD_HIDDEN_X, { delay: 1200, duration: 350, easing: 'ease-in', fill: 'forwards' });
+        if (!out) {
+            setCard('img/Red_15.png');
+            return;
+        }
+        out.onfinish = () => {
+            setCard('img/Red_15.png');
+            slideCard(mover, CARD_HIDDEN_X, 0, { duration: 500, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' });
+            out.cancel();
+        };
     } else if (cardType === 'red') {
-        cardImg.setAttribute('href', 'img/Red_15.png');
-        cardEl.style.transition = 'none';
-        cardEl.style.transform = 'translateX(0)';
-        cardEl.style.opacity = '1';
+        setCard('img/Red_15.png');
+        place(0);
     } else {
-        // yellow1 (default)
-        cardImg.setAttribute('href', 'img/Yellow1_15.png');
-        cardEl.style.transition = 'none';
-        cardEl.style.transform = 'translateX(0)';
-        cardEl.style.opacity = '1';
+        // --- イエロー1枚: 1Shot が出てから 1 秒後、座布団の背面から左へ 1.5 秒でスライドイン ---
+        setCard('img/Yellow1_15.png');
+        place(0);
+        if (animate) {
+            slideCard(mover, CARD_HIDDEN_X, 0, { delay: 1000, duration: 1500, easing: 'ease-out', fill: 'backwards' });
+        }
     }
+}
+
+// カードを座布団の背面に隠すときの右へのずらし量（カード画像の見えている部分が座布団の左端より右に入る量）
+const CARD_HIDDEN_X = 110;
+/*
+ * カードの動きは Web Animations で付ける。TelopHub の送出ページはこのページを content-visibility: hidden の入れ物に入れて
+ * 動かすので、requestAnimationFrame が来ないことがある。送出の瞬間に遅延込みでアニメーションを予約しておけば、
+ * 描画が始まったところから正しい順番で動く（CSS transition のように途中の状態を見落として最後の位置に飛ばない）
+ */
+let cardAnimations = [];
+function slideCard(el, fromX, toX, options) {
+    if (!el.animate) return null;
+    const anim = el.animate(
+        [{ transform: `translateX(${fromX}px)` }, { transform: `translateX(${toX}px)` }],
+        options
+    );
+    cardAnimations.push(anim);
+    return anim;
+}
+function stopCardAnimations() {
+    cardAnimations.forEach(a => { a.onfinish = null; a.cancel(); });
+    cardAnimations = [];
+}
+
+function keyExpElement(key) {
+    const targets = window.keyExpMap ? window.keyExpMap.get(key) : null;
+    return targets && targets[0] ? targets[0].element : null;
+}
+
+/**
+ * 座布団（1SHOT用ザブトン）の左端より右に入ったカードを見えなくするクリップ。
+ * 座標はカードノード内（左上 = カードの位置）。座布団の左端は下に行くほど少し右へ傾いているので、それに合わせる。
+ * 再描画で defs が作り直されるので、毎回なければ足す
+ */
+const CARD_CLIP_ID = 'oneshot-card-behind-plate';
+function ensureCardClip(cardEl) {
+    const svg = cardEl.ownerSVGElement;
+    if (!svg) return;
+    if (!svg.querySelector('#' + CARD_CLIP_ID)) {
+        const ns = 'http://www.w3.org/2000/svg';
+        const clip = document.createElementNS(ns, 'clipPath');
+        clip.setAttribute('id', CARD_CLIP_ID);
+        clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+        const poly = document.createElementNS(ns, 'polygon');
+        poly.setAttribute('points', '-2000,-2000 219,-2000 219,66 232,141 232,2000 -2000,2000');
+        clip.appendChild(poly);
+        const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(ns, 'defs'), svg.firstChild);
+        defs.appendChild(clip);
+    }
+    cardEl.setAttribute('clip-path', `url(#${CARD_CLIP_ID})`);
 }
 
 /**
@@ -316,6 +369,8 @@ function applyCardCustom(rendarableObject) {
  */
 window.showTelop = function (rendarableObject) {
     if (rendarableObject !== undefined) {
+        // TelopHub の送出ページは updateTelop を自前の処理に差し替えるので、カードの種類はここで覚えておく
+        window._currentCardData = Object.assign({}, window._currentCardData, rendarableObject);
         window.updateTelop(rendarableObject);
     }
 
@@ -336,10 +391,6 @@ window.showTelop = function (rendarableObject) {
                         divElement.style.opacity = "";
                         divElement.classList.add("in_animation");
                         document.body.style.display = "block";
-                        // 表示時にアニメーション開始
-                        if (window._currentCardData) {
-                            applyCardCustom(window._currentCardData);
-                        }
                     });
                 });
             };
@@ -351,7 +402,30 @@ window.showTelop = function (rendarableObject) {
             }
         }
     }
+
+    // カードの演出は送出の瞬間に予約する（描画のタイミングを待たない。送出ページがページを使い回して表示中のまま呼んだときも最初から）
+    if (rendarableObject !== undefined) {
+        applyCardCustom(window._currentCardData, { fromShow: true });
+    } else {
+        // TelopHub の送出ページは自前の updateTelop で中身を反映してから showTelop() をデータなしで呼ぶ。
+        // カードの種類は今表示しているカード画像から決める
+        const cardType = cardTypeOnScreen();
+        if (cardType) {
+            window._currentCardData = Object.assign({}, window._currentCardData, { cardType });
+            applyCardCustom({ cardType }, { fromShow: true, cardOnly: true });
+        }
+    }
 };
+
+function cardTypeOnScreen() {
+    const cardEl = keyExpElement('カード');
+    const img = cardEl && cardEl.querySelector('image');
+    const href = img ? decodeURIComponent(img.getAttribute('href') || img.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || '') : '';
+    if (/Red/i.test(href)) return 'red';
+    if (/Yellow2/i.test(href)) return 'yellow2';
+    if (/Yellow1/i.test(href)) return 'yellow1';
+    return null;
+}
 
 /**
  * テロップの内容を更新する関数
@@ -546,10 +620,7 @@ window.updateTelop = function (rendarableObject) {
  * テロップを非表示にする関数
  */
 window.hideTelop = function () {
-    if (cardAnimationTimer) {
-        clearTimeout(cardAnimationTimer);
-        cardAnimationTimer = null;
-    }
+    stopCardAnimations();
     const divElement = document.getElementById(window.containerId || 'player-container');
     if (divElement) {
         divElement.classList.remove(...divElement.classList);
