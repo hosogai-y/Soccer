@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSyncedState, useTelopHub, useFullSyncedState } from '@sdk/TelopHubSDK';
 import StaffRegistry from './StaffRegistry';
 import RosterImportExport from './RosterImportExport';
+import OneShotPngExport from './OneShotPngExport';
 import { useMatchupCard } from '../utils/matchup';
 import { matchPlayerPhoto, toPhotoFile, uploadFacePhoto, toPhotoAssetUrl, encodePhotoUrl, isImageFile, PhotoFile } from '../utils/photoMatcher';
 
@@ -881,6 +882,7 @@ export default function PlayerRegistry() {
                             >
                                 🗑️ {selectedSchool} の選手を一括削除 ({filteredPlayers.length}人)
                             </button>
+                            <OneShotPngExport school={selectedSchool} players={filteredPlayers} />
                         </div>
                         
                         {/* School Selection Tabs */}

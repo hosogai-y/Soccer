@@ -19,6 +19,7 @@ import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useClearForTake, useClearButtons, KEEP_ON_TAKE, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
+import { OneShotMode, playerComments, playerPhotoUrl, buildPlayerOneShotPayload, buildStaffOneShotPayload } from '../utils/oneShotPayload';
 
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
@@ -416,7 +417,6 @@ export default function CGOperator() {
 // 1Shot & 1Shotカード Dedicated Control Panel (後出し優先排他送出)
 // --------------------------------------------------------
 
-type OneShotMode = 'pro2' | 'today' | 'total';
 type CardType = 'yellow1' | 'yellow2' | 'red';
 const ONE_SHOT_MODE_LABELS: Record<OneShotMode, string> = { pro2: 'プロ2表示', today: "Today'sゴール", total: 'Totalゴール' };
 const CARD_LABELS: Record<CardType, string> = { yellow1: 'イエロー1枚', yellow2: 'イエロー2枚', red: 'レッドカード' };
@@ -445,9 +445,7 @@ function OneShotPlayerControl({
     const [goalBusy, setGoalBusy] = useState(false);
 
     // 選手ごとの登録コメント配列を取得
-    const comments = (player?.pro2List && player.pro2List.length > 0)
-        ? player.pro2List.filter(c => c.text && c.text.trim() !== '')
-        : (player?.pro2Comment ? [{ text: player.pro2Comment, isYellow: false }] : []);
+    const comments = player ? playerComments(player) : [];
 
     // 選択中のプロ2コメント番号（0〜4）
     const [selectedCommentIdx, setSelectedCommentIdx] = useState<number>(0);
@@ -487,7 +485,7 @@ function OneShotPlayerControl({
     // 顔写真は選手登録でアップロードした URL（以前の /Photo/ 形式は assets/face に読み替え）
     const effectivePhotoUrl = toPhotoAssetUrl(player.photoUrl);
 
-    const isPhotoActive = globalPhotoEnabled && (player.photoEnabled !== false) && !!effectivePhotoUrl;
+    const isPhotoActive = !!playerPhotoUrl(player, globalPhotoEnabled);
 
     // 現在選択されているプロ2コメント
     const currentComment = comments[selectedCommentIdx] || { text: player.pro2Comment || '', isYellow: false };
@@ -518,42 +516,16 @@ function OneShotPlayerControl({
     };
 
     // 共通ペイロード生成（黄色フラグONでプロ2コメント黄色が表示・プロ2コメント非表示、OFFでプロ2コメント表示・黄色非表示）
-    const buildBasePayload = (mode: OneShotMode) => {
-        const isYellow = isYellowFlag;
-        const yellowComment = (mode === 'pro2' && isYellow) ? commentText : '';
-        const whiteComment = (mode === 'pro2' && !isYellow) ? commentText : '';
-
-        return {
-            'TeamColor': teamColor,
-            ...teamColorKeys(colorSet), // CG のチームカラーザブトン（ColorRect / ColorRect2 / ColorEdge）
-            '背番号': player.number || '',
-            '氏名': player.name || '',
-            'ポジション': normalizePosition(player.position) || 'FW',
-            '所属': oneShotSchoolName, // １SHOT上段のチーム名表記
-            '学年': (player.grade || '').replace('年', ''),
-            '学年単位': '年', // スタッフ送出時は「歳」に差し替わるので毎回送る
-            '役職表示': '0', // 0: 選手（身長・体重を表示し、ポジションは通常位置）
-            '身長': player.height || '',
-            '体重': player.weight || '',
-            // 黄色フラグONなら「プロ2コメント黄色」を使い、「プロ2コメント」は空文字(非表示)
-            // 黄色フラグOFFなら「プロ2コメント」を使い、「プロ2コメント黄色」は空文字(非表示)
-            'プロ2コメント': whiteComment,
-            'プロ２コメント': whiteComment,
-            'プロ2コメント黄色': yellowComment,
-            'プロ２コメント黄色': yellowComment,
-            'isYellow': isYellow,
-            'pro2IsYellow': isYellow,
-            'useYellowText': isYellow,
-            'yellowFlag': isYellow,
-            '黄色フラグ': isYellow,
-            'Today\'s数値': player.todayGoals || '0',
-            'Total数値': player.totalGoals || '0',
-            '顔写真': isPhotoActive ? effectivePhotoUrl : '',
-            '顔写真_visible': isPhotoActive,
-            'showPhoto': isPhotoActive,
-            'mode': mode
-        };
-    };
+    const buildBasePayload = (mode: OneShotMode) => buildPlayerOneShotPayload({
+        player,
+        teamConfig,
+        side: player.teamId === 'right' ? 'right' : 'left',
+        school: rawSchool,
+        mode,
+        commentText,
+        isYellow: isYellowFlag,
+        photoUrl: isPhotoActive ? effectivePhotoUrl : ''
+    });
 
     // 1Shot 送出 (後出し優先: 1Shotカードが出ている場合は即座に非表示！)
     const handleSend1Shot = (mode: OneShotMode) => {
@@ -1054,32 +1026,7 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
     const comments = staffComments(member);
     const comment = comments[Math.min(commentIdx, comments.length - 1)] || { text: '', isYellow: false };
 
-    const buildPayload = () => {
-        const yellow = comment.isYellow ? comment.text : '';
-        const white = comment.isYellow ? '' : comment.text;
-        return {
-            'TeamColor': teamColor,
-            ...teamColorKeys(colorSet),
-            '背番号': '',
-            '氏名': member.name,
-            'ポジション': member.role,
-            '所属': teamConfig?.oneShotName || school,
-            '学年': member.age,
-            '学年単位': member.age ? '歳' : '',
-            '役職表示': '1', // 1: スタッフ（身長・体重を隠し、役職を背番号位置のザブトン上に出す）
-            '身長': '',
-            '体重': '',
-            'プロ2コメント': white,
-            'プロ２コメント': white,
-            'プロ2コメント黄色': yellow,
-            'プロ２コメント黄色': yellow,
-            "Today's数値": '',
-            'Total数値': '',
-            '顔写真': '',
-            '顔写真_visible': false,
-            'mode': 'pro2'
-        };
-    };
+    const buildPayload = () => buildStaffOneShotPayload({ member, teamConfig, side, school, comment });
 
     const handleTake = () => {
         const payload = buildPayload();
