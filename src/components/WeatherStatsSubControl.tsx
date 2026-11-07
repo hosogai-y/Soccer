@@ -9,12 +9,15 @@ import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog'
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
 
-/** スタッツテロップのペイロード（チーム名・得点は小得点とリンク） */
+/** スタッツテロップのペイロード（チーム名・得点・チームカラーは小得点とリンク） */
 export function buildStatsPayload(
-    score: { leftName: string, rightName: string, leftScore: string, rightScore: string },
+    score: { leftName: string, rightName: string, leftScore: string, rightScore: string, leftColor?: string, rightColor?: string },
     statsData?: StatsData | null
 ) {
     return {
+        // チームカラーザブトン（KeyExp: ColorRectL / ColorRectR）。色が分からないときは送らずテロップの色のまま
+        ...(score.leftColor ? { 'ColorRectL': score.leftColor } : {}),
+        ...(score.rightColor ? { 'ColorRectR': score.rightColor } : {}),
         '左側チーム名': score.leftName,
         '右側チーム名': score.rightName,
         'Left得点数値': score.leftScore,
@@ -70,6 +73,9 @@ export default function WeatherStatsSubControl() {
     const rightTeamName = smallScoreTelop.data['右チーム名'] || bigScoreTelop.data['右チーム名'] || '帯広北';
     const leftScore = smallScoreTelop.data['左チーム得点'] || bigScoreTelop.data['左チーム得点'] || '0';
     const rightScore = smallScoreTelop.data['右チーム得点'] || bigScoreTelop.data['右チーム得点'] || '0';
+    // チームカラーも小得点（なければ大得点）と同じ色を使う
+    const leftColor = smallScoreTelop.data['LeftTeamColor'] || bigScoreTelop.data['LeftTeamColor'];
+    const rightColor = smallScoreTelop.data['RigtTeamColor'] || bigScoreTelop.data['RigtTeamColor'];
 
     // サイドチェンジ（Left ⇄ Right の全項目スワップ反転）
     const handleSideChange = () => {
@@ -116,11 +122,29 @@ export default function WeatherStatsSubControl() {
         smallScoreTelop.setData((prev: any) => ({ ...prev, ...swappedData }));
         bigScoreTelop.setData((prev: any) => ({ ...prev, ...swappedData }));
 
-        // もしスタッツ送出中なら、スタッツも即時更新
+        // もしスタッツ送出中なら、反転後のチーム名・得点・チームカラー・数値で即時更新
+        // （setTimeout で sendStats を呼ぶと反転前の値で送ってしまうため、ここで組み立てる）
         if (statsTelop.isVisible) {
-            setTimeout(() => {
-                sendStats(false);
-            }, 100);
+            const c = statsData || {
+                leftShoot: '0', rightShoot: '0', leftFK: '0', rightFK: '0', leftCK: '0', rightCK: '0',
+                leftYellow: '0', rightYellow: '0', leftRed: '0', rightRed: '0'
+            };
+            const payload = buildStatsPayload({
+                leftName: swappedData['左チーム名'],
+                rightName: swappedData['右チーム名'],
+                leftScore: swappedData['左チーム得点'],
+                rightScore: swappedData['右チーム得点'],
+                leftColor: swappedData['LeftTeamColor'],
+                rightColor: swappedData['RigtTeamColor']
+            }, {
+                leftShoot: c.rightShoot, rightShoot: c.leftShoot,
+                leftFK: c.rightFK, rightFK: c.leftFK,
+                leftCK: c.rightCK, rightCK: c.leftCK,
+                leftYellow: c.rightYellow, rightYellow: c.leftYellow,
+                leftRed: c.rightRed, rightRed: c.leftRed
+            });
+            statsTelop.setData(payload);
+            statsTelop.update(payload);
         }
     };
 
@@ -155,7 +179,7 @@ export default function WeatherStatsSubControl() {
 
     // Send Stats (得点は小得点とリンク！)
     const sendStats = (isTake: boolean = true) => {
-        const payload = buildStatsPayload({ leftName: leftTeamName, rightName: rightTeamName, leftScore, rightScore }, statsData);
+        const payload = buildStatsPayload({ leftName: leftTeamName, rightName: rightTeamName, leftScore, rightScore, leftColor, rightColor }, statsData);
 
         statsTelop.setData(payload);
         if (isTake) {

@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_f3kan8z9m5dz",
+  "rootId": "n1_a2ai90a9j2ie",
   "nodesById": {
-    "n1_f3kan8z9m5dz": {
-      "id": "n1_f3kan8z9m5dz",
+    "n1_a2ai90a9j2ie": {
+      "id": "n1_a2ai90a9j2ie",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,18 +24,20 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_tz7xv20z76if",
-        "n1_mp7b4slilwq6",
-        "n1_dm6fcu74ukmz",
-        "n1_poodd8ceyud9",
-        "n1_1izxo5685hc2",
-        "n1_b8e2orsmf6dv",
-        "n1_0dm1cjwqxte0",
-        "n1_ecmh9wju5377",
-        "n1_a9ygayn7n86b",
-        "n1_e3kmxuiortee",
-        "n1_8zcado19fww5",
-        "n1_5v9latxeu9gx"
+        "n1_7n4fz1dv19s4",
+        "n1_ccnjd5orlt7p",
+        "n1_qihn74lp8qi4",
+        "n1_eo9lym0sheq7",
+        "n1_cztvbp8ag3qs",
+        "n1_dfne01uz144g",
+        "n1_9hsecca83qcm",
+        "n1_tl51w1a8i2r8",
+        "n1_g728r73pqhi6",
+        "n1_f7mm41nhortr",
+        "n1_5bxet2p3p0a8",
+        "n1_oh770hc59xij",
+        "n1_t3ann8mgliga",
+        "n1_i0hpxcu3ihhm"
       ],
       "name": "スタッツ",
       "visible": true,
@@ -44,10 +46,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_tz7xv20z76if": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_tz7xv20z76if",
+    "n1_7n4fz1dv19s4": {
+      "id": "n1_7n4fz1dv19s4",
       "type": "image",
       "x": 141,
       "y": 853,
@@ -56,21 +56,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 420,
-      "height": 200,
-      "assetId": "a1_gzqbhw6p3ksh",
       "name": "４項目ベース",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "assetId": "a1_oa0122vr1syx",
+      "width": 420,
+      "height": 200,
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_mp7b4slilwq6": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_mp7b4slilwq6",
+    "n1_ccnjd5orlt7p": {
+      "id": "n1_ccnjd5orlt7p",
       "type": "image",
       "x": 350,
       "y": 797,
@@ -79,21 +79,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 303,
-      "height": 90,
-      "assetId": "a1_9b0ec2k78bku",
       "name": "右側チームザブトン",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "assetId": "a1_z9iqijdghopo",
+      "width": 303,
+      "height": 90,
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_dm6fcu74ukmz": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_dm6fcu74ukmz",
+    "n1_qihn74lp8qi4": {
+      "id": "n1_qihn74lp8qi4",
       "type": "image",
       "x": 48,
       "y": 797,
@@ -102,21 +102,297 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 303,
-      "height": 90,
-      "assetId": "a1_da667tre1oee",
       "name": "左側チームザブトン",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "assetId": "a1_1t72c54dasqi",
+      "width": 303,
+      "height": 90,
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_poodd8ceyud9": {
+    "n1_eo9lym0sheq7": {
+      "id": "n1_eo9lym0sheq7",
+      "type": "group",
+      "x": 105,
+      "y": 804,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 10.203973721731684,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "LeftTeamColorRect",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "children": [
+        "n1_i66z82xvbuyx",
+        "n1_yhvpf98tlvru"
+      ],
+      "parentId": "n1_a2ai90a9j2ie"
+    },
+    "n1_i66z82xvbuyx": {
+      "id": "n1_i66z82xvbuyx",
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
       "skewX": 0,
       "skewY": 0,
-      "id": "n1_poodd8ceyud9",
+      "opacity": 1,
+      "name": "Rectangle",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 19,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#1f4fa8",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "isMask": false,
+            "maskMode": "subtract",
+            "fillKeyexp": "ColorRectL"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_eo9lym0sheq7"
+    },
+    "n1_yhvpf98tlvru": {
+      "id": "n1_yhvpf98tlvru",
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "Rectangle",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 19,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": [
+              "#00000073",
+              "#00000078",
+              "#ffffff29",
+              "#00000075",
+              "#0000001a",
+              "#000000a1"
+            ],
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "gradientConfig": {
+              "type": "linear",
+              "angle": 90,
+              "units": "objectBoundingBox",
+              "stops": [
+                {
+                  "offset": 0.05,
+                  "color": "#00000073"
+                },
+                {
+                  "offset": 0.05,
+                  "color": "#00000078"
+                },
+                {
+                  "offset": 0.51,
+                  "color": "#ffffff29"
+                },
+                {
+                  "offset": 0.5,
+                  "color": "#00000075"
+                },
+                {
+                  "offset": 0.95,
+                  "color": "#0000001a"
+                },
+                {
+                  "offset": 1,
+                  "color": "#000000a1"
+                }
+              ]
+            }
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_eo9lym0sheq7"
+    },
+    "n1_cztvbp8ag3qs": {
+      "id": "n1_cztvbp8ag3qs",
+      "type": "group",
+      "x": 577,
+      "y": 804,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": -10.203973721731684,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "RightTeamColorRect",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "children": [
+        "n1_qc51yix7sfxq",
+        "n1_4ngmh486khtb"
+      ],
+      "parentId": "n1_a2ai90a9j2ie"
+    },
+    "n1_qc51yix7sfxq": {
+      "id": "n1_qc51yix7sfxq",
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "Rectangle",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 19,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": "#1f4fa8",
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "fillKeyexp": "ColorRectR"
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_cztvbp8ag3qs"
+    },
+    "n1_4ngmh486khtb": {
+      "id": "n1_4ngmh486khtb",
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "pivotX": 0,
+      "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "opacity": 1,
+      "name": "Rectangle",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
+      "width": 19,
+      "height": 55,
+      "style": {
+        "appearances": [
+          {
+            "enabled": true,
+            "fillEnabled": true,
+            "fill": [
+              "#00000073",
+              "#00000078",
+              "#ffffff29",
+              "#00000075",
+              "#0000001a",
+              "#000000a1"
+            ],
+            "strokeEnabled": false,
+            "color": "#000000",
+            "thickness": 2,
+            "lineJoin": "miter",
+            "miterLimit": 10,
+            "gradientConfig": {
+              "type": "linear",
+              "angle": 90,
+              "units": "objectBoundingBox",
+              "stops": [
+                {
+                  "offset": 0.05,
+                  "color": "#00000073"
+                },
+                {
+                  "offset": 0.05,
+                  "color": "#00000078"
+                },
+                {
+                  "offset": 0.5,
+                  "color": "#ffffff29"
+                },
+                {
+                  "offset": 0.51,
+                  "color": "#00000075"
+                },
+                {
+                  "offset": 0.95,
+                  "color": "#0000001a"
+                },
+                {
+                  "offset": 1,
+                  "color": "#000000a1"
+                }
+              ]
+            }
+          }
+        ],
+        "cornerRadius": 0
+      },
+      "parentId": "n1_cztvbp8ag3qs"
+    },
+    "n1_dfne01uz144g": {
+      "id": "n1_dfne01uz144g",
       "type": "group",
       "x": 211,
       "y": 1012,
@@ -125,29 +401,29 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_bmgm7a5ykaey",
-        "n1_wnh8fhu6t4cf",
-        "n1_24kvhf0bi86j",
-        "n1_sl5h23ax6ul8",
-        "n1_bcjyt3bjxws8",
-        "n1_8ovqg41jwp6u",
-        "n1_3sc94sejw2wh",
-        "n1_ppowl0n8xfer",
-        "n1_130986kaiith"
-      ],
       "name": "カード",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "children": [
+        "n1_ycwvlh2yw9cs",
+        "n1_jy60e4vy6f82",
+        "n1_mdffact7eqdq",
+        "n1_xn4m09s54qb5",
+        "n1_fpkhvczbljmg",
+        "n1_nkse8s29yded",
+        "n1_kkoc5dhemwlt",
+        "n1_uu7wy0zib3nz",
+        "n1_g2iwpqg938ki"
+      ],
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_bmgm7a5ykaey": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_bmgm7a5ykaey",
+    "n1_ycwvlh2yw9cs": {
+      "id": "n1_ycwvlh2yw9cs",
       "type": "text",
       "x": 89,
       "y": 7,
@@ -156,10 +432,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 99,
-      "height": 29,
+      "name": "カード(文字)",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "カード",
+      "width": 99,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -201,21 +487,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "カード(文字)",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "カード(文字)",
-      "fitMode": "none",
-      "parentId": "n1_poodd8ceyud9"
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_wnh8fhu6t4cf": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_wnh8fhu6t4cf",
+    "n1_jy60e4vy6f82": {
+      "id": "n1_jy60e4vy6f82",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -224,21 +501,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 28,
-      "height": 36,
-      "assetId": "a1_tip0z4tq1noo",
       "name": "左側レットカード",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_poodd8ceyud9"
+      "assetId": "a1_bvd9942e1p2n",
+      "width": 28,
+      "height": 36,
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_24kvhf0bi86j": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_24kvhf0bi86j",
+    "n1_mdffact7eqdq": {
+      "id": "n1_mdffact7eqdq",
       "type": "image",
       "x": -30,
       "y": 0,
@@ -247,21 +524,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 28,
-      "height": 36,
-      "assetId": "a1_gurihhm4bqle",
       "name": "左側イエローカード",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_poodd8ceyud9"
+      "assetId": "a1_0ayen6sqst7t",
+      "width": 28,
+      "height": 36,
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_sl5h23ax6ul8": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_sl5h23ax6ul8",
+    "n1_xn4m09s54qb5": {
+      "id": "n1_xn4m09s54qb5",
       "type": "image",
       "x": 277,
       "y": 0,
@@ -270,21 +547,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 28,
-      "height": 36,
-      "assetId": "a1_gurihhm4bqle",
       "name": "右側イエローカード",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_poodd8ceyud9"
+      "assetId": "a1_0ayen6sqst7t",
+      "width": 28,
+      "height": 36,
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_bcjyt3bjxws8": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_bcjyt3bjxws8",
+    "n1_fpkhvczbljmg": {
+      "id": "n1_fpkhvczbljmg",
       "type": "image",
       "x": 246,
       "y": 0,
@@ -293,21 +570,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 28,
-      "height": 36,
-      "assetId": "a1_tip0z4tq1noo",
       "name": "右側レットカード",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_poodd8ceyud9"
+      "assetId": "a1_bvd9942e1p2n",
+      "width": 28,
+      "height": 36,
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_8ovqg41jwp6u": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_8ovqg41jwp6u",
+    "n1_nkse8s29yded": {
+      "id": "n1_nkse8s29yded",
       "type": "text",
       "x": 248,
       "y": 4,
@@ -316,10 +593,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 24,
-      "height": 29,
+      "name": "右側レッド数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "3",
+      "width": 24,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -361,21 +648,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "右側レッド数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "右側レッド数値",
-      "fitMode": "none",
-      "parentId": "n1_poodd8ceyud9"
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_3sc94sejw2wh": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_3sc94sejw2wh",
+    "n1_kkoc5dhemwlt": {
+      "id": "n1_kkoc5dhemwlt",
       "type": "text",
       "x": 279,
       "y": 4,
@@ -384,10 +662,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 24,
-      "height": 29,
+      "name": "右側イエロー数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "3",
+      "width": 24,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -429,21 +717,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "右側イエロー数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "右側イエロー数値",
-      "fitMode": "none",
-      "parentId": "n1_poodd8ceyud9"
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_ppowl0n8xfer": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_ppowl0n8xfer",
+    "n1_uu7wy0zib3nz": {
+      "id": "n1_uu7wy0zib3nz",
       "type": "text",
       "x": -28,
       "y": 4,
@@ -452,10 +731,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 24,
-      "height": 29,
+      "name": "左側イエロー数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "3",
+      "width": 24,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -497,21 +786,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "左側イエロー数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "左側イエロー数値",
-      "fitMode": "none",
-      "parentId": "n1_poodd8ceyud9"
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_130986kaiith": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_130986kaiith",
+    "n1_g2iwpqg938ki": {
+      "id": "n1_g2iwpqg938ki",
       "type": "text",
       "x": 2,
       "y": 4,
@@ -520,10 +800,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 24,
-      "height": 29,
+      "name": "左側レッド数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "3",
+      "width": 24,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -565,19 +855,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "左側レッド数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "左側レッド数値",
-      "fitMode": "none",
-      "parentId": "n1_poodd8ceyud9"
+      "parentId": "n1_dfne01uz144g"
     },
-    "n1_1izxo5685hc2": {
-      "id": "n1_1izxo5685hc2",
+    "n1_9hsecca83qcm": {
+      "id": "n1_9hsecca83qcm",
       "type": "group",
       "x": 469,
       "y": 967,
@@ -589,22 +872,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_vuliw1ecu69k",
-        "n1_1que3t7njsmn",
-        "n1_dcnijzb7l9xm"
-      ],
       "name": "CK",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "children": [
+        "n1_uw6bpbmzzrph",
+        "n1_g3xanqiu3yer",
+        "n1_bhy5gkcwr4i8"
+      ],
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_vuliw1ecu69k": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_vuliw1ecu69k",
+    "n1_uw6bpbmzzrph": {
+      "id": "n1_uw6bpbmzzrph",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -613,10 +894,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 32,
-      "height": 29,
+      "name": "右側CK数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "12",
+      "width": 32,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -658,21 +949,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "右側CK数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "右側CK数値",
-      "fitMode": "none",
-      "parentId": "n1_1izxo5685hc2"
+      "parentId": "n1_9hsecca83qcm"
     },
-    "n1_1que3t7njsmn": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_1que3t7njsmn",
+    "n1_g3xanqiu3yer": {
+      "id": "n1_g3xanqiu3yer",
       "type": "text",
       "x": -274,
       "y": 0,
@@ -681,10 +963,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 32,
-      "height": 29,
+      "name": "左側CK数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "12",
+      "width": 32,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -726,21 +1018,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "左側CK数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "左側CK数値",
-      "fitMode": "none",
-      "parentId": "n1_1izxo5685hc2"
+      "parentId": "n1_9hsecca83qcm"
     },
-    "n1_dcnijzb7l9xm": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_dcnijzb7l9xm",
+    "n1_bhy5gkcwr4i8": {
+      "id": "n1_bhy5gkcwr4i8",
       "type": "text",
       "x": -169,
       "y": 0,
@@ -749,10 +1032,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 99,
-      "height": 29,
+      "name": "CK(文字)",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "CK",
+      "width": 99,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -794,19 +1087,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "CK(文字)",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "CK(文字)",
-      "fitMode": "none",
-      "parentId": "n1_1izxo5685hc2"
+      "parentId": "n1_9hsecca83qcm"
     },
-    "n1_b8e2orsmf6dv": {
-      "id": "n1_b8e2orsmf6dv",
+    "n1_tl51w1a8i2r8": {
+      "id": "n1_tl51w1a8i2r8",
       "type": "group",
       "x": 470,
       "y": 914,
@@ -818,22 +1104,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_i9hnzmxh05hu",
-        "n1_e1aep4ijg0hg",
-        "n1_xt5ir21ce0fa"
-      ],
       "name": "FK",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "children": [
+        "n1_5hsc9swxq2h6",
+        "n1_6tykcvpjk8p5",
+        "n1_o5ywp4ysruq9"
+      ],
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_i9hnzmxh05hu": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_i9hnzmxh05hu",
+    "n1_5hsc9swxq2h6": {
+      "id": "n1_5hsc9swxq2h6",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -842,10 +1126,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 31,
-      "height": 29,
+      "name": "右側FK数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "41",
+      "width": 31,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -887,21 +1181,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "右側FK数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "右側FK数値",
-      "fitMode": "none",
-      "parentId": "n1_b8e2orsmf6dv"
+      "parentId": "n1_tl51w1a8i2r8"
     },
-    "n1_e1aep4ijg0hg": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_e1aep4ijg0hg",
+    "n1_6tykcvpjk8p5": {
+      "id": "n1_6tykcvpjk8p5",
       "type": "text",
       "x": -274,
       "y": 0,
@@ -910,10 +1195,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 31,
-      "height": 29,
+      "name": "左側FK数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "41",
+      "width": 31,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -955,21 +1250,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "左側FK数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "左側FK数値",
-      "fitMode": "none",
-      "parentId": "n1_b8e2orsmf6dv"
+      "parentId": "n1_tl51w1a8i2r8"
     },
-    "n1_xt5ir21ce0fa": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_xt5ir21ce0fa",
+    "n1_o5ywp4ysruq9": {
+      "id": "n1_o5ywp4ysruq9",
       "type": "text",
       "x": -170,
       "y": 0,
@@ -978,10 +1264,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 99,
-      "height": 29,
+      "name": "FK(文字)",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "FK",
+      "width": 99,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -1023,19 +1319,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "FK(文字)",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "FK(文字)",
-      "fitMode": "none",
-      "parentId": "n1_b8e2orsmf6dv"
+      "parentId": "n1_tl51w1a8i2r8"
     },
-    "n1_0dm1cjwqxte0": {
-      "id": "n1_0dm1cjwqxte0",
+    "n1_g728r73pqhi6": {
+      "id": "n1_g728r73pqhi6",
       "type": "group",
       "x": 467,
       "y": 866,
@@ -1047,22 +1336,20 @@
       "skewX": 0,
       "skewY": 0,
       "opacity": 1,
-      "children": [
-        "n1_cnyrxr9metce",
-        "n1_4ixjxy1crwc0",
-        "n1_vbabd6lojgda"
-      ],
       "name": "シュート",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "children": [
+        "n1_63mbleg8pv8c",
+        "n1_yjqmikhvzmu5",
+        "n1_0r0xc1f67wca"
+      ],
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_cnyrxr9metce": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_cnyrxr9metce",
+    "n1_63mbleg8pv8c": {
+      "id": "n1_63mbleg8pv8c",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -1071,10 +1358,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 36,
-      "height": 29,
+      "name": "右側シュート数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "20",
+      "width": 36,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -1116,21 +1413,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "右側シュート数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "右側シュート数値",
-      "fitMode": "none",
-      "parentId": "n1_0dm1cjwqxte0"
+      "parentId": "n1_g728r73pqhi6"
     },
-    "n1_4ixjxy1crwc0": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_4ixjxy1crwc0",
+    "n1_yjqmikhvzmu5": {
+      "id": "n1_yjqmikhvzmu5",
       "type": "text",
       "x": -274,
       "y": 0,
@@ -1139,10 +1427,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 36,
-      "height": 29,
+      "name": "左側シュート数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "20",
+      "width": 36,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -1184,21 +1482,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "左側シュート数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "左側シュート数値",
-      "fitMode": "none",
-      "parentId": "n1_0dm1cjwqxte0"
+      "parentId": "n1_g728r73pqhi6"
     },
-    "n1_vbabd6lojgda": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_vbabd6lojgda",
+    "n1_0r0xc1f67wca": {
+      "id": "n1_0r0xc1f67wca",
       "type": "text",
       "x": -167,
       "y": 0,
@@ -1207,10 +1496,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 99,
-      "height": 29,
+      "name": "シュート(文字)",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "シュート",
+      "width": 99,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "none",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 24,
@@ -1252,21 +1551,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "シュート(文字)",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 29,
       "keyexp": "シュート(文字)",
-      "fitMode": "none",
-      "parentId": "n1_0dm1cjwqxte0"
+      "parentId": "n1_g728r73pqhi6"
     },
-    "n1_ecmh9wju5377": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_ecmh9wju5377",
+    "n1_f7mm41nhortr": {
+      "id": "n1_f7mm41nhortr",
       "type": "image",
       "x": 346,
       "y": 831,
@@ -1275,21 +1565,21 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 10,
-      "height": 6,
-      "assetId": "a1_svhtrf8d8kt5",
       "name": "バー",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "parentId": "n1_f3kan8z9m5dz"
+      "assetId": "a1_w9p8qzb4f2jv",
+      "width": 10,
+      "height": 6,
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_a9ygayn7n86b": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_a9ygayn7n86b",
+    "n1_5bxet2p3p0a8": {
+      "id": "n1_5bxet2p3p0a8",
       "type": "text",
       "x": 358,
       "y": 812,
@@ -1298,10 +1588,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 39,
-      "height": 40,
+      "name": "Right得点数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "0",
+      "width": 39,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_font",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 38,
@@ -1344,21 +1644,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "Right得点数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 40,
       "keyexp": "Right得点数値",
-      "fitMode": "shrink_font",
-      "parentId": "n1_f3kan8z9m5dz"
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_e3kmxuiortee": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_e3kmxuiortee",
+    "n1_oh770hc59xij": {
+      "id": "n1_oh770hc59xij",
       "type": "text",
       "x": 400,
       "y": 816,
@@ -1367,10 +1658,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 170,
-      "height": 31,
+      "name": "右側チーム名",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "帯広北",
+      "width": 170,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_font",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 30,
@@ -1396,21 +1697,12 @@
         "letterSpacing": 3,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "右側チーム名",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 31,
       "keyexp": "右側チーム名",
-      "fitMode": "shrink_font",
-      "parentId": "n1_f3kan8z9m5dz"
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_8zcado19fww5": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_8zcado19fww5",
+    "n1_t3ann8mgliga": {
+      "id": "n1_t3ann8mgliga",
       "type": "text",
       "x": 303,
       "y": 812,
@@ -1419,10 +1711,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 39,
-      "height": 40,
+      "name": "Left得点数値",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "0",
+      "width": 39,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_font",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 38,
@@ -1465,21 +1767,12 @@
         "letterSpacing": 0,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "Left得点数値",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 40,
       "keyexp": "Left得点数値",
-      "fitMode": "shrink_font",
-      "parentId": "n1_f3kan8z9m5dz"
+      "parentId": "n1_a2ai90a9j2ie"
     },
-    "n1_5v9latxeu9gx": {
-      "skewX": 0,
-      "skewY": 0,
-      "id": "n1_5v9latxeu9gx",
+    "n1_i0hpxcu3ihhm": {
+      "id": "n1_i0hpxcu3ihhm",
       "type": "text",
       "x": 126,
       "y": 816,
@@ -1488,10 +1781,20 @@
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
+      "skewX": 0,
+      "skewY": 0,
       "opacity": 1,
-      "width": 170,
-      "height": 31,
+      "name": "左側チーム名",
+      "visible": true,
+      "locked": false,
+      "blendMode": "normal",
+      "effects": [],
       "text": "北海",
+      "width": 170,
+      "padding": 0,
+      "align": "center",
+      "verticalAlign": "top",
+      "fitMode": "shrink_font",
       "style": {
         "fontFamily": "Noto Sans JP",
         "fontSize": 30,
@@ -1517,137 +1820,72 @@
         "letterSpacing": 3,
         "lineHeight": 1.2
       },
-      "align": "center",
-      "verticalAlign": "top",
-      "name": "左側チーム名",
-      "visible": true,
-      "locked": false,
-      "blendMode": "normal",
-      "effects": [],
+      "height": 31,
       "keyexp": "左側チーム名",
-      "fitMode": "shrink_font",
-      "parentId": "n1_f3kan8z9m5dz"
+      "parentId": "n1_a2ai90a9j2ie"
     }
   },
   "assets": {
-    "a1_9b0ec2k78bku": {
-      "id": "a1_9b0ec2k78bku",
-      "kind": "image",
-      "name": "P02_Base_R_003.png",
-      "src": "img/P02_Base_R_003.png",
-      "width": 303,
-      "height": 90,
-      "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
-    },
-    "a1_da667tre1oee": {
-      "id": "a1_da667tre1oee",
-      "kind": "image",
-      "name": "P02_Base_L_004.png",
-      "src": "img/P02_Base_L_004.png",
-      "width": 303,
-      "height": 90,
-      "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
-    },
-    "a1_gurihhm4bqle": {
-      "id": "a1_gurihhm4bqle",
+    "a1_0ayen6sqst7t": {
+      "id": "a1_0ayen6sqst7t",
       "kind": "image",
       "name": "YellowCard.png",
       "src": "img/YellowCard.png",
       "width": 28,
       "height": 36,
       "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
+      "ownerId": "n1_a2ai90a9j2ie"
     },
-    "a1_gzqbhw6p3ksh": {
-      "id": "a1_gzqbhw6p3ksh",
+    "a1_1t72c54dasqi": {
+      "id": "a1_1t72c54dasqi",
       "kind": "image",
-      "name": "Stats_Base_4.png",
-      "src": "img/Stats_Base_4.png",
-      "width": 420,
-      "height": 200,
+      "name": "P02_Base_L_004.png",
+      "src": "img/P02_Base_L_004.png",
+      "width": 303,
+      "height": 90,
       "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
+      "ownerId": "n1_a2ai90a9j2ie"
     },
-    "a1_svhtrf8d8kt5": {
-      "id": "a1_svhtrf8d8kt5",
-      "kind": "image",
-      "name": "得点中棒.png",
-      "src": "img/得点中棒.png",
-      "width": 10,
-      "height": 6,
-      "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
-    },
-    "a1_tip0z4tq1noo": {
-      "id": "a1_tip0z4tq1noo",
+    "a1_bvd9942e1p2n": {
+      "id": "a1_bvd9942e1p2n",
       "kind": "image",
       "name": "RedCard.png",
       "src": "img/RedCard.png",
       "width": 28,
       "height": 36,
       "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
+      "ownerId": "n1_a2ai90a9j2ie"
     },
-    "a1_weevruipubsx": {
-      "id": "a1_weevruipubsx",
+    "a1_oa0122vr1syx": {
+      "id": "a1_oa0122vr1syx",
       "kind": "image",
-      "name": "P02_Base_R_001.png",
-      "src": "img/P02_Base_R_001.png",
+      "name": "Stats_Base_4.png",
+      "src": "img/Stats_Base_4.png",
+      "width": 420,
+      "height": 200,
+      "groupId": null,
+      "ownerId": "n1_a2ai90a9j2ie"
+    },
+    "a1_w9p8qzb4f2jv": {
+      "id": "a1_w9p8qzb4f2jv",
+      "kind": "image",
+      "name": "得点中棒.png",
+      "src": "img/得点中棒.png",
+      "width": 10,
+      "height": 6,
+      "groupId": null,
+      "ownerId": "n1_a2ai90a9j2ie"
+    },
+    "a1_z9iqijdghopo": {
+      "id": "a1_z9iqijdghopo",
+      "kind": "image",
+      "name": "P02_Base_R_003.png",
+      "src": "img/P02_Base_R_003.png",
       "width": 303,
       "height": 90,
       "groupId": null,
-      "ownerId": "n1_f3kan8z9m5dz"
+      "ownerId": "n1_a2ai90a9j2ie"
     }
   },
-  "assetGroups": {
-    "ag_2tp9vr7rgjrm": {
-      "id": "ag_2tp9vr7rgjrm",
-      "name": "顔写真",
-      "order": 1,
-      "ownerId": "n1_es2xfsdwu7af"
-    },
-    "ag_5oyeyvh9": {
-      "id": "ag_5oyeyvh9",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_h34l97040ncv"
-    },
-    "ag_5p3jtppl49e4": {
-      "id": "ag_5p3jtppl49e4",
-      "name": "顔写真",
-      "order": 7,
-      "ownerId": "n1_nqlp71a7dlfe"
-    },
-    "ag_8cjhkps1gbgl": {
-      "id": "ag_8cjhkps1gbgl",
-      "name": "チーム名ベース左",
-      "order": 2,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_gmje0s0j5rh2": {
-      "id": "ag_gmje0s0j5rh2",
-      "name": "顔写真",
-      "order": 0
-    },
-    "ag_kp1ed02zjofg": {
-      "id": "ag_kp1ed02zjofg",
-      "name": "チーム名ベース右",
-      "order": 3,
-      "ownerId": "n1_hpc88ri4zdf0"
-    },
-    "ag_linnjxg7vpc8": {
-      "id": "ag_linnjxg7vpc8",
-      "name": "チーム名ベース左",
-      "order": 4,
-      "ownerId": "n1_6ua9hzcbdxox"
-    },
-    "ag_t8m4emyvjyk3": {
-      "id": "ag_t8m4emyvjyk3",
-      "name": "チーム名ベース右",
-      "order": 5,
-      "ownerId": "n1_6ua9hzcbdxox"
-    }
-  }
+  "assetGroups": {}
 }

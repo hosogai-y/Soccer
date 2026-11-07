@@ -1370,7 +1370,9 @@ function MatchScorePanel() {
                 leftName: smallNames['左チーム名'],
                 rightName: smallNames['右チーム名'],
                 leftScore: swapped['左チーム得点'],
-                rightScore: swapped['右チーム得点']
+                rightScore: swapped['右チーム得点'],
+                leftColor: swapped['LeftTeamColor'],
+                rightColor: swapped['RigtTeamColor']
             }, swappedStats);
             statsTelop.setData(statsPayload);
             statsTelop.update(statsPayload);
