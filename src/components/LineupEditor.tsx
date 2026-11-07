@@ -10,6 +10,7 @@ import {
 } from '../utils/lineup';
 import { Point, defaultPositions, resolvePositions, roleMap } from '../utils/formationLayout';
 import { useCgQueue } from '../utils/cgQueue';
+import MatchupCardSettings from './MatchupCardSettings';
 import { teamColorSet } from '../utils/teamColor';
 
 // Mirror map for horizontally flipping left formation onto right formation
@@ -328,6 +329,9 @@ export default function LineupEditor() {
                     </div>
                 </div>
             </div>
+
+            {/* 対戦カード（某対某）のタイトル・試合時間 */}
+            <MatchupCardSettings />
 
             <MatchLog oaLeftTeam={oaLeftTeam} oaRightTeam={oaRightTeam} />
 

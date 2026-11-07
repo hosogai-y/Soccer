@@ -9,6 +9,7 @@ import WeatherStatsSubControl, { WeatherControl, Sub1Control, Sub2Control } from
 import { useScoreSideChange, useOaTeamSettings, scoreColorKeys, sameScoreColors } from '../utils/useScoreSideChange';
 import { TeamColorSet, teamColorSet, teamColorKeys, teamColorCss } from '../utils/teamColor';
 import { useScorerCg } from '../utils/useScorerCg';
+import { useMatchupPayload, MATCHUP_TEXT_TELOP, MATCHUP_IMAGE_TELOP } from '../utils/matchup';
 import { SCORER_TELOP, SCORER_ROWS } from '../utils/scorers';
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
@@ -23,6 +24,8 @@ import { useApplySubstitution } from '../utils/useSubstitution';
 const ALL_TELOPS = [
     { name: '大得点', label: 'Big Score (大得点)' },
     { name: '大得点得点者', label: 'Big Score + Scorers' },
+    { name: '対戦カード', label: 'Matchup (Text)' },
+    { name: '対戦カード画像', label: 'Matchup (Image)' },
     { name: '小得点', label: 'Small Score (小得点)' },
     { name: 'タイマー', label: 'Timer (タイマー)' },
     { name: 'アディショナルタイム', label: 'Loss Time (AT)' },
@@ -1727,6 +1730,63 @@ function MatchTimerPanel() {
                 {additionalTime.isVisible && <span className="status-badge status-connected" style={{ padding: '1px 4px', fontSize: '0.6rem' }}>ON AIR</span>}
             </div>
 
+            <div style={{ height: 1, background: 'var(--border-color)', margin: '10px 0' }}></div>
+
+            {/* 対戦カード（某対某）。タイトル・試合時間は Lineups で入力 */}
+            <MatchupCardButtons />
+
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// 対戦カード（某対某）送出ボタン: 文字版 / 画像版（タイトルが画像）
+// --------------------------------------------------------
+
+function MatchupCardButtons() {
+    const textTelop = useTelop(MATCHUP_TEXT_TELOP);
+    const imageTelop = useTelop(MATCHUP_IMAGE_TELOP);
+    const clearForTake = useClearForTake();
+    const { card, text, image } = useMatchupPayload();
+
+    const take = (telop: ReturnType<typeof useTelop>, name: string, payload: Record<string, string>) => {
+        telop.setData(payload);
+        // 送出中なら UPDATE。出ていなければ他の CG（もう一方の対戦カードも）を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(telop, payload, () => clearForTake(name));
+    };
+    const takeImage = () => {
+        if (!card.titleImage && !confirm('タイトル画像が未設定です（Lineups の対戦カードで画像を選べます）。\nタイトルなしで送出しますか？')) return;
+        take(imageTelop, MATCHUP_IMAGE_TELOP, image);
+    };
+    const hide = () => {
+        textTelop.hide();
+        imageTelop.hide();
+    };
+    const onAir = textTelop.isVisible || imageTelop.isVisible;
+
+    return (
+        <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#ffd400', whiteSpace: 'nowrap' }}>🆚 対戦カード</span>
+                <span style={{ fontSize: '0.72rem', color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}
+                    title={`${text['左チーム名']} 対 ${text['右チーム名']} / ${text['試合時間']}${card.title ? ` / ${card.title}` : ''}`}>
+                    {text['左チーム名'] || '-'} 対 {text['右チーム名'] || '-'}・{text['試合時間']}
+                </span>
+                {onAir && <span className="status-badge status-connected" style={{ padding: '1px 4px', fontSize: '0.6rem', marginLeft: 'auto' }}>ON AIR</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+                <button className="btn btn-success" style={{ flex: 1, padding: '4px 6px', fontSize: '0.78rem', fontWeight: 'bold' }}
+                    onClick={() => take(textTelop, MATCHUP_TEXT_TELOP, text)} title={card.title ? `タイトル: ${card.title}` : 'タイトルなし（Lineups で入力できます）'}>
+                    文字版 TAKE
+                </button>
+                <button className="btn btn-success" style={{ flex: 1, padding: '4px 6px', fontSize: '0.78rem', fontWeight: 'bold' }}
+                    onClick={takeImage} title={card.titleImage ? 'タイトル画像で送出' : 'タイトル画像が未設定です'}>
+                    画像版 TAKE
+                </button>
+                <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.78rem' }} onClick={hide}>
+                    HIDE
+                </button>
+            </div>
         </div>
     );
 }

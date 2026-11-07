@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSyncedState, useTelopHub, useFullSyncedState } from '@sdk/TelopHubSDK';
 import StaffRegistry from './StaffRegistry';
 import RosterImportExport from './RosterImportExport';
+import { useMatchupCard } from '../utils/matchup';
 import { matchPlayerPhoto, toPhotoFile, uploadFacePhoto, toPhotoAssetUrl, encodePhotoUrl, isImageFile, PhotoFile } from '../utils/photoMatcher';
 
 export interface Pro2CommentItem {
@@ -47,6 +48,7 @@ export default function PlayerRegistry() {
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
     const { uploadAsset, gcAssets, isConnected, syncedStateRef } = useTelopHub();
+    const { card: matchupCard } = useMatchupCard();
     const fullSyncState = useFullSyncedState();
     const bulkFilesRef = useRef<HTMLInputElement | null>(null);
     const bulkFolderRef = useRef<HTMLInputElement | null>(null);
@@ -164,7 +166,8 @@ export default function PlayerRegistry() {
     // どの選手も使っていない写真を assets/ から削除（先に一覧を見せて確認する）
     const handleCleanupPhotos = async () => {
         // TGA から変換した PNG を使っている選手がいれば、元の TGA も残す
-        const activeUrls = Array.from(new Set((players || []).map(p => toPhotoAssetUrl(p.photoUrl)).filter(Boolean)
+        // 対戦カードのタイトル画像（assets/title）も使用中として残す
+        const activeUrls = Array.from(new Set([...(players || []).map(p => toPhotoAssetUrl(p.photoUrl)), matchupCard.titleImage].filter(Boolean)
             .flatMap(u => /\.png(\?|$)/i.test(u) ? [u, u.replace(/\.png(\?|$)/i, '.tga$1')] : [u])));
         const preview = await gcAssets(activeUrls, { dryRun: true });
         if (!preview) {
