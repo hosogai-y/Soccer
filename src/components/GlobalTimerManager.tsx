@@ -1,14 +1,23 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useSyncedState, useTelop, useTelopHub, useBackgroundInterval } from '@sdk/TelopHubSDK';
-import { buildTimerPayload } from '../utils/timerHelper';
+import { buildTimerPayload, buildTimerClockKeys, buildTimerPeriodPayload } from '../utils/timerHelper';
 
 export type TimerState = {
     isRunning: boolean;
     lastTick: number; // Date.now() when started
     accumulatedMs: number; // total ms accumulated before this start
+    rev?: number; // 時計の状態の版（START/STOP/微調整/プリセット/TAKE で増える。テロップは新しい版で合わせ直す）
+    by?: string;  // 最後に時計を操作したタブ
 };
 
 const DEFAULT_TIMER_STATE: TimerState = { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 };
+
+/** このページ（タブ）の識別子。読み込み直すと変わる */
+export const TIMER_TAB_ID = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+
+// 表示中のタイマーへ時計を送る間隔。テロップは自分の時計で秒を進めるが、
+// 届くたびに描き直すので、プレイヤーのページが裏に回って間引かれても表示が止まらない
+const TICK_INTERVAL_MS = 1000;
 
 /** タイマーステートから現在の経過時刻(ms)を算出 */
 export function getTimerMs(state?: TimerState | null): number {
@@ -21,100 +30,112 @@ export function getTimerMs(state?: TimerState | null): number {
 }
 
 /**
- * タイマーCGを「GUIの通し時間」でONにする関数を返す。
- * タイマーON ボタン・小得点 TAKE の両方からこれを使う（HIDE→ON でも 0:00 から始めない）。
- * show 直後はプレイヤーの読み込み・IN アニメーション中で値が反映されないことがあるため、
- * 最新時刻で数回 update を追い送りして確実に GUI 表記と揃える。
- *
- * TelopHub の ON AIR プレイヤーは update で「前回と値が違うキー」の画像しか描き直さない。
- * ON 時にテロップ側が古い値(0:00・前半)で描いてしまうと、同じ値の追い送りでは直らないため、
- * 追い送りでは画像パスを 'img/…' と './img/…'（同じ画像）で交互に書き分けて全桁・前後半を描き直させる。
+ * 時計を変える（START/STOP/微調整/プリセット/リセット/TAKE）ときの次のステート。
+ * 版(rev)は必ず前より大きくし、操作したタブを記録する
  */
-function withAltImagePath<T extends object>(payload: T): T {
-    const out: any = {};
-    Object.entries(payload).forEach(([key, val]) => {
-        out[key] = typeof val === 'string' && val.startsWith('img/') ? `./${val}` : val;
-    });
-    return out;
+export function nextTimerState(prev: TimerState | null | undefined, patch: Partial<TimerState>): TimerState {
+    const base = prev || DEFAULT_TIMER_STATE;
+    return {
+        ...base,
+        ...patch,
+        rev: Math.max(Date.now(), (base.rev || 0) + 1),
+        by: TIMER_TAB_ID
+    };
 }
 
+/** このタブが時計を最後に操作したか（版の無い古いステートなら true） */
+const isClockOwner = (state?: TimerState | null) => !state?.by || state.by === TIMER_TAB_ID;
+
+/** タイマーテロップの全項目（表示時）: 時刻・各桁の画像・前後半・自走クロック用キー */
+export function buildTimerShowPayload(state: TimerState | null | undefined, period: string) {
+    const s = state || DEFAULT_TIMER_STATE;
+    const ms = getTimerMs(s);
+    return { ...buildTimerPayload(ms, period), ...buildTimerClockKeys(ms, !!s.isRunning, s.rev, isClockOwner(s)) };
+}
+
+/**
+ * 時計だけのペイロード（表示中の UPDATE 用）。時刻・各桁の画像は送らず、秒はテロップ側の時計で進める。
+ * 時計を操作したタブ以外からの送信は timerAuth '0'（テロップは描き直すだけで、時計は合わせ直さない）
+ */
+export function buildTimerClockPayload(state: TimerState | null | undefined, period: string) {
+    const s = state || DEFAULT_TIMER_STATE;
+    return { ...buildTimerPeriodPayload(period), ...buildTimerClockKeys(getTimerMs(s), !!s.isRunning, s.rev, isClockOwner(s)) };
+}
+
+/**
+ * タイマーCGを「GUIの通し時間」でONにする関数を返す。
+ * タイマーON ボタン・小得点 TAKE の両方からこれを使う（HIDE→ON でも 0:00 から始めない）。
+ * TAKE したタブで時計の版を上げてから出すので、テロップは必ず今の GUI の時刻に合わせ直す。
+ * show 直後はプレイヤーの読み込み・IN アニメーション中で受け取れないことがあるため、時計だけを数回追い送りする
+ */
 export function useShowTimerAtCurrentTime() {
     const { syncedStateRef } = useTelopHub();
     const timer = useTelop('タイマー');
+    const [, setTimerState] = useSyncedState<TimerState>('match_timer_state', DEFAULT_TIMER_STATE);
 
-    const buildNow = useCallback(() => {
-        const latest = syncedStateRef.current || {};
-        const state: TimerState = latest.match_timer_state || DEFAULT_TIMER_STATE;
-        const period: string = latest.match_timer_period || '前半';
-        return buildTimerPayload(getTimerMs(state), period);
+    const latest = useCallback(() => {
+        const s = syncedStateRef.current || {};
+        return {
+            state: (s.match_timer_state as TimerState) || DEFAULT_TIMER_STATE,
+            period: (s.match_timer_period as string) || '前半'
+        };
     }, [syncedStateRef]);
 
     return useCallback(() => {
-        // ON 時にプレイヤー側が保存済みデータで描画しても 0:00 に戻らないよう、
-        // show の直前だけ保存データを現在時刻に揃える（毎秒の setData はしない）
-        const payload = buildNow();
+        const { state: prev, period } = latest();
+        // 値は変えずに版だけ上げる（このタブが時計の持ち主になる）
+        const state = nextTimerState(prev, { accumulatedMs: getTimerMs(prev), lastTick: Date.now() });
+        setTimerState(state);
+        const payload = buildTimerShowPayload(state, period);
+        // ON 時にプレイヤー側が保存済みデータで描画しても 0:00 に戻らないよう、show の直前だけ保存データを揃える
         timer.setData(payload);
         timer.show(payload);
-        // 追い送りごとにパス表記を変える（直前と必ず値が違う → 毎回全桁を描き直す）
-        [150, 400, 1000, 2000].forEach((delay, i) => {
+        [300, 1000, 2000].forEach(delay => {
             setTimeout(() => {
-                const now = buildNow();
-                timer.update(i % 2 === 0 ? withAltImagePath(now) : now);
+                const now = latest();
+                timer.update(buildTimerClockPayload(now.state, now.period));
             }, delay);
         });
-    }, [timer, buildNow]);
+    }, [timer, latest, setTimerState]);
 }
 
+/**
+ * タイマーテロップへ時計を送る（画面には何も出さない）。
+ * - 時計の状態が変わったら（START/STOP/微調整/プリセット）、操作したタブからすぐ送る
+ * - 表示中は 1 秒ごとに送る（開いているどのタブからも）。テロップは版が古いデータを捨て、
+ *   同じ版なら描き直すだけなので、送信が遅れたり重なったりしても秒は戻らない
+ */
 export default function GlobalTimerManager() {
+    const { syncedStateRef } = useTelopHub();
     const [timerState] = useSyncedState<TimerState>('match_timer_state', DEFAULT_TIMER_STATE);
-
-    // 前後半のステートを画面(CGOperator)と同期
-    const [timerPeriod] = useSyncedState<string>('match_timer_period', '前半');
-
     const timerTelop = useTelop('タイマー');
+    const isOwner = isClockOwner(timerState);
 
-    // 直前送信した時刻と前後半を保持（不要な重複送信を防止）
-    const lastSentTimeStrRef = useRef<string>('');
-    const lastSentPeriodRef = useRef<string>('');
+    const sendClock = useCallback(() => {
+        const s = syncedStateRef.current || {};
+        const state = (s.match_timer_state as TimerState) || DEFAULT_TIMER_STATE;
+        const period = (s.match_timer_period as string) || '前半';
+        timerTelop.update(buildTimerClockPayload(state, period));
+    }, [syncedStateRef, timerTelop]);
 
-    // タイマーCGが表示状態になったら送信済み記録をクリアし、次の tick で必ず現在時刻を送り直す
+    // 時計の状態が変わったら、操作したタブからすぐ送る
+    const lastSentRevRef = useRef<number | undefined>(undefined);
     useEffect(() => {
-        if (timerTelop.isVisible) {
-            lastSentTimeStrRef.current = '';
-            lastSentPeriodRef.current = '';
-        }
+        if (!timerTelop.isVisible || !isOwner) return;
+        if (lastSentRevRef.current === timerState?.rev) return;
+        lastSentRevRef.current = timerState?.rev;
+        sendClock();
+    }, [timerState?.rev, timerTelop.isVisible, isOwner, sendClock]);
+
+    // 非表示になったら送信済みの記録を外す（次に表示したとき必ず送る）
+    useEffect(() => {
+        if (!timerTelop.isVisible) lastSentRevRef.current = undefined;
     }, [timerTelop.isVisible]);
 
-    // ユーザー要件: 200ms〜500msの間隔でタイマー処理 (250msを採用)
-    // バックグラウンドWorkerインターバルで正確かつメインスレッドをブロックせずに処理
+    // 表示中は 1 秒ごとに送る（Web Worker の刻みなので、このタブが裏に回っても止まらない）
     useBackgroundInterval(() => {
-        if (!timerState) return;
-
-        // タイマーの現在経過時刻(ms)を算出
-        const currentMs = getTimerMs(timerState);
-
-        const totalSeconds = Math.floor(currentMs / 1000);
-        const m = Math.floor(totalSeconds / 60);
-        const s = totalSeconds % 60;
-        const newTimeStr = `${m}:${s.toString().padStart(2, '0')}`;
-        const currentPeriod = timerPeriod || '前半';
-
-        // 秒の桁または前後半が変化した時のみ送出処理
-        if (newTimeStr !== lastSentTimeStrRef.current || currentPeriod !== lastSentPeriodRef.current) {
-            // 【重要：ほかのCG操作・送出の邪魔にならない設計】
-            // 1. timerTelop.setData(...) は呼ばない！
-            //    (setDataを毎秒呼ぶと全プロジェクトの巨大なSyncedStateが毎回同期・WebRTC送信され、
-            //     他のCGボタンや送出アクションをキュー詰まり・遅延させる原因になるため)
-            // 2. タイマーがON AIR（表示中）の時のみ update(payload) を送信！
-            //    非表示中は送信済みとして記録しない（再表示時に必ず最新値を送るため）
-            if (timerTelop.isVisible) {
-                lastSentTimeStrRef.current = newTimeStr;
-                lastSentPeriodRef.current = currentPeriod;
-                // keyExp分2桁、分1桁、秒2桁、秒1桁にGUI上のタイマー表記とリンクした画像を流し込む
-                timerTelop.update(buildTimerPayload(currentMs, currentPeriod));
-            }
-        }
-    }, 250);
+        if (timerTelop.isVisible) sendClock();
+    }, TICK_INTERVAL_MS);
 
     return null;
 }

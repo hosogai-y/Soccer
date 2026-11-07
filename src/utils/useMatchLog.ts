@@ -102,7 +102,20 @@ export function useMatchLog() {
         commit(latestEntries().filter(e => e.id !== entry.id), [entry]);
     }, [latestEntries, commit]);
 
-    return { entries, archives, record, remove, saveEntries, saveArchives, writeScores };
+    /**
+     * 記録を書き換える（時刻・選手などの修正）。並び順はそのまま。
+     * 変更前・変更後のどちらかがゴールなら、関係する選手のゴール数とチーム得点を数え直す
+     */
+    const update = useCallback((next: MatchLogEntry) => {
+        const current = latestEntries();
+        const before = current.find(e => e.id === next.id);
+        if (!before) return false;
+        const fixed = { ...next, time: normalizeMatchTime(next.time || '') || before.time };
+        commit(current.map(e => (e.id === next.id ? fixed : e)), [before, fixed]);
+        return true;
+    }, [latestEntries, commit]);
+
+    return { entries, archives, record, remove, update, saveEntries, saveArchives, writeScores };
 }
 
 /** 選手からログの選手欄を作る */

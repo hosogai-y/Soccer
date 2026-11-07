@@ -7,6 +7,81 @@ window._pendingRenderableObject = null;
 window._pendingShow = false;
 window._currentTimerData = { 時刻: '0:00', 前後半: '前半' };
 
+// ---- 自走クロック ----------------------------------------------------------
+// ダッシュボードは時計の状態が変わったとき（START / STOP / 微調整 / プリセット）だけ
+//   timerSeq       : 状態の版（変わるたびに増える）
+//   timerElapsedMs : 送った瞬間の経過ミリ秒
+//   timerRunning   : '1' = 進行中 / '0' = 停止
+// を送る。秒の進みはこのプレイヤーの時計（performance.now）で数えるので、
+// 通信の遅れ・順番の入れ替わり・複数端末からの送信があっても秒が戻ったり飛んだりしない。
+// timerSeq が無いデータ（古いダッシュボード・エディタのプレビュー）は従来どおり「時刻」をそのまま描く。
+window._timerClock = null; // { seq, baseMs, at, running }
+var TIMER_RESYNC_TOLERANCE_MS = 1000;
+
+function timerClockNowMs(c) {
+    return Math.max(0, c.baseMs + (c.running ? performance.now() - c.at : 0));
+}
+
+function formatTimerClock(ms) {
+    var total = Math.floor(ms / 1000);
+    var s = total % 60;
+    return Math.floor(total / 60) + ':' + (s < 10 ? '0' : '') + s;
+}
+
+/** 受け取ったデータの時計情報を反映する。古い版のデータなら false（呼び出し側で捨てる） */
+function acceptTimerClock(obj) {
+    if (!obj || obj.timerSeq === undefined || obj.timerSeq === null || obj.timerSeq === '') return true;
+    var seq = Number(obj.timerSeq);
+    if (!isFinite(seq)) return true;
+    var c = window._timerClock;
+    if (c && seq < c.seq) return false;
+    var base = Number(obj.timerElapsedMs) || 0;
+    var running = String(obj.timerRunning) === '1';
+    // 新しい版は必ず合わせ直す。同じ版の再送は、時計を操作した画面からの送信で 1 秒以上ずれているときだけ合わせ直す
+    var auth = String(obj.timerAuth) !== '0';
+    if (!c || seq > c.seq || (auth && (c.running !== running || Math.abs(timerClockNowMs(c) - base) > TIMER_RESYNC_TOLERANCE_MS))) {
+        window._timerClock = { seq: seq, baseMs: base, at: performance.now(), running: running };
+    }
+    return true;
+}
+
+function timerDisplayData() {
+    var d = window._currentTimerData || {};
+    var c = window._timerClock;
+    return c ? Object.assign({}, d, { 時刻: formatTimerClock(timerClockNowMs(c)) }) : d;
+}
+
+var _timerLastDrawn = '';
+/** 表示が変わったときだけ描く（force: 再描画された DOM にも必ず描き直す） */
+function drawTimer(force) {
+    if (!window.telopApp) return;
+    var d = timerDisplayData();
+    var key = String(d['時刻']) + '|' + String(d['前後半']) + '|' + String(d['前半後半延長']);
+    if (!force && key === _timerLastDrawn) return;
+    _timerLastDrawn = key;
+    applyTimerCustom(d);
+}
+
+// 50ms ごとに秒の変わり目を見る（描くのは値が変わったときだけ）。1 秒ごとに念のため描き直す。
+// ページが裏に回る・最小化されると、ブラウザは setInterval を 1 秒〜1 分おきに間引くため、
+// 間引かれない Web Worker からの通知で刻む。Worker が使えない環境に備えて setInterval も並べて動かす
+(function () {
+    var n = 0;
+    var tick = function () {
+        n = (n + 1) % 20;
+        drawTimer(n === 0);
+    };
+    try {
+        var blob = new Blob(['setInterval(function () { postMessage(0); }, 50);'], { type: 'application/javascript' });
+        window._timerTicker = new Worker(URL.createObjectURL(blob));
+        window._timerTicker.onmessage = tick;
+    } catch (e) {
+        window._timerTicker = null;
+    }
+    setInterval(function () { drawTimer(false); }, 250);
+})();
+
+
 // ノードIDは TelopEditor の保存や telopkit push で振り直されるため、keyExp / ノード名から毎回引く
 function nodeSel(key) {
     const doc = window.telopDoc;
@@ -165,8 +240,10 @@ window.showTelop = function (rendarableObject) {
     if (rendarableObject !== undefined) {
         // Hub が window.updateTelop を差し替えている場合でも、表示時に描く値を必ず最新にする
         // (古い _currentTimerData のまま描くと HIDE→ON で 0:00 に戻ってしまう)
-        window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
-        window.updateTelop(rendarableObject);
+        if (acceptTimerClock(rendarableObject)) {
+            window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
+            window.updateTelop(rendarableObject);
+        }
     }
 
     if (!window.initialized) {
@@ -186,9 +263,7 @@ window.showTelop = function (rendarableObject) {
                         divElement.style.opacity = "";
                         divElement.classList.add("in_animation");
                         document.body.style.display = "block";
-                        if (window._currentTimerData) {
-                            applyTimerCustom(window._currentTimerData);
-                        }
+                        drawTimer(true);
                     });
                 });
             };
@@ -207,6 +282,7 @@ window.showTelop = function (rendarableObject) {
  */
 function timerUpdateTelop(rendarableObject) {
     if (!rendarableObject) return;
+    if (!acceptTimerClock(rendarableObject)) return;
     window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
 
     const app = window.telopApp;
@@ -217,8 +293,8 @@ function timerUpdateTelop(rendarableObject) {
         return;
     }
 
-    // Direct, zero-flicker SVG attribute update for every tick
-    applyTimerCustom(window._currentTimerData);
+    // Direct, zero-flicker SVG attribute update
+    drawTimer(true);
 }
 
 // TelopHub は window.updateTelop を自前の汎用処理に差し替え、ON 時は showTelop を引数なしで呼ぶ。
@@ -228,10 +304,11 @@ function timerUpdateTelop(rendarableObject) {
     let hubUpdateTelop = null;
     const wrappedUpdateTelop = function (rendarableObject) {
         if (rendarableObject) {
+            if (!acceptTimerClock(rendarableObject)) return;
             window._currentTimerData = Object.assign({}, window._currentTimerData, rendarableObject);
         }
         const result = hubUpdateTelop.apply(window, arguments);
-        const redraw = () => { if (window.telopApp) applyTimerCustom(window._currentTimerData); };
+        const redraw = () => drawTimer(true);
         if (result && typeof result.then === 'function') {
             result.then(redraw, redraw);
         } else {
@@ -305,7 +382,7 @@ window.addEventListener('load', async () => {
                     window.updateTelop(window._pendingRenderableObject);
                     window._pendingRenderableObject = null;
                 } else if (window._currentTimerData) {
-                    applyTimerCustom(window._currentTimerData);
+                    drawTimer(true);
                 } else {
                     applyTimerCustom({ 時刻: '0:00', 前後半: '前半' });
                 }

@@ -9,6 +9,7 @@ import {
     emptyLineup, migrateStarters, buildFormationPayload
 } from '../utils/lineup';
 import { Point, defaultPositions, resolvePositions, roleMap } from '../utils/formationLayout';
+import { useCgQueue } from '../utils/cgQueue';
 
 // Mirror map for horizontally flipping left formation onto right formation
 const MIRROR_SLOT_MAP: Record<string, string> = {
@@ -147,6 +148,9 @@ export default function LineupEditor() {
     // 全学校のスタメン・控えを空（Select Player）にする。陣形の配置はそのまま
     const { resetMatch, logCount } = useMatchReset();
     const [, setLineupResetAt] = useSyncedState<number>(LINEUP_RESET_AT_KEY, 0);
+    // CG Queue List（待機キュー）と、キューから送出中の記録も空にする
+    const [cgQueue, setCgQueue] = useCgQueue();
+    const [, setQueueOnAir] = useSyncedState<{ telopName: string, label: string } | null>('cg_queue_on_air', null);
     const handleResetAll = () => {
         const left = oaLeftTeam || '左チーム';
         const right = oaRightTeam || '右チーム';
@@ -155,6 +159,7 @@ export default function LineupEditor() {
             `・OA左チーム・OA右チームを未選択にします\n` +
             `・全学校のスタメン・控えを空（Select Player）にし、交代済みの印も外します\n` +
             `・CGOperation の 1Shot の選択を外します\n` +
+            `・CG Queue List を空にします${cgQueue.length > 0 ? `（${cgQueue.length}件）` : ''}\n` +
             resetSummary(left, right, logCount) + '\n\n' +
             `※登録した選手・陣形の配置・チーム設定は消えません。`
         )) return;
@@ -178,6 +183,9 @@ export default function LineupEditor() {
         setOaRightTeam('');
         // CGOperation の 1Shot の選択も外す
         setLineupResetAt(Date.now());
+        // CG Queue List を空にする（送出中の CG 自体は消さず、キューの HIDE 対象の記録だけ外す）
+        setCgQueue([]);
+        setQueueOnAir(null);
         setDraft(emptyLineup());
         setIsDirty(false);
         setTeamMode('left');

@@ -17,6 +17,38 @@ export interface TimerPayload {
     分3桁: string;
 }
 
+/** 前後半の表示画像 */
+export function periodImage(period: string = '前半'): string {
+    const p = period || '前半';
+    // 「延長後半」は「後半」も含むため、延長の判定を先に行う
+    if (p.includes('延後') || p.includes('延長後半') || p === 'Ex2') return 'img/HD2D_P01_Moji_4.png';
+    if (p.includes('延前') || p.includes('延長前半') || p === 'Ex1') return 'img/HD2D_P01_Moji_3.png';
+    if (p.includes('後半') || p === '2nd') return 'img/HD2D_P01_Moji_2.png';
+    return 'img/HD2D_P01_Moji_1.png';
+}
+
+/** 前後半だけを変えるペイロード（時計には触れない） */
+export function buildTimerPeriodPayload(period: string = '前半') {
+    const p = period || '前半';
+    return { 前後半: p, 前半後半延長: periodImage(p) };
+}
+
+/**
+ * タイマーテロップの自走クロック用キー。
+ * テロップは timerSeq（時計の状態の版）が新しいときだけ timerElapsedMs（送った瞬間の経過 ms）に合わせ直し、
+ * あとは自分の時計で秒を進める。古い版のデータは捨てるので、遅れて届いた送信で秒が戻らない
+ */
+export function buildTimerClockKeys(elapsedMs: number, isRunning: boolean, rev: number | undefined, auth: boolean = true) {
+    return {
+        timerRunning: isRunning ? '1' : '0',
+        timerElapsedMs: String(Math.max(0, Math.round(elapsedMs))),
+        timerSeq: String(rev || 0),
+        // '1': 時計を操作した画面からの送信（同じ版でもずれていれば合わせ直す）
+        // '0': ほかの画面からの送信（描き直しのきっかけだけ。PC の時計のずれを持ち込まない）
+        timerAuth: auth ? '1' : '0'
+    };
+}
+
 /**
  * ミリ秒および前後半文字列から、タイマーグラフィックの各keyExp画像パーツを含む
  * 軽量かつ完全なペイロードを生成します。
@@ -62,16 +94,8 @@ export function buildTimerPayload(totalMs: number, period: string = '前半'): T
     const sec1Img = `img/Time_${sec1}.png`;
     const colonImg = `img/Time_10.png`;
 
-    let halfImg = 'img/HD2D_P01_Moji_1.png';
     const p = period || '前半';
-    // 「延長後半」は「後半」も含むため、延長の判定を先に行う
-    if (p.includes('延後') || p.includes('延長後半') || p === 'Ex2') {
-        halfImg = 'img/HD2D_P01_Moji_4.png';
-    } else if (p.includes('延前') || p.includes('延長前半') || p === 'Ex1') {
-        halfImg = 'img/HD2D_P01_Moji_3.png';
-    } else if (p.includes('後半') || p === '2nd') {
-        halfImg = 'img/HD2D_P01_Moji_2.png';
-    }
+    const halfImg = periodImage(p);
 
     return {
         時刻: timeStr,

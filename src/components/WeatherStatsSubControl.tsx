@@ -8,45 +8,12 @@ import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
+import { StatsData, buildStatsPayload } from '../utils/stats';
+import { useOaTeamSettings, useScoreSideChange } from '../utils/useScoreSideChange';
 
-/** スタッツテロップのペイロード（チーム名・得点・チームカラーは小得点とリンク） */
-export function buildStatsPayload(
-    score: { leftName: string, rightName: string, leftScore: string, rightScore: string, leftColor?: string, rightColor?: string },
-    statsData?: StatsData | null
-) {
-    return {
-        // チームカラーザブトン（KeyExp: ColorRectL / ColorRectR）。色が分からないときは送らずテロップの色のまま
-        ...(score.leftColor ? { 'ColorRectL': score.leftColor } : {}),
-        ...(score.rightColor ? { 'ColorRectR': score.rightColor } : {}),
-        '左側チーム名': score.leftName,
-        '右側チーム名': score.rightName,
-        'Left得点数値': score.leftScore,
-        'Right得点数値': score.rightScore,
-        '左側シュート数値': statsData?.leftShoot || '0',
-        '右側シュート数値': statsData?.rightShoot || '0',
-        '左側FK数値': statsData?.leftFK || '0',
-        '右側FK数値': statsData?.rightFK || '0',
-        '左側CK数値': statsData?.leftCK || '0',
-        '右側CK数値': statsData?.rightCK || '0',
-        '左側イエロー数値': statsData?.leftYellow || '0',
-        '右側イエロー数値': statsData?.rightYellow || '0',
-        '左側レッド数値': statsData?.leftRed || '0',
-        '右側レッド数値': statsData?.rightRed || '0'
-    };
-}
-
-export type StatsData = {
-    leftShoot: string;
-    rightShoot: string;
-    leftFK: string;
-    rightFK: string;
-    leftCK: string;
-    rightCK: string;
-    leftYellow: string;
-    rightYellow: string;
-    leftRed: string;
-    rightRed: string;
-};
+// スタッツの型・ペイロードは utils/stats に移した（サイド反転の共通処理からも使うため）。既存の import 先として再公開する
+export { buildStatsPayload } from '../utils/stats';
+export type { StatsData } from '../utils/stats';
 
 export default function WeatherStatsSubControl() {
     const statsTelop = useTelop('スタッツ');
@@ -73,80 +40,11 @@ export default function WeatherStatsSubControl() {
     const rightTeamName = smallScoreTelop.data['右チーム名'] || bigScoreTelop.data['右チーム名'] || '帯広北';
     const leftScore = smallScoreTelop.data['左チーム得点'] || bigScoreTelop.data['左チーム得点'] || '0';
     const rightScore = smallScoreTelop.data['右チーム得点'] || bigScoreTelop.data['右チーム得点'] || '0';
-    // チームカラーも小得点（なければ大得点）と同じ色を使う
-    const leftColor = smallScoreTelop.data['LeftTeamColor'] || bigScoreTelop.data['LeftTeamColor'];
-    const rightColor = smallScoreTelop.data['RigtTeamColor'] || bigScoreTelop.data['RigtTeamColor'];
+    // チームカラーは TeamSettings の OA 左チーム・右チームの色（Match Score と同じ求め方）
+    const { leftColor, rightColor } = useOaTeamSettings();
 
-    // サイドチェンジ（Left ⇄ Right の全項目スワップ反転）
-    const handleSideChange = () => {
-        // 1. スタッツ数値の左右スワップ
-        setStatsData(prev => {
-            const current = prev || {
-                leftShoot: '0', rightShoot: '0',
-                leftFK: '0', rightFK: '0',
-                leftCK: '0', rightCK: '0',
-                leftYellow: '0', rightYellow: '0',
-                leftRed: '0', rightRed: '0'
-            };
-            return {
-                leftShoot: current.rightShoot,
-                rightShoot: current.leftShoot,
-                leftFK: current.rightFK,
-                rightFK: current.leftFK,
-                leftCK: current.rightCK,
-                rightCK: current.leftCK,
-                leftYellow: current.rightYellow,
-                rightYellow: current.leftYellow,
-                leftRed: current.rightRed,
-                rightRed: current.leftRed
-            };
-        });
-
-        // 2. 小得点・大得点のチーム名・得点・チームカラーのスワップ
-        const curSmall = smallScoreTelop.data || {};
-        const curBig = bigScoreTelop.data || {};
-
-        const swappedData = {
-            '左チーム名': curSmall['右チーム名'] || curBig['右チーム名'] || rightTeamName,
-            '右チーム名': curSmall['左チーム名'] || curBig['左チーム名'] || leftTeamName,
-            '左チーム得点': curSmall['右チーム得点'] || curBig['右チーム得点'] || rightScore,
-            '右チーム得点': curSmall['左チーム得点'] || curBig['左チーム得点'] || leftScore,
-            'LeftTeamColor': curSmall['RigtTeamColor'] || curBig['RightTeamColorLargePoint'] || '#bd39fb',
-            'RigtTeamColor': curSmall['LeftTeamColor'] || curBig['LeftTeamColorLargePoint'] || '#bd39fb',
-            'LeftTeamColorLargePoint': curSmall['RigtTeamColor'] || '#bd39fb',
-            'RightTeamColorLargePoint': curSmall['LeftTeamColor'] || '#bd39fb',
-            'LeftTeamColorSmallPoint': curSmall['RigtTeamColor'] || '#bd39fb',
-            'RightTeamColorSmallPoint': curSmall['LeftTeamColor'] || '#bd39fb'
-        };
-
-        smallScoreTelop.setData((prev: any) => ({ ...prev, ...swappedData }));
-        bigScoreTelop.setData((prev: any) => ({ ...prev, ...swappedData }));
-
-        // もしスタッツ送出中なら、反転後のチーム名・得点・チームカラー・数値で即時更新
-        // （setTimeout で sendStats を呼ぶと反転前の値で送ってしまうため、ここで組み立てる）
-        if (statsTelop.isVisible) {
-            const c = statsData || {
-                leftShoot: '0', rightShoot: '0', leftFK: '0', rightFK: '0', leftCK: '0', rightCK: '0',
-                leftYellow: '0', rightYellow: '0', leftRed: '0', rightRed: '0'
-            };
-            const payload = buildStatsPayload({
-                leftName: swappedData['左チーム名'],
-                rightName: swappedData['右チーム名'],
-                leftScore: swappedData['左チーム得点'],
-                rightScore: swappedData['右チーム得点'],
-                leftColor: swappedData['LeftTeamColor'],
-                rightColor: swappedData['RigtTeamColor']
-            }, {
-                leftShoot: c.rightShoot, rightShoot: c.leftShoot,
-                leftFK: c.rightFK, rightFK: c.leftFK,
-                leftCK: c.rightCK, rightCK: c.leftCK,
-                leftYellow: c.rightYellow, rightYellow: c.leftYellow,
-                leftRed: c.rightRed, rightRed: c.leftRed
-            });
-            statsTelop.setData(payload);
-            statsTelop.update(payload);
-        }
-    };
+    // サイドチェンジ: Match Score の 🔄 サイド反転と同じ処理（OA 左右チームも入れ替えるので、色がテレコにならない）
+    const handleSideChange = useScoreSideChange();
 
     // スタッツ更新ヘルパー
     const updateStat = (key: keyof StatsData, delta: number) => {

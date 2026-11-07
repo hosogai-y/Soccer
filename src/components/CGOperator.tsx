@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useTelop, useClearAll, useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
 import { Player, toHalfWidthNum } from './PlayerRegistry';
 import { useTeamStaff, registeredStaff, staffComments, StaffMember } from '../utils/staff';
-import { TimerState, useShowTimerAtCurrentTime } from './GlobalTimerManager';
-import { buildTimerPayload } from '../utils/timerHelper';
+import { TimerState, useShowTimerAtCurrentTime, nextTimerState, getTimerMs } from './GlobalTimerManager';
+import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
-import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Control, buildStatsPayload } from './WeatherStatsSubControl';
+import WeatherStatsSubControl, { WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
+import { useScoreSideChange, useOaTeamSettings, scoreColorKeys } from '../utils/useScoreSideChange';
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
@@ -1218,37 +1219,23 @@ function MatchScorePanel() {
     const smallScore = useTelop('小得点');
     const timer = useTelop('タイマー');
     const additionalTime = useTelop('アディショナルタイム');
-    const statsTelop = useTelop('スタッツ');
     // 小得点 HIDE で一緒に消した AT（次の小得点 TAKE で AT も再度 TAKE する）
     const [atHiddenBySmallScore, setAtHiddenBySmallScore] = useSyncedState<boolean>(AT_HIDDEN_BY_SMALL_SCORE_KEY, false);
     const showTimerAtCurrentTime = useShowTimerAtCurrentTime();
-    const [oaLeftTeam, setOaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
-    const [oaRightTeam, setOaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
-    const [subsOnAirSide, setSubsOnAirSide] = useSyncedState<string>('subs_telop_side', '');
-    const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     // スコアCGのチーム名を、どの OA チーム・TeamSettings 表記から入れたか（変わったら入れ直す）
     const [appliedNameSource, setAppliedNameSource] = useSyncedState<string | null>('score_team_name_source', null);
     const clearForTake = useClearForTake();
     const { sdk, isConnected, isSyncingSnapshot } = useTelopHub();
 
-    const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
-    const leftConfig = teams.find(t => t.name === oaLeftTeam);
-    const rightConfig = teams.find(t => t.name === oaRightTeam);
-
-    const defaultLeftSmallName = leftConfig?.smallScoreName || oaLeftTeam;
-    const defaultRightSmallName = rightConfig?.smallScoreName || oaRightTeam;
-    const defaultLeftBigName = leftConfig?.bigScoreName || oaLeftTeam;
-    const defaultRightBigName = rightConfig?.bigScoreName || oaRightTeam;
-    const defaultLeftColor = leftConfig?.color || '#198754';
-    const defaultRightColor = rightConfig?.color || '#0dcaf0';
-
-    const [statsData, setStatsData] = useSyncedState<StatsData>('match_stats_data', {
-        leftShoot: '0', rightShoot: '0',
-        leftFK: '0', rightFK: '0',
-        leftCK: '0', rightCK: '0',
-        leftYellow: '0', rightYellow: '0',
-        leftRed: '0', rightRed: '0'
-    });
+    // OA 左右チームの TeamSettings（チームカラー・小得点/大得点の表記）。スタッツタブ・サイド反転と同じ求め方
+    const oa = useOaTeamSettings();
+    const { oaLeftTeam, oaRightTeam } = oa;
+    const defaultLeftSmallName = oa.leftSmallName;
+    const defaultRightSmallName = oa.rightSmallName;
+    const defaultLeftBigName = oa.leftBigName;
+    const defaultRightBigName = oa.rightBigName;
+    const defaultLeftColor = oa.leftColor;
+    const defaultRightColor = oa.rightColor;
 
     // smallOnly / bigOnly は片方のテロップだけに入れる値（チーム名表記など）
     const syncScores = (data: any, smallOnly: any = {}, bigOnly: any = {}) => {
@@ -1270,18 +1257,25 @@ function MatchScorePanel() {
         smallScore.setData((prev: any) => ({ ...prev, ...expandedData, ...smallOnly }));
     };
 
-    // チームカラーは TeamSettings の値のみを使用（このパネルでは変更不可）
-    // サイド反転中（左に右チームの色が入っている）なら左右を入れ替えて適用する
-    const bsColorData = bigScore.data || {};
-    const isSideSwapped = defaultLeftColor !== defaultRightColor && bsColorData['LeftTeamColor'] === defaultRightColor;
-    const leftTeamColor = isSideSwapped ? defaultRightColor : defaultLeftColor;
-    const rightTeamColor = isSideSwapped ? defaultLeftColor : defaultRightColor;
+    // チームカラーは TeamSettings の OA 左チーム・右チームの色そのまま（このパネルでは変更不可）。
+    // 以前は CG に残った色から「サイド反転中か」を推測して左右を入れ替えていたが、
+    // 一度 CG の色が逆になると推測が逆のまま固定され、左右がテレコになっていた。
+    // サイド反転は OA 左右チーム自体を入れ替えるので、推測は不要
+    const leftTeamColor = defaultLeftColor;
+    const rightTeamColor = defaultRightColor;
 
-    // TeamSettings のチームカラー変更（またはCGに残った古い色）をスコアCGへ連動
+    // TeamSettings のチームカラー変更（またはCGに残った古い・逆の色）をスコアCGへ連動。送出中ならその場で UPDATE
+    const bsColorData = bigScore.data || {};
+    const ssColorData = smallScore.data || {};
     useEffect(() => {
-        if (bsColorData['LeftTeamColor'] === leftTeamColor && bsColorData['RigtTeamColor'] === rightTeamColor) return;
-        syncScores({ LeftTeamColor: leftTeamColor, RigtTeamColor: rightTeamColor });
-    }, [leftTeamColor, rightTeamColor, bsColorData['LeftTeamColor'], bsColorData['RigtTeamColor']]);
+        const bigOk = bsColorData['LeftTeamColor'] === leftTeamColor && bsColorData['RigtTeamColor'] === rightTeamColor;
+        const smallOk = ssColorData['LeftTeamColor'] === leftTeamColor && ssColorData['RigtTeamColor'] === rightTeamColor;
+        if (bigOk && smallOk) return;
+        const colors = scoreColorKeys(leftTeamColor, rightTeamColor);
+        syncScores(colors);
+        if (!smallOk && smallScore.isVisible) smallScore.update({ ...ssColorData, ...colors });
+        if (!bigOk && bigScore.isVisible) bigScore.update({ ...bsColorData, ...colors });
+    }, [leftTeamColor, rightTeamColor, bsColorData['LeftTeamColor'], bsColorData['RigtTeamColor'], ssColorData['LeftTeamColor'], ssColorData['RigtTeamColor']]);
 
     // Lineups の OA チーム / TeamSettings の表記が変わったら、小得点・大得点のチーム名をそれぞれの表記で入れ直す。
     // 変わっていなければ手入力したチーム名を残す（ZIP 読み込みで古い名前が戻ったときも、ここで OA 設定に揃う）
@@ -1299,85 +1293,9 @@ function MatchScorePanel() {
         smallScore.update();
     };
 
-    // 🔄 サイドチェンジ（左右チーム・スコア・チーム名・カラーおよびスタッツのスワップ反転）
-    // 左右チーム (oa_left_team / oa_right_team) を入れ替えるので、Starters/Subs の表示と
-    // フォーメーション TAKE の送出先（左チーム → フォーメーション左、右チーム → フォーメーション右）も追従する
-    const handleScoreSideChange = () => {
-        setOaLeftTeam(oaRightTeam);
-        setOaRightTeam(oaLeftTeam);
-        // 控え選手CG（サブ下位置左）の送出中サイドもチームに合わせて入れ替える
-        if (subsOnAirSide) setSubsOnAirSide(subsOnAirSide === 'left' ? 'right' : 'left');
-
-        // OA チームの左右が入れ替わるだけなので、チーム名の入れ直しは起こさず、今の名前（手入力含む）を左右反転する
-        setAppliedNameSource([oaRightTeam, oaLeftTeam, defaultRightSmallName, defaultLeftSmallName, defaultRightBigName, defaultLeftBigName].join('|'));
-
-        const cur = smallScore.data || {};
-        const curBig = bigScore.data || {};
-
-        const swapped = {
-            '左チーム得点': cur['右チーム得点'] || curBig['右チーム得点'] || '0',
-            '右チーム得点': cur['左チーム得点'] || curBig['左チーム得点'] || '0',
-            'LeftTeamColor': rightTeamColor,
-            'RigtTeamColor': leftTeamColor,
-            'ColorRectL': rightTeamColor,
-            'ColorRectR': leftTeamColor,
-            'LeftTeamColorLargePoint': rightTeamColor,
-            'RightTeamColorLargePoint': leftTeamColor,
-            'LeftTeamColorSmallPoint': rightTeamColor,
-            'RightTeamColorSmallPoint': leftTeamColor
-        };
-
-        // チーム名は小得点・大得点で表記が違うので、それぞれの名前を左右反転する
-        const smallNames = {
-            '左チーム名': cur['右チーム名'] || defaultRightSmallName,
-            '右チーム名': cur['左チーム名'] || defaultLeftSmallName
-        };
-        const bigNames = {
-            '左チーム名': curBig['右チーム名'] || defaultRightBigName,
-            '右チーム名': curBig['左チーム名'] || defaultLeftBigName
-        };
-        syncScores(swapped, smallNames, bigNames);
-
-        // 送出中の小得点・大得点にも反転後の内容をその場で UPDATE する
-        // （setData は共有ステートを変えるだけで CG には届かないため）
-        if (smallScore.isVisible) smallScore.update({ ...cur, ...swapped, ...smallNames });
-        if (bigScore.isVisible) bigScore.update({ ...curBig, ...swapped, ...bigNames });
-
-        const c = statsData || {
-            leftShoot: '0', rightShoot: '0',
-            leftFK: '0', rightFK: '0',
-            leftCK: '0', rightCK: '0',
-            leftYellow: '0', rightYellow: '0',
-            leftRed: '0', rightRed: '0'
-        };
-        const swappedStats: StatsData = {
-            leftShoot: c.rightShoot,
-            rightShoot: c.leftShoot,
-            leftFK: c.rightFK,
-            rightFK: c.leftFK,
-            leftCK: c.rightCK,
-            rightCK: c.leftCK,
-            leftYellow: c.rightYellow,
-            rightYellow: c.leftYellow,
-            leftRed: c.rightRed,
-            rightRed: c.leftRed
-        };
-        setStatsData(swappedStats);
-
-        // スタッツ送出中なら、反転後のチーム名・得点・数値で UPDATE する
-        if (statsTelop.isVisible) {
-            const statsPayload = buildStatsPayload({
-                leftName: smallNames['左チーム名'],
-                rightName: smallNames['右チーム名'],
-                leftScore: swapped['左チーム得点'],
-                rightScore: swapped['右チーム得点'],
-                leftColor: swapped['LeftTeamColor'],
-                rightColor: swapped['RigtTeamColor']
-            }, swappedStats);
-            statsTelop.setData(statsPayload);
-            statsTelop.update(statsPayload);
-        }
-    };
+    // 🔄 サイドチェンジ（スタッツタブと共通）: OA 左右チーム・スコア・チーム名・カラー・スタッツを左右反転。
+    // OA 左右チームを入れ替えるので、Starters/Subs の表示とフォーメーション TAKE の送出先も追従する
+    const handleScoreSideChange = useScoreSideChange();
 
     // 【重要要件】小得点をTAKEする場合は、小得点表記・カラーをセットし、タイマーもONにする
     const handleTakeSmallScore = () => {
@@ -1534,6 +1452,7 @@ function MatchTimerPanel() {
     const additionalTime = useTelop('アディショナルタイム');
     const [, setAtHiddenBySmallScore] = useSyncedState<boolean>(AT_HIDDEN_BY_SMALL_SCORE_KEY, false);
     const showTimerAtCurrentTime = useShowTimerAtCurrentTime();
+    const { syncedStateRef } = useTelopHub();
 
     const [timerState, setTimerState] = useSyncedState<TimerState>('match_timer_state', {
         isRunning: false,
@@ -1552,15 +1471,11 @@ function MatchTimerPanel() {
     // Selected Additional Time number (1 to 9)
     const [selectedLossTime, setSelectedLossTime] = useState<string>("3");
 
+    // GUI の時刻表示（100ms ごと。秒の変わり目の遅れを小さくして CG と揃える）
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (!timerState) return;
-            let currentMs = timerState.accumulatedMs || 0;
-            if (timerState.isRunning) {
-                currentMs += (Date.now() - (timerState.lastTick || Date.now()));
-            }
-            setDisplayMs(Math.max(0, currentMs));
-        }, 250); // 200ms〜500msの範囲内(250ms)でGUI表示更新
+        const tick = () => setDisplayMs(getTimerMs(timerState));
+        tick();
+        const interval = setInterval(tick, 100);
         return () => clearInterval(interval);
     }, [timerState]);
 
@@ -1572,60 +1487,44 @@ function MatchTimerPanel() {
     const s = totalSec % 60;
     const liveTimeString = `${m}:${s < 10 ? '0' : ''}${s}`;
 
-    // 前後半セレクト変更時 (ON AIR中なら即時 UpdateLIVE 送信！)
+    // 前後半セレクト変更時（ON AIR 中なら前後半の画像だけ即時 UPDATE。時計には触れない）
     const handlePeriodChange = (newPeriod: string) => {
         setTimerPeriod(newPeriod);
         // 当日操作ログに「後半開始」などを記録（同じ前後半の開始は1回だけ）
         recordLog({ type: 'period', event: `${newPeriod}開始`, period: newPeriod });
         if (timer.isVisible) {
-            timer.update(buildTimerPayload(displayMs, newPeriod));
+            timer.update(buildTimerPeriodPayload(newPeriod));
         }
     };
 
-    // タイマースタート／ストップ
+    // 時計の操作は「今この瞬間の経過時間」から次の状態を作り、版(rev)を上げて保存する。
+    // テロップへの送信は GlobalTimerManager がまとめて行う（版が新しいときだけテロップが合わせ直す）
+    const latestTimerState = (): TimerState => (syncedStateRef.current?.match_timer_state as TimerState) || timerState;
+
+    // タイマースタート／ストップ（CG表示は「タイマーON」ボタンで行う）
     const toggleTimer = () => {
-        setTimerState(prev => {
-            const safePrev = prev || { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 };
-            if (safePrev.isRunning) {
-                const newAccumulated = safePrev.accumulatedMs + (Date.now() - (safePrev.lastTick || Date.now()));
-                if (timer.isVisible) {
-                    timer.update(buildTimerPayload(newAccumulated, timerPeriod || '前半'));
-                }
-                return { ...safePrev, isRunning: false, accumulatedMs: newAccumulated };
-            } else {
-                // スタート時: タイマーのカウントを開始するのみ（CG表示は「タイマーON」ボタンで行う）
-                if (timer.isVisible) {
-                    timer.update(buildTimerPayload(safePrev.accumulatedMs, timerPeriod || '前半'));
-                }
-                return { ...safePrev, isRunning: true, lastTick: Date.now() };
-            }
-        });
+        const prev = latestTimerState();
+        const now = Date.now();
+        setTimerState(prev?.isRunning
+            ? nextTimerState(prev, { isRunning: false, accumulatedMs: getTimerMs(prev), lastTick: now })
+            : nextTimerState(prev, { isRunning: true, lastTick: now }));
     };
 
+    // 微調整（±1秒 / ±1分）: 進行中でも今の経過時間に足し引きするので、秒の刻み（端数）はそのまま保つ
     const adjustTime = (ms: number) => {
-        setTimerState(prev => {
-            const safePrev = prev || { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 };
-            const newAccumulated = Math.max(0, safePrev.accumulatedMs + ms);
-            if (timer.isVisible) {
-                timer.update(buildTimerPayload(newAccumulated, timerPeriod || '前半'));
-            }
-            return {
-                ...safePrev,
-                accumulatedMs: newAccumulated
-            };
-        });
+        const prev = latestTimerState();
+        setTimerState(nextTimerState(prev, { accumulatedMs: Math.max(0, getTimerMs(prev) + ms), lastTick: Date.now() }));
     };
 
     const applyPreset = () => {
         const presetMs = parseInt(presetVal, 10);
-        setTimerState({
-            isRunning: false,
-            lastTick: Date.now(),
-            accumulatedMs: presetMs
-        });
-        if (timer.isVisible) {
-            timer.update(buildTimerPayload(presetMs, timerPeriod || '前半'));
-        }
+        setTimerState(nextTimerState(latestTimerState(), { isRunning: false, lastTick: Date.now(), accumulatedMs: presetMs }));
+    };
+
+    // Update: 今の GUI の時刻で CG の時計を合わせ直す（値は変えずに版だけ上げる）
+    const resyncTimer = () => {
+        const prev = latestTimerState();
+        setTimerState(nextTimerState(prev, { accumulatedMs: getTimerMs(prev), lastTick: Date.now() }));
     };
 
     // アディショナルタイム送出 (LossSlide_1～9.png を切り替えて送出)
@@ -1661,7 +1560,7 @@ function MatchTimerPanel() {
                 <button className={`btn ${isRunning ? 'btn-danger' : 'btn-success'}`} onClick={toggleTimer} style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     {isRunning ? '⏹️ STOP' : '▶️ START'}
                 </button>
-                <button className="btn btn-primary" onClick={() => timer.update(buildTimerPayload(displayMs, timerPeriod || '前半'))} style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem' }}>
+                <button className="btn btn-primary" onClick={resyncTimer} title="今の GUI の時刻で CG の時計を合わせ直します" style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem' }}>
                     Update
                 </button>
                 {!timer.isVisible ? (

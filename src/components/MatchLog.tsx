@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSyncedState, useTelop, useTelopHub } from '@sdk/TelopHubSDK';
 import { Player } from './PlayerRegistry';
-import { TimerState, getTimerMs } from './GlobalTimerManager';
-import { buildTimerPayload } from '../utils/timerHelper';
+import { TimerState, nextTimerState } from './GlobalTimerManager';
+import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import {
     MATCH_LOG_ARCHIVE_LIMIT, MatchLogEntry, MatchLogType,
     LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals
@@ -31,13 +31,10 @@ export function useMatchReset() {
     const [, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
     const timer = useTelop('タイマー');
 
-    // 前後半を変える。ON AIR 中のタイマーにも反映（ms が null なら今の経過時刻のまま）
-    const changePeriod = (period: string, ms: number | null) => {
+    // 前後半を変える。ON AIR 中のタイマーには前後半の画像だけ反映（時計は GlobalTimerManager が送る）
+    const changePeriod = (period: string) => {
         setTimerPeriod(period);
-        if (timer.isVisible) {
-            const state = syncedStateRef.current?.match_timer_state as TimerState | undefined;
-            timer.update(buildTimerPayload(ms ?? getTimerMs(state), period));
-        }
+        if (timer.isVisible) timer.update(buildTimerPeriodPayload(period));
     };
 
     const resetMatch = (left: string, right: string) => {
@@ -47,8 +44,9 @@ export function useMatchReset() {
         }
         setPlayers(prev => resetTodayGoals(prev || []));
         writeScores(0, 0);
-        setTimerState({ isRunning: false, lastTick: Date.now(), accumulatedMs: 0 });
-        changePeriod('前半', 0);
+        // 0:00 で停止（版を上げて、ON AIR 中のタイマーも合わせ直させる）
+        setTimerState(nextTimerState(syncedStateRef.current?.match_timer_state as TimerState | undefined, { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 }));
+        changePeriod('前半');
     };
 
     return { resetMatch, changePeriod, logCount: entries.length };
@@ -60,8 +58,10 @@ export function useMatchReset() {
  * 「ログから復元」「初期状態にする」で CGOperation の得点・ゴール数・前後半をそろえる。
  */
 export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: string, oaRightTeam: string }) {
-    const { entries, archives, record, remove, writeScores } = useMatchLog();
+    const { entries, archives, record, remove, update, writeScores } = useMatchLog();
     const { resetMatch, changePeriod } = useMatchReset();
+    // ダブルクリックで開く編集ダイアログの対象（当日ログのみ）
+    const [editing, setEditing] = useState<MatchLogEntry | null>(null);
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [, setTeamLineups] = useSyncedState<Record<string, TeamLineup>>(TEAM_LINEUPS_KEY, {});
 
@@ -129,7 +129,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         )) return;
         setPlayers(prev => applyLogGoals(prev || [], entries));
         writeScores(left, right);
-        if (period) changePeriod(period, null);
+        if (period) changePeriod(period);
     };
 
     // 初期状態: 小得点 0-0・タイマー 0:00・前半、Today ゴール 0。当日ログは過去ログへ退避
@@ -237,7 +237,10 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
                     <div style={{ padding: '6px 10px', fontSize: '0.85rem', color: '#777' }}>記録はまだありません</div>
                 )}
                 {rows.map(({ e, score }) => (
-                    <div key={e.id} style={{ height: LOG_ROW_HEIGHT, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', fontSize: '0.85rem', borderBottom: '1px solid rgba(255,255,255,0.05)', whiteSpace: 'nowrap' }}>
+                    <div key={e.id}
+                        onDoubleClick={() => viewing === '' && setEditing(e)}
+                        title={viewing === '' ? 'ダブルクリックで編集（時刻・選手など）' : undefined}
+                        style={{ height: LOG_ROW_HEIGHT, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', fontSize: '0.85rem', borderBottom: '1px solid rgba(255,255,255,0.05)', whiteSpace: 'nowrap', cursor: viewing === '' ? 'pointer' : undefined, userSelect: 'none' }}>
                         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', color: e.type === 'goal' ? '#ffca28' : undefined }}>{describe(e)}</span>
                         {score && <span style={{ color: '#4caf50', fontWeight: 'bold' }}>{oaLeftTeam} {score} {oaRightTeam}</span>}
                         {viewing === '' && (
@@ -245,6 +248,168 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
                         )}
                     </div>
                 ))}
+            </div>
+
+            {editing && (
+                <LogEditDialog
+                    entry={editing}
+                    players={players || []}
+                    teams={[oaLeftTeam, oaRightTeam]}
+                    onCancel={() => setEditing(null)}
+                    onSave={next => {
+                        if (!update(next)) alert('この記録は見つかりませんでした（別の端末で削除された可能性があります）。');
+                        setEditing(null);
+                    }}
+                />
+            )}
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// 当日操作ログの編集ダイアログ（ダブルクリックで開く）。種類はそのまま、前後半・時刻・チーム・選手を直す
+// --------------------------------------------------------
+
+const PERIOD_OPTIONS = ['前半', '後半', '延長前半', '延長後半'];
+
+function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
+    entry: MatchLogEntry,
+    players: Player[],
+    teams: string[],
+    onCancel: () => void,
+    onSave: (next: MatchLogEntry) => void
+}) {
+    const [period, setPeriod] = useState(entry.period);
+    const [time, setTime] = useState(entry.time);
+    const [event, setEvent] = useState(entry.event || PERIOD_EVENTS[0]);
+    const [team, setTeam] = useState(entry.team || teams[0] || '');
+    const [playerId, setPlayerId] = useState(entry.playerId || '');
+    const [inPlayerId, setInPlayerId] = useState(entry.inPlayerId || '');
+
+    const isPeriod = entry.type === 'period';
+    const isSub = entry.type === 'sub';
+    // 今の OA チームに、記録のチーム（別の試合のチームなど）も選べるように足す
+    const teamOptions = Array.from(new Set([...teams, entry.team || ''].filter(Boolean)));
+    const teamPlayers = players
+        .filter(p => p.schoolName === team)
+        .sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+    const periodOptions = PERIOD_OPTIONS.includes(period) ? PERIOD_OPTIONS : [period, ...PERIOD_OPTIONS];
+    const eventOptions = PERIOD_EVENTS.includes(event) ? PERIOD_EVENTS : [event, ...PERIOD_EVENTS];
+
+    // 選手が名簿から消えていても、選び直していなければ記録の名前・背番号を残す
+    const fieldsFor = (id: string, prevId?: string, prevName?: string, prevNumber?: string) => {
+        const p = id ? players.find(x => x.id === id) : undefined;
+        if (p) return { id: p.id, name: p.name, number: p.number };
+        if (id && id === prevId) return { id, name: prevName, number: prevNumber };
+        return { id: undefined, name: undefined, number: undefined };
+    };
+
+    const handleSave = () => {
+        if (!time.trim()) {
+            alert('時刻を入力してください。');
+            return;
+        }
+        if (isSub && (!playerId || !inPlayerId)) {
+            alert('交代は OUT と IN の選手を選んでください。');
+            return;
+        }
+        if ((entry.type === 'yellow' || entry.type === 'red') && !playerId) {
+            alert('カードの選手を選んでください。');
+            return;
+        }
+        if (isPeriod) {
+            onSave({ ...entry, period, time, event });
+            return;
+        }
+        const out = fieldsFor(playerId, entry.playerId, entry.playerName, entry.playerNumber);
+        const inn = fieldsFor(inPlayerId, entry.inPlayerId, entry.inPlayerName, entry.inPlayerNumber);
+        onSave({
+            ...entry, period, time, team,
+            playerId: out.id, playerName: out.name, playerNumber: out.number,
+            ...(isSub ? { inPlayerId: inn.id, inPlayerName: inn.name, inPlayerNumber: inn.number } : {})
+        });
+    };
+
+    const playerOptions = (list: Player[], selectedId: string, fallbackName?: string, fallbackNumber?: string) => (
+        <>
+            {/* 名簿にいない（削除された・チームが違う）選手が選ばれているときも表示できるようにする */}
+            {selectedId && !list.some(p => p.id === selectedId) && (
+                <option value={selectedId}>#{fallbackNumber} {fallbackName}（名簿外）</option>
+            )}
+            {list.map(p => <option key={p.id} value={p.id}>#{p.number} {p.name} ({p.position})</option>)}
+        </>
+    );
+
+    const labelStyle: React.CSSProperties = { fontSize: '0.8rem', color: '#aaa', width: 72, flexShrink: 0 };
+    const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 };
+
+    return (
+        <div onClick={onCancel} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div className="glass-panel" onClick={e => e.stopPropagation()}
+                onKeyDown={e => {
+                    if (e.key === 'Escape') onCancel();
+                    if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') handleSave();
+                }}
+                style={{ width: 'min(480px, 100%)', padding: '18px 20px', background: '#1c1f2b' }}>
+                <h3 style={{ margin: '0 0 14px', fontSize: '1rem' }}>
+                    ✏️ ログの編集 <span style={{ fontSize: '0.85rem', color: '#ffca28' }}>{LOG_TYPE_LABELS[entry.type]}</span>
+                </h3>
+
+                <div style={rowStyle}>
+                    <span style={labelStyle}>前後半</span>
+                    <select className="form-select" value={period} onChange={e => setPeriod(e.target.value)} style={{ flex: 1 }}>
+                        {periodOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                </div>
+                <div style={rowStyle}>
+                    <span style={labelStyle}>時刻</span>
+                    <input className="form-input" value={time} onChange={e => setTime(e.target.value)} placeholder="例: 23:15" style={{ flex: 1 }} autoFocus />
+                </div>
+
+                {isPeriod ? (
+                    <div style={rowStyle}>
+                        <span style={labelStyle}>内容</span>
+                        <select className="form-select" value={event} onChange={e => setEvent(e.target.value)} style={{ flex: 1 }}>
+                            {eventOptions.map(ev => <option key={ev} value={ev}>{ev}</option>)}
+                        </select>
+                    </div>
+                ) : (
+                    <>
+                        <div style={rowStyle}>
+                            <span style={labelStyle}>チーム</span>
+                            <select className="form-select" value={team} onChange={e => { setTeam(e.target.value); setPlayerId(''); setInPlayerId(''); }} style={{ flex: 1 }}>
+                                {teamOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        </div>
+                        <div style={rowStyle}>
+                            <span style={labelStyle}>{isSub ? 'OUT 選手' : '選手'}</span>
+                            <select className="form-select" value={playerId} onChange={e => setPlayerId(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
+                                <option value="">{entry.type === 'goal' ? '-- 選手不明・OG --' : '-- 選手 --'}</option>
+                                {playerOptions(teamPlayers, playerId, entry.playerName, entry.playerNumber)}
+                            </select>
+                        </div>
+                        {isSub && (
+                            <div style={rowStyle}>
+                                <span style={labelStyle}>IN 選手</span>
+                                <select className="form-select" value={inPlayerId} onChange={e => setInPlayerId(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
+                                    <option value="">-- IN 選手 --</option>
+                                    {playerOptions(teamPlayers.filter(p => p.id !== playerId), inPlayerId, entry.inPlayerName, entry.inPlayerNumber)}
+                                </select>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {entry.type === 'goal' && (
+                    <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 10 }}>
+                        ※ゴールの選手・チームを変えると、選手の Today/Total ゴールとチーム得点を数え直します
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <button className="btn btn-secondary" onClick={onCancel}>キャンセル</button>
+                    <button className="btn btn-success" style={{ fontWeight: 'bold' }} onClick={handleSave}>保存</button>
+                </div>
             </div>
         </div>
     );

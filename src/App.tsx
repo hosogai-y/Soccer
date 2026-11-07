@@ -8,13 +8,21 @@ import LineupEditor from './components/LineupEditor';
 import TeamSettings from './components/TeamSettings';
 import GlobalTimerManager from './components/GlobalTimerManager';
 import DataManager from './components/DataManager';
+import hubConfig from '../.telopkit/hub.json';
 
 const PROJECT_NAME = "Telops/soccer";
 
-// TelopHub passes ?hub=... when it opens the dashboard; fall back to the last-used hub, then the default one.
+// 接続する TelopHub。
+// 1. ?hub=... があればそれ（TelopHub がダッシュボードを開くときに付ける）
+// 2. ビルド版は、このダッシュボードを配信しているハブ（TelopHub の 🎨 ボタンから開いたページのオリジン）
+// 3. 開発サーバー（npm run dev）やファイルから開いたときは、前回のハブ → TelopHub が .telopkit/hub.json に書いたハブ
+// ハブの URL を固定で書くと、TelopHub の接続先が変わったとき（onrender ⇔ duckdns など）につながらなくなる
+const servedFromHub = !import.meta.env.DEV && /^https?:$/.test(window.location.protocol);
 const HUB_URL =
     new URLSearchParams(window.location.search).get('hub') ||
+    (servedFromHub ? window.location.origin : '') ||
     localStorage.getItem('telop-hub-url') ||
+    hubConfig.origin ||
     'https://telophub.duckdns.org';
 
 export default function App() {
