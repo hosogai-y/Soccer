@@ -71,6 +71,62 @@ window.addEventListener('telopRendered', (e) => {
 window._pendingRenderableObject = null;
 window._pendingShow = false;
 
+/*
+ * TAKE（showTelop）のたびに、右から左へ 0.5 秒でフェードインする（境目をぼかしたマスクが横切る）。
+ * 横切る範囲は今出ているグラフィック全体の左右端（陣形で位置が変わるので、送出の瞬間に測る）。
+ * TelopHub の送出ページはこのページを content-visibility: hidden の入れ物に入れ、updateTelop を差し替えて
+ * showTelop() をデータなしで呼ぶことがある。requestAnimationFrame を待たず、showTelop の中で Web Animations を予約する。
+ */
+const SWEEP = { direction: 'rtl', duration: 500, easing: 'ease-out', feather: 240, canvasWidth: 1920 };
+let sweepAnimation = null;
+function graphicSpanX() {
+    try {
+        const b = window.telopApp && window.telopApp.getBBox();
+        if (b && b.width > 0) return [Math.max(0, b.x), Math.min(SWEEP.canvasWidth, b.x + b.width)];
+    } catch (e) {}
+    return [0, SWEEP.canvasWidth];
+}
+function startSweepFadeIn() {
+    const box = document.getElementById(window.containerId || 'player-container');
+    if (!box || !box.animate) return;
+    stopSweep();
+    const [left, right] = graphicSpanX();
+    const f = SWEEP.feather;
+    // マスクのグラデーションは幅 4W。真ん中（2W）がぼかしの境目。ltr は境目より左が見える、rtl は右が見える。
+    // 境目が画面のどこにあっても画面全体をマスクが覆うよう、左右に W ずつ余らせる
+    const W = SWEEP.canvasWidth * 2;
+    const shown = '#000', hidden = 'transparent';
+    const [a, b] = SWEEP.direction === 'ltr' ? [shown, hidden] : [hidden, shown];
+    box.style.maskImage = box.style.webkitMaskImage =
+        `linear-gradient(to right, ${a} 0px, ${a} ${W - f / 2}px, ${b} ${W + f / 2}px, ${b} ${W * 2}px)`;
+    box.style.maskSize = box.style.webkitMaskSize = `${W * 2}px 100%`;
+    box.style.maskRepeat = box.style.webkitMaskRepeat = 'no-repeat';
+    // 境目が x にあるときのマスク位置は x - W（W = 画面幅の 2 倍）
+    const from = SWEEP.direction === 'ltr' ? left - f / 2 : right + f / 2;
+    const to = SWEEP.direction === 'ltr' ? right + f / 2 : left - f / 2;
+    // 動きが終わった瞬間（マスクを外す前の 1 フレーム）も最後の状態と同じに見えるよう、元の位置も最後の位置にしておく
+    box.style.maskPosition = box.style.webkitMaskPosition = `${to - W}px 0px`;
+    sweepAnimation = box.animate(
+        [{ maskPosition: `${from - W}px 0px`, webkitMaskPosition: `${from - W}px 0px` },
+         { maskPosition: `${to - W}px 0px`, webkitMaskPosition: `${to - W}px 0px` }],
+        { duration: SWEEP.duration, easing: SWEEP.easing, fill: 'backwards' }
+    );
+    sweepAnimation.onfinish = clearSweepMask;
+}
+function clearSweepMask() {
+    const box = document.getElementById(window.containerId || 'player-container');
+    if (!box) return;
+    ['maskImage', 'webkitMaskImage', 'maskSize', 'webkitMaskSize', 'maskRepeat', 'webkitMaskRepeat', 'maskPosition', 'webkitMaskPosition'].forEach(k => { box.style[k] = ''; });
+}
+function stopSweep() {
+    if (sweepAnimation) {
+        sweepAnimation.onfinish = null;
+        sweepAnimation.cancel();
+        sweepAnimation = null;
+    }
+    clearSweepMask();
+}
+
 /**
  * テロップを表示する関数
  * @param {Object} rendarableObject - レンダリング可能なオブジェクト。
@@ -109,6 +165,8 @@ window.showTelop = function (rendarableObject) {
             }
         }
     }
+
+    startSweepFadeIn();
 };
 
 /**
@@ -306,6 +364,7 @@ window.updateTelop = function (rendarableObject) {
  * テロップを非表示にする関数
  */
 window.hideTelop = function () {
+    stopSweep();
     const divElement = document.getElementById(window.containerId || 'player-container');
     if (divElement) {
         divElement.classList.remove(...divElement.classList);
