@@ -7,6 +7,8 @@ import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
 import WeatherStatsSubControl, { WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
 import { useScoreSideChange, useOaTeamSettings, scoreColorKeys } from '../utils/useScoreSideChange';
+import { useScorerCg } from '../utils/useScorerCg';
+import { SCORER_TELOP, SCORER_ROWS } from '../utils/scorers';
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
@@ -19,6 +21,7 @@ import { useApplySubstitution } from '../utils/useSubstitution';
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
     { name: '大得点', label: 'Big Score (大得点)' },
+    { name: '大得点得点者', label: 'Big Score + Scorers' },
     { name: '小得点', label: 'Small Score (小得点)' },
     { name: 'タイマー', label: 'Timer (タイマー)' },
     { name: 'アディショナルタイム', label: 'Loss Time (AT)' },
@@ -585,9 +588,10 @@ function OneShotPlayerControl({
     });
 
     // ゴール記録: ログに追加すると、チーム得点と Today/Total ゴールがログから数え直される（連打で二重にならないよう少し止める）
-    const handleRecordGoal = () => {
+    // pk: PK で決めたゴール（大得点得点者に "(P)" を付ける）
+    const handleRecordGoal = (pk = false) => {
         setGoalBusy(true);
-        recordLog({ type: 'goal', team: rawSchool, ...playerFields(player) });
+        recordLog({ type: 'goal', team: rawSchool, ...playerFields(player), ...(pk ? { pk: true } : {}) });
         setTimeout(() => setGoalBusy(false), 1000);
     };
 
@@ -751,11 +755,20 @@ function OneShotPlayerControl({
                     <button
                         className="btn btn-success"
                         style={{ padding: '2px 10px', fontSize: '0.8rem', fontWeight: 'bold' }}
-                        onClick={handleRecordGoal}
+                        onClick={() => handleRecordGoal(false)}
                         disabled={goalBusy}
                         title="当日操作ログにゴールを記録し、チーム得点と Today/Total ゴールを +1 します"
                     >
                         ⚽ ゴール記録
+                    </button>
+                    <button
+                        className="btn btn-success"
+                        style={{ padding: '2px 8px', fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.9 }}
+                        onClick={() => handleRecordGoal(true)}
+                        disabled={goalBusy}
+                        title="PK で決めたゴールとして記録します（大得点得点者に (P) を付けます）"
+                    >
+                        PKゴール
                     </button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1226,6 +1239,8 @@ function MatchScorePanel() {
     const [appliedNameSource, setAppliedNameSource] = useSyncedState<string | null>('score_team_name_source', null);
     const clearForTake = useClearForTake();
     const { sdk, isConnected, isSyncingSnapshot } = useTelopHub();
+    // 大得点の得点者込み送出（大得点得点者テロップ）
+    const scorer = useScorerCg();
 
     // OA 左右チームの TeamSettings（チームカラー・小得点/大得点の表記）。スタッツタブ・サイド反転と同じ求め方
     const oa = useOaTeamSettings();
@@ -1356,13 +1371,34 @@ function MatchScorePanel() {
             'RightTeamColorLargePoint': rightTeamColor
         };
         bigScore.setData((prev: any) => ({ ...prev, ...payload }));
-        // 大得点が送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        if (scorer.enabled) {
+            // 得点者込み: 大得点得点者テロップを出す（1 ページ目 = 最新の 4 人から）。送出中なら今のページのまま UPDATE
+            const page = scorer.scorerTelop.isVisible ? scorer.page : 0;
+            if (!scorer.scorerTelop.isVisible) scorer.setPage(0);
+            const scorerPayload = { ...scorer.buildPayload(page), ...payload };
+            scorer.scorerTelop.setData(scorerPayload);
+            takeOrUpdate(scorer.scorerTelop, scorerPayload, () => clearForTake(SCORER_TELOP));
+            return;
+        }
+        // 大得点が送出中なら UPDATE。出ていなければ他の CG（得点者込みの大得点も）を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(bigScore, payload, () => clearForTake('大得点'));
     };
 
-    // 大得点 HIDE
+    // 大得点 HIDE（得点者込みの大得点も消す）
     const handleHideBigScore = () => {
         bigScore.hide();
+        scorer.scorerTelop.hide();
+    };
+
+    // カットチェンジ: 得点者の次の 4 人へ（最後のページの次は 1 ページ目）。送出中ならその場で UPDATE
+    const handleScorerCutChange = () => {
+        const next = (scorer.page + 1) % scorer.pageCount;
+        scorer.setPage(next);
+        if (scorer.scorerTelop.isVisible) {
+            const scorerPayload = scorer.buildPayload(next);
+            scorer.scorerTelop.setData(scorerPayload);
+            scorer.scorerTelop.update(scorerPayload);
+        }
     };
 
     const bsData = bigScore.data || {};
@@ -1407,6 +1443,7 @@ function MatchScorePanel() {
                     <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Match Score (スコア)</h3>
                     {smallScore.isVisible && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.65rem' }}>小得点 ON AIR</span>}
                     {bigScore.isVisible && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.65rem', background: '#ff9800' }}>大得点 ON AIR</span>}
+                    {scorer.scorerTelop.isVisible && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.65rem', background: '#ff9800' }}>大得点(得点者) ON AIR</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     <button className="btn btn-warning" style={{ padding: '4px 8px', fontSize: '0.75rem', fontWeight: 'bold' }} onClick={handleScoreSideChange}>
@@ -1439,6 +1476,56 @@ function MatchScorePanel() {
                     大得点 HIDE
                 </button>
             </div>
+
+            {/* 大得点の得点者込み送出 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', color: scorer.enabled ? '#ffca28' : '#bbb' }}>
+                    <input type="checkbox" checked={scorer.enabled} onChange={e => scorer.setEnabled(e.target.checked)} />
+                    大得点を得点者込みで送出
+                </label>
+                {scorer.enabled && (
+                    <>
+                        <span style={{ fontSize: '0.75rem', color: '#aaa', display: 'flex', alignItems: 'center', gap: 4 }}
+                            title="得点時間を「前後半の何分か」と「アディショナル（+）」に分けるのに使います。タイマーは前半 0:00 からの通し時間として扱います">
+                            前後半
+                            <select className="form-select" value={scorer.lengths.half} onChange={e => scorer.setLengths({ ...scorer.lengths, half: Number(e.target.value) })} style={{ width: 'auto', padding: '1px 4px', fontSize: '0.75rem' }}>
+                                {[35, 40, 45].map(n => <option key={n} value={n}>{n}分</option>)}
+                            </select>
+                            延長
+                            <select className="form-select" value={scorer.lengths.extra} onChange={e => scorer.setLengths({ ...scorer.lengths, extra: Number(e.target.value) })} style={{ width: 'auto', padding: '1px 4px', fontSize: '0.75rem' }}>
+                                {[10, 15].map(n => <option key={n} value={n}>{n}分</option>)}
+                            </select>
+                        </span>
+                        {scorer.pageCount > 1 && (
+                            <button className="btn btn-warning" style={{ padding: '3px 10px', fontSize: '0.78rem', fontWeight: 'bold', marginLeft: 'auto' }} onClick={handleScorerCutChange}
+                                title="得点者の次の 4 人を表示します（送出中ならその場で切り替え）">
+                                ▶ カットチェンジ ({scorer.page + 1}/{scorer.pageCount})
+                            </button>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* 得点者込みのとき: 左右チームの得点者（新しい順。今のページを強調） */}
+            {scorer.enabled && (
+                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                    {([[oaLeftTeam, scorer.left, leftTeamColor], [oaRightTeam, scorer.right, rightTeamColor]] as const).map(([team, lines, color], side) => (
+                        <div key={side} style={{ flex: 1, minWidth: 0, background: 'rgba(0,0,0,0.25)', borderRadius: 8, padding: '6px 10px', borderLeft: side === 0 ? `4px solid ${color}` : undefined, borderRight: side === 1 ? `4px solid ${color}` : undefined, textAlign: side === 0 ? 'left' : 'right' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: 4 }}>{team || '-'} 得点者</div>
+                            {lines.length === 0 && <div style={{ fontSize: '0.8rem', color: '#666' }}>なし</div>}
+                            {lines.map((line, i) => {
+                                const onPage = Math.floor(i / SCORER_ROWS) === scorer.page;
+                                return (
+                                    <div key={line.key} style={{ fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: onPage ? 1 : 0.4, borderTop: i > 0 && i % SCORER_ROWS === 0 ? '1px dashed rgba(255,255,255,0.25)' : undefined }}
+                                        title={`${line.name} ${line.times}`}>
+                                        <b>{line.name}</b> <span style={{ color: '#ffca28' }}>{line.times}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

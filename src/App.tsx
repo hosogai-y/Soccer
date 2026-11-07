@@ -7,6 +7,7 @@ import PlayerRegistry from './components/PlayerRegistry';
 import LineupEditor from './components/LineupEditor';
 import TeamSettings from './components/TeamSettings';
 import GlobalTimerManager from './components/GlobalTimerManager';
+import { ScorerCgSync } from './utils/useScorerCg';
 import DataManager from './components/DataManager';
 import hubConfig from '../.telopkit/hub.json';
 
@@ -29,6 +30,7 @@ export default function App() {
     return (
         <TelopHubProvider projectName={PROJECT_NAME} config={{ socketUrl: HUB_URL }}>
             <GlobalTimerManager />
+            <ScorerCgSync />
             <HashRouter>
                 <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                     <nav className="modern-nav flex-between">

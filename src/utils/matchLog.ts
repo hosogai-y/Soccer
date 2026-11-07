@@ -24,6 +24,7 @@ export type MatchLogEntry = {
     inPlayerNumber?: string;
     event?: string;       // period のときの内容 (例: "後半開始")
     note?: string;        // 補足 (例: イエローの "2枚目")
+    pk?: boolean;         // PK で決めたゴール（大得点得点者に "(P)" を付ける）
 };
 
 /** 記録する内容（id・日時・前後半・時刻は記録時に入る） */

@@ -72,6 +72,8 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
     const [inPlayerId, setInPlayerId] = useState('');
     const [periodEvent, setPeriodEvent] = useState(PERIOD_EVENTS[0]);
     const [timeInput, setTimeInput] = useState('');
+    // ゴールを PK で決めたか（大得点得点者に "(P)" を付ける）
+    const [pkInput, setPkInput] = useState(false);
     // 表示中のログ（'' = 当日ログ、数字 = 過去ログの番号）
     const [viewing, setViewing] = useState('');
 
@@ -95,7 +97,8 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             time: timeInput,
             ...(type === 'period'
                 ? { event: periodEvent }
-                : { team, ...playerFields(findPlayer(playerId)), ...(type === 'sub' ? inPlayerFields(findPlayer(inPlayerId)) : {}) })
+                : { team, ...playerFields(findPlayer(playerId)), ...(type === 'sub' ? inPlayerFields(findPlayer(inPlayerId)) : {}) }),
+            ...(type === 'goal' && pkInput ? { pk: true } : {})
         });
         if (added === 0) {
             alert('同じ内容がすでに記録されています。');
@@ -104,6 +107,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         setPlayerId('');
         setInPlayerId('');
         setTimeInput('');
+        setPkInput(false);
     };
 
     const handleDelete = (entry: MatchLogEntry) => {
@@ -156,7 +160,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         if (e.type === 'period') return `${head} ${e.event}`;
         const who = e.playerName ? `#${e.playerNumber} ${e.playerName}` : (e.type === 'goal' ? '(選手不明・OG)' : '');
         if (e.type === 'sub') return `${head} ${e.team} OUT #${e.playerNumber} ${e.playerName} → IN #${e.inPlayerNumber} ${e.inPlayerName}`;
-        return `${head}${e.note ? `(${e.note})` : ''} ${e.team} ${who}`;
+        return `${head}${e.pk ? '(PK)' : ''}${e.note ? `(${e.note})` : ''} ${e.team} ${who}`;
     };
 
     // ゴール行には、その時点のスコアを添える
@@ -226,6 +230,11 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
                         )}
                     </>
                 )}
+                {type === 'goal' && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem', cursor: 'pointer' }} title="PK で決めたゴール（大得点得点者に (P) を付けます）">
+                        <input type="checkbox" checked={pkInput} onChange={e => setPkInput(e.target.checked)} /> PK
+                    </label>
+                )}
                 <button className="btn btn-success" style={{ fontWeight: 'bold' }} onClick={handleAdd} disabled={viewing !== ''}>
                     ＋ 記録
                 </button>
@@ -285,6 +294,7 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
     const [team, setTeam] = useState(entry.team || teams[0] || '');
     const [playerId, setPlayerId] = useState(entry.playerId || '');
     const [inPlayerId, setInPlayerId] = useState(entry.inPlayerId || '');
+    const [pk, setPk] = useState(!!entry.pk);
 
     const isPeriod = entry.type === 'period';
     const isSub = entry.type === 'sub';
@@ -326,7 +336,8 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
         onSave({
             ...entry, period, time, team,
             playerId: out.id, playerName: out.name, playerNumber: out.number,
-            ...(isSub ? { inPlayerId: inn.id, inPlayerName: inn.name, inPlayerNumber: inn.number } : {})
+            ...(isSub ? { inPlayerId: inn.id, inPlayerName: inn.name, inPlayerNumber: inn.number } : {}),
+            ...(entry.type === 'goal' ? { pk: pk || undefined } : {})
         });
     };
 
@@ -398,6 +409,16 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
                             </div>
                         )}
                     </>
+                )}
+
+                {entry.type === 'goal' && (
+                    <div style={rowStyle}>
+                        <span style={labelStyle}>PK</span>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={pk} onChange={e => setPk(e.target.checked)} />
+                            PK で決めたゴール（大得点得点者に (P) を付けます）
+                        </label>
+                    </div>
                 )}
 
                 {entry.type === 'goal' && (
