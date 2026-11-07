@@ -260,7 +260,8 @@ function applyCardCustom(rendarableObject, options = {}) {
     // 3. カード制御 & アニメーション（keyExp「カード」のノード。ノード ID は push で振り直されるので使わない）
     const cardEl = keyExpElement('カード');
     if (!cardEl) return;
-    const cardImg = cardEl.querySelector('image');
+    // 元のカード画像（イエロー2枚の演出で足したカード .card-extra ではない方）
+    const cardImg = (cardEl.querySelector('.content-wrapper') || cardEl).querySelector('image');
     // 動かすのは中身（content-wrapper）。ノード本体の transform 属性は位置なので、CSS transform で上書きしない
     const mover = cardEl.querySelector('.content-wrapper') || cardImg;
     if (!cardImg || !mover) return;
@@ -274,33 +275,53 @@ function applyCardCustom(rendarableObject, options = {}) {
         cardImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src);
     };
     // 止まっているときの位置（アニメーションが終わるとこの位置になる）
-    const place = (x) => {
-        mover.style.transition = 'none';
-        mover.style.transform = `translateX(${x}px)`;
-        mover.style.opacity = '1';
+    const place = (x, el = mover) => {
+        el.style.transition = 'none';
+        el.style.transform = `translateX(${x}px)`;
+        el.style.opacity = '1';
     };
     // スライドの演出は送出（TAKE）したときだけ。送出中の UPDATE では最後の状態で出す
     const animate = !!options.fromShow;
 
+    // イエロー2枚の演出で足したカード（前回の分）を消し、元のカードを見える状態に戻す
+    cardEl.querySelectorAll('.card-extra').forEach(n => n.remove());
+    mover.style.visibility = '';
+
     if (cardType === 'yellow2') {
-        // --- イエロー2枚 -> 1.2 秒後に座布団の背面へスライドアウト -> レッドが背面からスライドイン ---
+        // --- イエロー2枚: 1枚目が座布団の背面からスライドイン -> 2枚目が1枚目の背面から左へスライドイン
+        //     -> 0.5 秒見せる -> 2枚とも座布団の背面へ戻る -> レッドが座布団の背面からスライドイン ---
+        // 元のカード画像（送出ページが入れた Yellow2）はそのまま残して隠し、演出は足したカードで行う
+        // （送出ページがデータなしで showTelop() を呼んだとき、カードの種類をこの画像から決めるため）
+        mover.style.visibility = 'hidden';
+        const red = addCardLayer(cardEl, mover, 'img/Red_15.png', 'after');
         if (!animate) {
-            setCard('img/Red_15.png');
-            place(0);
+            place(0, red);
             return;
         }
-        setCard('img/Yellow2_15.png');
-        place(0);
-        const out = slideCard(mover, 0, CARD_HIDDEN_X, { delay: 1200, duration: 350, easing: 'ease-in', fill: 'forwards' });
-        if (!out) {
-            setCard('img/Red_15.png');
-            return;
-        }
-        out.onfinish = () => {
-            setCard('img/Red_15.png');
-            slideCard(mover, CARD_HIDDEN_X, 0, { duration: 500, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' });
-            out.cancel();
-        };
+        const second = addCardLayer(cardEl, mover, 'img/Yellow1_15.png', 'before');
+        const first = addCardLayer(cardEl, mover, 'img/Yellow1_15.png', 'before');
+        [first, second, red].forEach(el => place(CARD_HIDDEN_X, el));
+
+        // 時刻は TAKE からのミリ秒。1枚目 IN 500-800 / 2枚目 IN 800-1100 / 待ち 1100-1600 / 2枚 OUT 1600-1950 / レッド IN 1950-2250
+        const total = 1950 - 500;
+        const at = ms => (ms - 500) / total;
+        slideKeyframes(first, [
+            { transform: `translateX(${CARD_HIDDEN_X}px)`, offset: 0, easing: 'ease-out' },
+            { transform: 'translateX(0px)', offset: at(800) },
+            { transform: 'translateX(0px)', offset: at(1600), easing: 'ease-in' },
+            { transform: `translateX(${CARD_HIDDEN_X}px)`, offset: 1 }
+        ], { delay: 500, duration: total, fill: 'both' });
+        slideKeyframes(second, [
+            { transform: `translateX(${CARD_HIDDEN_X}px)`, offset: 0, easing: 'ease-out' },
+            { transform: 'translateX(0px)', offset: at(800), easing: 'ease-out' },
+            { transform: `translateX(${SECOND_CARD_X}px)`, offset: at(1100) },
+            { transform: `translateX(${SECOND_CARD_X}px)`, offset: at(1600), easing: 'ease-in' },
+            { transform: `translateX(${CARD_HIDDEN_X}px)`, offset: 1 }
+        ], { delay: 500, duration: total, fill: 'both' });
+        slideKeyframes(red, [
+            { transform: `translateX(${CARD_HIDDEN_X}px)` },
+            { transform: 'translateX(0px)' }
+        ], { delay: 1950, duration: 300, easing: 'ease-out', fill: 'both' });
     } else if (cardType === 'red') {
         setCard('img/Red_15.png');
         place(0);
@@ -312,6 +333,29 @@ function applyCardCustom(rendarableObject, options = {}) {
             slideCard(mover, CARD_HIDDEN_X, 0, { delay: 500, duration: 300, easing: 'ease-out', fill: 'backwards' });
         }
     }
+}
+
+// イエロー2枚の2枚目が1枚目の背面から出て止まる位置（イエロー2枚の画像の並びと同じ）
+const SECOND_CARD_X = -62;
+
+/** カードと同じ位置・大きさのカードを足す（before: 元のカードの背面 / after: 前面）。座布団のクリップの内側に入る */
+function addCardLayer(cardEl, mover, src, where) {
+    const layer = mover.cloneNode(true);
+    layer.classList.remove('content-wrapper');
+    layer.classList.add('card-extra');
+    layer.style.visibility = 'visible';
+    const img = layer.querySelector('image') || layer;
+    img.setAttribute('href', src);
+    img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src);
+    mover.parentNode.insertBefore(layer, where === 'after' ? mover.nextSibling : mover);
+    return layer;
+}
+
+function slideKeyframes(el, keyframes, options) {
+    if (!el.animate) return null;
+    const anim = el.animate(keyframes, options);
+    cardAnimations.push(anim);
+    return anim;
 }
 
 // カードを座布団の背面に隠すときの右へのずらし量（カード画像の見えている部分が座布団の左端より右に入る量）
@@ -419,7 +463,7 @@ window.showTelop = function (rendarableObject) {
 
 function cardTypeOnScreen() {
     const cardEl = keyExpElement('カード');
-    const img = cardEl && cardEl.querySelector('image');
+    const img = cardEl && (cardEl.querySelector('.content-wrapper') || cardEl).querySelector('image');
     const href = img ? decodeURIComponent(img.getAttribute('href') || img.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || '') : '';
     if (/Red/i.test(href)) return 'red';
     if (/Yellow2/i.test(href)) return 'yellow2';
