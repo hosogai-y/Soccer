@@ -14,7 +14,7 @@ import { SCORER_TELOP, SCORER_ROWS } from '../utils/scorers';
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
-import { TEAM_LINEUPS_KEY, LINEUP_RESET_AT_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
+import { TEAM_LINEUPS_KEY, LINEUP_RESET_AT_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, sortSubsForCg, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useClearForTake, useClearButtons, KEEP_ON_TAKE, takeOrUpdate } from '../utils/cgExclusive';
@@ -75,7 +75,7 @@ export default function CGOperator() {
     const hasRegisteredSide = (side: 'left' | 'right') => hasRegistered(teamLineups?.[side === 'left' ? oaLeftTeam : oaRightTeam]);
     const subsOf = (side: 'left' | 'right') => {
         const lineup = lineupOf(side);
-        return lineup ? registeredSubs(lineup, players || []) : teamPlayersOf(side).filter(p => p.isSubbed);
+        return lineup ? sortSubsForCg(registeredSubs(lineup, players || [])) : teamPlayersOf(side).filter(p => p.isSubbed);
     };
     
     // Active Tab in Dashboard
@@ -958,7 +958,7 @@ function PlayerGrid({
     players: Player[],
     selectedId?: string,
     onSelect: (p: Player) => void,
-    sortBy?: 'number' | 'none', // none: 渡された順のまま（Lineups の登録順＝控え選手CGの並び）
+    sortBy?: 'number' | 'none', // none: 渡された順のまま（Subs は控え選手CGの並び = GK>DF>MF>FW・背番号順）
     grayedIds?: string[] // 交代済みでグレー表示する選手
 }) {
     const sortedPlayers = sortBy === 'none' ? players : [...players].sort(byNumber);

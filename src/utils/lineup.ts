@@ -190,11 +190,32 @@ export function buildFormationPayload(
     return data;
 }
 
-/** サブ下位置左のペイロード（ポジション帯の画像は選手のポジションから選ぶ。ColorRect など はチームカラー一式） */
+const SUB_POSITION_ORDER = ['GK', 'DF', 'MF', 'FW'];
+
+// 背番号を数値で比べる（全角数字も可）。背番号なしは同じポジションの最後
+const numberRank = (number?: string) => {
+    const n = parseInt((number || '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)), 10);
+    return Number.isNaN(n) ? Infinity : n;
+};
+
+/** 控え選手CGの並び: GK > DF > MF > FW（ポジション不明は最後）、同じポジションは背番号の昇順 */
+export function sortSubsForCg(subs: Player[]): Player[] {
+    const posRank = (p: Player) => {
+        const i = SUB_POSITION_ORDER.indexOf(normalizePosition(p.position));
+        return i >= 0 ? i : SUB_POSITION_ORDER.length;
+    };
+    return [...subs].sort((a, b) => posRank(a) - posRank(b) || numberRank(a.number) - numberRank(b.number));
+}
+
+/**
+ * サブ下位置左のペイロード（ポジション帯の画像は選手のポジションから選ぶ。ColorRect など はチームカラー一式）。
+ * 控えは sortSubsForCg の順に 選手名1 から詰めて入れ、残りの枠は空にする
+ */
 export function buildSubsPayload(lineup: TeamLineup | undefined, players: Player[], schoolLabel: string, colors: TeamColorSet) {
     const data: Record<string, string> = { '学校名': schoolLabel, ...teamColorKeys(colors) };
+    const subs = sortSubsForCg(registeredSubs(lineup, players));
     for (let i = 0; i < SUB_SLOT_COUNT; i++) {
-        const p = findPlayer(players, lineup?.subs?.[i]);
+        const p = subs[i];
         const n = i + 1;
         const pos = normalizePosition(p?.position);
         data[`選手名${n}`] = p?.name || '';
