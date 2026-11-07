@@ -24,7 +24,7 @@ export default {
         "locked": false,
         "blendMode": "normal",
         "effects": [],
-        "customJs": "\n// 1. Data Loading (Auto-generated)\nlet projectData = null;\nlet assetCache = {};\n\n// 2. Controller Logic (Editable)\n\n/**\n * PSn_X / PSn_Y (プレート画像の左上, 1920x1080 座標) を受け取ったら、グループ \"PSn\" をその位置へ動かす。\n * ダッシュボードの Lineups タブ「陣形フォーメーション」で調整した配置を反映するためのもの。\n */\nfunction applyPlatePositions(values, docs) {\n    Object.keys(values).forEach(key => {\n        const m = /^(PS\\d+)_X$/.exec(key);\n        if (!m) return;\n        const x = parseFloat(values[key]);\n        const y = parseFloat(values[m[1] + '_Y']);\n        if (!isFinite(x) || !isFinite(y)) return;\n        docs.forEach(d => {\n            if (!d || !d.nodesById) return;\n            const group = Object.values(d.nodesById).find(n => n.type === 'group' && n.name === m[1]);\n            if (!group) return;\n            const plate = (group.children || []).map(id => d.nodesById[id]).find(n => n && n.type === 'image');\n            group.x = x - (plate ? plate.x || 0 : 0);\n            group.y = y - (plate ? plate.y || 0 : 0);\n        });\n    });\n}\n\n\n/**\n * TelopHub の OnAir / Preview は updateTelop を独自実装に差し替えるため、上の updateTelop は呼ばれない。\n * 差し替え後も更新のたびに 'telopRendered'（detail = 受け取ったデータ）が届くので、ここで PSn グループを\n * 指定位置へ動かし、位置が変わったグループだけ DOM を作り直す。\n */\nwindow.addEventListener('telopRendered', (e) => {\n    const values = e && e.detail;\n    const doc = window.telopDoc;\n    const app = window.telopApp;\n    if (!values || !doc || !doc.nodesById || !app || !window.createNode) return;\n    const before = {};\n    Object.values(doc.nodesById).forEach(n => {\n        if (n.type === 'group' && /^PS[0-9]+$/.test(n.name)) before[n.id] = n.x + ',' + n.y;\n    });\n    applyPlatePositions(values, [doc]);\n    Object.keys(before).forEach(id => {\n        const node = doc.nodesById[id];\n        if (before[id] === node.x + ',' + node.y) return;\n        const map = window.nodeElementMap;\n        const oldEl = (map && map.get(id) && map.get(id).isConnected) ? map.get(id) : app.querySelector('[data-node-id=\"' + id + '\"]');\n        if (!oldEl || !oldEl.parentNode) return;\n        try {\n            const parent = node.parentId ? doc.nodesById[node.parentId] : null;\n            const newEl = window.createNode(id, undefined, !!parent && parent.type === 'telop');\n            if (!newEl) return;\n            oldEl.parentNode.replaceChild(newEl, oldEl);\n            if (map) map.set(id, newEl);\n        } catch (err) {\n            console.warn('[PlatePositions] re-create failed for ' + node.name, err);\n        }\n    });\n    // 作り直した要素の古い keyExp 登録を外す（次の UPDATE で外れた要素を書き換えないように）\n    if (window.keyExpMap) {\n        window.keyExpMap.forEach((targets, key) => {\n            const live = targets.filter(t => !t.element || t.element.isConnected);\n            if (live.length !== targets.length) window.keyExpMap.set(key, live);\n        });\n    }\n});\n// --- External Control API ---\nwindow._pendingRenderableObject = null;\nwindow._pendingShow = false;\n\n/**\n * テロップを表示する関数\n * @param {Object} rendarableObject - レンダリング可能なオブジェクト。\n */\nwindow.showTelop = function (rendarableObject) {\n    if (rendarableObject !== undefined) {\n        window.updateTelop(rendarableObject);\n    }\n\n    if (!window.initialized) {\n        window._pendingShow = true;\n        return;\n    }\n\n    // containerId is exposed by initPlayer\n    const divElement = document.getElementById(window.containerId || 'player-container');\n    if (divElement) {\n        if (!divElement.classList.contains(\"in_animation\")) {\n            divElement.classList.remove(...divElement.classList);\n            divElement.style.opacity = \"0\";\n            \n            const triggerShow = () => {\n                requestAnimationFrame(() => {\n                    requestAnimationFrame(() => {\n                        divElement.style.opacity = \"\";\n                        divElement.classList.add(\"in_animation\");\n                        document.body.style.display = \"block\";\n                    });\n                });\n            };\n\n            if (document.fonts && document.fonts.ready) {\n                document.fonts.ready.then(triggerShow).catch(triggerShow);\n            } else {\n                triggerShow();\n            }\n        }\n    }\n};\n\n/**\n * テロップの内容を更新する関数\n * @param {Object} rendarableObject - レンダリング可能なオブジェクト。\n */\nwindow.updateTelop = function (rendarableObject) {\n    console.log(\"updateTelop called\", rendarableObject);\n    if (!rendarableObject) return;\n\n    // Globals exposed by renderer.js\n    const app = window.telopApp;\n    const doc = window.telopDoc;\n    const keyExpMap = window.keyExpMap;\n    const createNode = window.createNode;\n\n    if (!app || !doc || !keyExpMap || !createNode) {\n        console.error(\"updateTelop early return: Missing required globals:\", { app: !!app, doc: !!doc, keyExpMap: !!keyExpMap, createNode: !!createNode });\n        console.warn(\"Player not fully initialized yet. Caching update...\");\n        window._pendingRenderableObject = rendarableObject;\n        return;\n    }\n\n    let hasUpdates = false;\n\n    Object.keys(rendarableObject).forEach(key => {\n        const val = rendarableObject[key];\n        const targets = keyExpMap.get(key);\n        console.log(\"Processing key: \" + key + \", targets found: \" + (targets ? targets.length : 0) + \", val: \" + val);\n\n        if (targets && Array.isArray(targets) && (val || val === \"\")) {\n            targets.forEach((target) => {\n                if (target.type === 'text') {\n                    // Update Doc\n                    const strVal = String(val);\n                    if (target.nodeData.text !== strVal) {\n                        target.nodeData.text = strVal;\n                        const nodeInDoc = doc.nodesById[target.nodeData.id];\n                        if (nodeInDoc) {\n                            nodeInDoc.text = strVal;\n                        }\n                        hasUpdates = true;\n                    }\n                } else if (target.type === 'image') {\n                    // Update Doc (Asset)\n                    const node = target.nodeData;\n                    if (node.assetId && doc.assets[node.assetId]) {\n                        if (doc.assets[node.assetId].src !== String(val)) {\n                            // Clone asset to avoid clobbering shared assetId entries\n                            var uniqueAssetId = node.assetId + '__keyexp_' + key;\n                            doc.assets[uniqueAssetId] = Object.assign({}, doc.assets[node.assetId], { src: String(val) });\n                            node.assetId = uniqueAssetId;\n                            \n                            // Also mutate the node inside the active document to persist the change\n                            const nodeInDoc = doc.nodesById[node.id];\n                            if (nodeInDoc) {\n                                nodeInDoc.assetId = uniqueAssetId;\n                            }\n                            \n                            hasUpdates = true;\n                        }\n                    }\n                } else if (target.type === 'appearance_fill') {\n                    const apps = target.nodeData.style?.appearances || [];\n                    const app = apps[target.appearanceIndex];\n                    const docNode = doc.nodesById[target.nodeData.id];\n                    const docApp = docNode?.style?.appearances?.[target.appearanceIndex];\n                    if (app && (app.fill !== String(val) || app.gradientConfig)) {\n                        console.log(\"Updating appearance_fill for \" + target.nodeData.id + \" to \" + val);\n                        app.fill = String(val);\n                        if (app.gradientConfig) { delete app.gradientConfig; }\n                        if (docApp) {\n                            docApp.fill = String(val);\n                            if (docApp.gradientConfig) { delete docApp.gradientConfig; }\n                        }\n                        hasUpdates = true;\n                    }\n                } else if (target.type === 'appearance_stroke') {\n                    const apps = target.nodeData.style?.appearances || [];\n                    const app = apps[target.appearanceIndex];\n                    const docNode = doc.nodesById[target.nodeData.id];\n                    const docApp = docNode?.style?.appearances?.[target.appearanceIndex];\n                    if (app && app.color !== String(val)) {\n                        console.log(\"Updating appearance_stroke for \" + target.nodeData.id + \" to \" + val);\n                        app.color = String(val);\n                        if (docApp) {\n                            docApp.color = String(val);\n                        }\n                        hasUpdates = true;\n                    }\n                } else if (target.type === 'bg_appearance_fill') {\n                    const apps = target.nodeData.background?.appearances || [];\n                    const app = apps[target.appearanceIndex];\n                    const docNode = doc.nodesById[target.nodeData.id];\n                    const docApp = docNode?.background?.appearances?.[target.appearanceIndex];\n                    if (app && (app.fill !== String(val) || app.gradientConfig)) {\n                        console.log(\"Updating bg_appearance_fill for \" + target.nodeData.id + \" to \" + val);\n                        app.fill = String(val);\n                        if (app.gradientConfig) { delete app.gradientConfig; }\n                        if (docApp) {\n                            docApp.fill = String(val);\n                            if (docApp.gradientConfig) { delete docApp.gradientConfig; }\n                        }\n                        hasUpdates = true;\n                    }\n                } else if (target.type === 'bg_appearance_stroke') {\n                    const apps = target.nodeData.background?.appearances || [];\n                    const app = apps[target.appearanceIndex];\n                    const docNode = doc.nodesById[target.nodeData.id];\n                    const docApp = docNode?.background?.appearances?.[target.appearanceIndex];\n                    if (app && app.color !== String(val)) {\n                        console.log(\"Updating bg_appearance_stroke for \" + target.nodeData.id + \" to \" + val);\n                        app.color = String(val);\n                        if (docApp) {\n                            docApp.color = String(val);\n                        }\n                        hasUpdates = true;\n                    }\n                } else if (target.type === 'appearance_color_rule' || target.type === 'bg_appearance_color_rule' || target.type === 'visibility_condition' || target.type === 'image_reference_condition') {\n                    hasUpdates = true;\n                }\n            });\n        }\n    });\n\n    if (rendarableObject.highliteNum !== undefined || rendarableObject.barNum !== undefined) {\n        hasUpdates = true;\n    }\n\n    if (Object.keys(rendarableObject).some(k => /^PS\\d+_[XY]$/.test(k))) {\n        hasUpdates = true;\n    }\n\n    if (hasUpdates) {\n        const evaluatedDoc = resolveDynamicVisibility(doc, rendarableObject);\n        applyPlatePositions(rendarableObject, [doc, evaluatedDoc]);\n\n        // In-place image reference & visibility condition updates (zero-flicker)\n        for (const nodeId in evaluatedDoc.nodesById) {\n            const prevNode = doc.nodesById[nodeId];\n            const nextNode = evaluatedDoc.nodesById[nodeId];\n            if (prevNode && nextNode && nextNode.type === 'image') {\n                if (prevNode.assetId !== nextNode.assetId) {\n                    const nextAsset = (evaluatedDoc.assets && evaluatedDoc.assets[nextNode.assetId]) ||\n                                      (projectData.assets && projectData.assets[nextNode.assetId]);\n                    if (nextAsset && nextAsset.src) {\n                        const nodeEl = app.querySelector('[data-node-id=\"' + nodeId + '\"]');\n                        const imgEl = nodeEl ? nodeEl.querySelector(\"image\") : null;\n                        if (imgEl) {\n                            const targetSrc = (assetCache && assetCache[nextAsset.src]) ? assetCache[nextAsset.src] : nextAsset.src;\n                            imgEl.setAttribute(\"href\", targetSrc);\n                        }\n                    }\n                    prevNode.assetId = nextNode.assetId;\n                }\n            }\n            if (prevNode && nextNode && prevNode.visible !== nextNode.visible) {\n                const nodeEl = app.querySelector('[data-node-id=\"' + nodeId + '\"]');\n                if (nodeEl) {\n                    nodeEl.style.display = nextNode.visible === false ? 'none' : '';\n                }\n                prevNode.visible = nextNode.visible;\n            }\n        }\n\n        window.telopDoc = evaluatedDoc;\n\n        keyExpMap.clear();\n\n        try {\n            const oldDefs = app.firstChild;\n            if (oldDefs) oldDefs.innerHTML = '';\n\n            const newRootNode = createNode(evaluatedDoc.rootId || doc.rootId);\n            if (newRootNode) {\n                if (app.childNodes.length > 1) {\n                    app.replaceChild(newRootNode, app.childNodes[1]);\n                } else {\n                    app.appendChild(newRootNode);\n                }\n\n                while (app.childNodes.length > 2) {\n                    app.removeChild(app.lastChild);\n                }\n            }\n        } catch (e) {\n            console.error(\"Error creating new root node in updateTelop:\", e);\n        }\n\n        window.dispatchEvent(new CustomEvent('telopRendered'));\n    }\n};\n\n/**\n * テロップを非表示にする関数\n */\nwindow.hideTelop = function () {\n    const divElement = document.getElementById(window.containerId || 'player-container');\n    if (divElement) {\n        divElement.classList.remove(...divElement.classList);\n\n        let finished = false;\n        const completeHide = () => {\n            if (finished) return;\n            finished = true;\n            divElement.style.opacity = '0';\n            divElement.classList.remove(\"out_animation\");\n            if (window.animationFinishedCallback) {\n                window.animationFinishedCallback();\n            }\n            divElement.removeEventListener('animationend', onAnimationEnd);\n        };\n\n        const onAnimationEnd = (e) => {\n            if (!divElement.classList.contains(\"out_animation\")) return;\n            completeHide();\n        };\n\n        divElement.addEventListener('animationend', onAnimationEnd);\n        divElement.classList.add(\"out_animation\");\n\n        // Safety fallback: if no animation or animationend doesn't fire, complete after duration or max 1s\n        const animTarget = divElement.querySelector('.anim-target') || divElement;\n        const animDuration = parseFloat(getComputedStyle(animTarget).animationDuration || '0');\n        const animDelay = parseFloat(getComputedStyle(animTarget).animationDelay || '0');\n        const timeoutMs = Math.max(1000, (animDuration + animDelay + 0.5) * 1000);\n        setTimeout(() => {\n            if (!finished && divElement.classList.contains(\"out_animation\")) {\n                completeHide();\n            }\n        }, timeoutMs);\n    }\n};\n\n\n// 3. Initialization\nwindow.addEventListener('load', async () => {\n    try {\n        if (document.fonts && document.fonts.ready) {\n            await document.fonts.ready;\n        }\n        const dataUrl = './フォーメーション右.telop';\n        const dataResp = await fetch(dataUrl);\n        if (dataResp.ok) {\n            projectData = await dataResp.json();\n            console.log(\"[Player] Loaded project data from:\", dataUrl);\n        }\n        assetCache = {};\n        if (window.initPlayer) {\n            window.initPlayer('player-container', projectData, assetCache).then(() => {\n                window.initialized = true;\n                if (window._pendingRenderableObject) {\n                    window.updateTelop(window._pendingRenderableObject);\n                    window._pendingRenderableObject = null;\n                }\n                if (window._pendingShow) {\n                    window.showTelop();\n                    window._pendingShow = false;\n                }\n            });\n        }\n    } catch (e) {\n        console.error(\"[Player] Failed to initialize project data:\", e);\n    }\n});\n"
+        "customJs": "\r\n// 1. Data Loading (Auto-generated)\r\nlet projectData = null;\r\nlet assetCache = {};\r\n\r\n// 2. Controller Logic (Editable)\r\n\r\n/**\r\n * PSn_X / PSn_Y (プレート画像の左上, 1920x1080 座標) を受け取ったら、グループ \"PSn\" をその位置へ動かす。\r\n * ダッシュボードの Lineups タブ「陣形フォーメーション」で調整した配置を反映するためのもの。\r\n */\r\nfunction applyPlatePositions(values, docs) {\r\n    Object.keys(values).forEach(key => {\r\n        const m = /^(PS\\d+)_X$/.exec(key);\r\n        if (!m) return;\r\n        const x = parseFloat(values[key]);\r\n        const y = parseFloat(values[m[1] + '_Y']);\r\n        if (!isFinite(x) || !isFinite(y)) return;\r\n        docs.forEach(d => {\r\n            if (!d || !d.nodesById) return;\r\n            const group = Object.values(d.nodesById).find(n => n.type === 'group' && n.name === m[1]);\r\n            if (!group) return;\r\n            const plate = (group.children || []).map(id => d.nodesById[id]).find(n => n && n.type === 'image');\r\n            group.x = x - (plate ? plate.x || 0 : 0);\r\n            group.y = y - (plate ? plate.y || 0 : 0);\r\n        });\r\n    });\r\n}\r\n\r\n\r\n/**\r\n * TelopHub の OnAir / Preview は updateTelop を独自実装に差し替えるため、上の updateTelop は呼ばれない。\r\n * 差し替え後も更新のたびに 'telopRendered'（detail = 受け取ったデータ）が届くので、ここで PSn グループを\r\n * 指定位置へ動かし、位置が変わったグループだけ DOM を作り直す。\r\n */\r\nwindow.addEventListener('telopRendered', (e) => {\r\n    const values = e && e.detail;\r\n    const doc = window.telopDoc;\r\n    const app = window.telopApp;\r\n    if (!values || !doc || !doc.nodesById || !app || !window.createNode) return;\r\n    const before = {};\r\n    Object.values(doc.nodesById).forEach(n => {\r\n        if (n.type === 'group' && /^PS[0-9]+$/.test(n.name)) before[n.id] = n.x + ',' + n.y;\r\n    });\r\n    applyPlatePositions(values, [doc]);\r\n    Object.keys(before).forEach(id => {\r\n        const node = doc.nodesById[id];\r\n        if (before[id] === node.x + ',' + node.y) return;\r\n        const map = window.nodeElementMap;\r\n        const oldEl = (map && map.get(id) && map.get(id).isConnected) ? map.get(id) : app.querySelector('[data-node-id=\"' + id + '\"]');\r\n        if (!oldEl || !oldEl.parentNode) return;\r\n        try {\r\n            const parent = node.parentId ? doc.nodesById[node.parentId] : null;\r\n            const newEl = window.createNode(id, undefined, !!parent && parent.type === 'telop');\r\n            if (!newEl) return;\r\n            oldEl.parentNode.replaceChild(newEl, oldEl);\r\n            if (map) map.set(id, newEl);\r\n        } catch (err) {\r\n            console.warn('[PlatePositions] re-create failed for ' + node.name, err);\r\n        }\r\n    });\r\n    // 作り直した要素の古い keyExp 登録を外す（次の UPDATE で外れた要素を書き換えないように）\r\n    if (window.keyExpMap) {\r\n        window.keyExpMap.forEach((targets, key) => {\r\n            const live = targets.filter(t => !t.element || t.element.isConnected);\r\n            if (live.length !== targets.length) window.keyExpMap.set(key, live);\r\n        });\r\n    }\r\n});\r\n// --- External Control API ---\r\nwindow._pendingRenderableObject = null;\r\nwindow._pendingShow = false;\r\n\r\n/**\r\n * テロップを表示する関数\r\n * @param {Object} rendarableObject - レンダリング可能なオブジェクト。\r\n */\r\nwindow.showTelop = function (rendarableObject) {\r\n    if (rendarableObject !== undefined) {\r\n        window.updateTelop(rendarableObject);\r\n    }\r\n\r\n    if (!window.initialized) {\r\n        window._pendingShow = true;\r\n        return;\r\n    }\r\n\r\n    // containerId is exposed by initPlayer\r\n    const divElement = document.getElementById(window.containerId || 'player-container');\r\n    if (divElement) {\r\n        if (!divElement.classList.contains(\"in_animation\")) {\r\n            divElement.classList.remove(...divElement.classList);\r\n            divElement.style.opacity = \"0\";\r\n            \r\n            const triggerShow = () => {\r\n                requestAnimationFrame(() => {\r\n                    requestAnimationFrame(() => {\r\n                        divElement.style.opacity = \"\";\r\n                        divElement.classList.add(\"in_animation\");\r\n                        document.body.style.display = \"block\";\r\n                    });\r\n                });\r\n            };\r\n\r\n            if (document.fonts && document.fonts.ready) {\r\n                document.fonts.ready.then(triggerShow).catch(triggerShow);\r\n            } else {\r\n                triggerShow();\r\n            }\r\n        }\r\n    }\r\n};\r\n\r\n/**\r\n * テロップの内容を更新する関数\r\n * @param {Object} rendarableObject - レンダリング可能なオブジェクト。\r\n */\r\nwindow.updateTelop = function (rendarableObject) {\r\n    console.log(\"updateTelop called\", rendarableObject);\r\n    if (!rendarableObject) return;\r\n\r\n    // Globals exposed by renderer.js\r\n    const app = window.telopApp;\r\n    const doc = window.telopDoc;\r\n    const keyExpMap = window.keyExpMap;\r\n    const createNode = window.createNode;\r\n\r\n    if (!app || !doc || !keyExpMap || !createNode) {\r\n        console.error(\"updateTelop early return: Missing required globals:\", { app: !!app, doc: !!doc, keyExpMap: !!keyExpMap, createNode: !!createNode });\r\n        console.warn(\"Player not fully initialized yet. Caching update...\");\r\n        window._pendingRenderableObject = rendarableObject;\r\n        return;\r\n    }\r\n\r\n    let hasUpdates = false;\r\n\r\n    Object.keys(rendarableObject).forEach(key => {\r\n        const val = rendarableObject[key];\r\n        const targets = keyExpMap.get(key);\r\n        console.log(\"Processing key: \" + key + \", targets found: \" + (targets ? targets.length : 0) + \", val: \" + val);\r\n\r\n        if (targets && Array.isArray(targets) && (val || val === \"\")) {\r\n            targets.forEach((target) => {\r\n                if (target.type === 'text') {\r\n                    // Update Doc\r\n                    const strVal = String(val);\r\n                    if (target.nodeData.text !== strVal) {\r\n                        target.nodeData.text = strVal;\r\n                        const nodeInDoc = doc.nodesById[target.nodeData.id];\r\n                        if (nodeInDoc) {\r\n                            nodeInDoc.text = strVal;\r\n                        }\r\n                        hasUpdates = true;\r\n                    }\r\n                } else if (target.type === 'image') {\r\n                    // Update Doc (Asset)\r\n                    const node = target.nodeData;\r\n                    if (node.assetId && doc.assets[node.assetId]) {\r\n                        if (doc.assets[node.assetId].src !== String(val)) {\r\n                            // Clone asset to avoid clobbering shared assetId entries\r\n                            var uniqueAssetId = node.assetId + '__keyexp_' + key;\r\n                            doc.assets[uniqueAssetId] = Object.assign({}, doc.assets[node.assetId], { src: String(val) });\r\n                            node.assetId = uniqueAssetId;\r\n                            \r\n                            // Also mutate the node inside the active document to persist the change\r\n                            const nodeInDoc = doc.nodesById[node.id];\r\n                            if (nodeInDoc) {\r\n                                nodeInDoc.assetId = uniqueAssetId;\r\n                            }\r\n                            \r\n                            hasUpdates = true;\r\n                        }\r\n                    }\r\n                } else if (target.type === 'appearance_fill') {\r\n                    const apps = target.nodeData.style?.appearances || [];\r\n                    const app = apps[target.appearanceIndex];\r\n                    const docNode = doc.nodesById[target.nodeData.id];\r\n                    const docApp = docNode?.style?.appearances?.[target.appearanceIndex];\r\n                    if (app && (app.fill !== String(val) || app.gradientConfig)) {\r\n                        console.log(\"Updating appearance_fill for \" + target.nodeData.id + \" to \" + val);\r\n                        app.fill = String(val);\r\n                        if (app.gradientConfig) { delete app.gradientConfig; }\r\n                        if (docApp) {\r\n                            docApp.fill = String(val);\r\n                            if (docApp.gradientConfig) { delete docApp.gradientConfig; }\r\n                        }\r\n                        hasUpdates = true;\r\n                    }\r\n                } else if (target.type === 'appearance_stroke') {\r\n                    const apps = target.nodeData.style?.appearances || [];\r\n                    const app = apps[target.appearanceIndex];\r\n                    const docNode = doc.nodesById[target.nodeData.id];\r\n                    const docApp = docNode?.style?.appearances?.[target.appearanceIndex];\r\n                    if (app && app.color !== String(val)) {\r\n                        console.log(\"Updating appearance_stroke for \" + target.nodeData.id + \" to \" + val);\r\n                        app.color = String(val);\r\n                        if (docApp) {\r\n                            docApp.color = String(val);\r\n                        }\r\n                        hasUpdates = true;\r\n                    }\r\n                } else if (target.type === 'bg_appearance_fill') {\r\n                    const apps = target.nodeData.background?.appearances || [];\r\n                    const app = apps[target.appearanceIndex];\r\n                    const docNode = doc.nodesById[target.nodeData.id];\r\n                    const docApp = docNode?.background?.appearances?.[target.appearanceIndex];\r\n                    if (app && (app.fill !== String(val) || app.gradientConfig)) {\r\n                        console.log(\"Updating bg_appearance_fill for \" + target.nodeData.id + \" to \" + val);\r\n                        app.fill = String(val);\r\n                        if (app.gradientConfig) { delete app.gradientConfig; }\r\n                        if (docApp) {\r\n                            docApp.fill = String(val);\r\n                            if (docApp.gradientConfig) { delete docApp.gradientConfig; }\r\n                        }\r\n                        hasUpdates = true;\r\n                    }\r\n                } else if (target.type === 'bg_appearance_stroke') {\r\n                    const apps = target.nodeData.background?.appearances || [];\r\n                    const app = apps[target.appearanceIndex];\r\n                    const docNode = doc.nodesById[target.nodeData.id];\r\n                    const docApp = docNode?.background?.appearances?.[target.appearanceIndex];\r\n                    if (app && app.color !== String(val)) {\r\n                        console.log(\"Updating bg_appearance_stroke for \" + target.nodeData.id + \" to \" + val);\r\n                        app.color = String(val);\r\n                        if (docApp) {\r\n                            docApp.color = String(val);\r\n                        }\r\n                        hasUpdates = true;\r\n                    }\r\n                } else if (target.type === 'appearance_color_rule' || target.type === 'bg_appearance_color_rule' || target.type === 'visibility_condition' || target.type === 'image_reference_condition') {\r\n                    hasUpdates = true;\r\n                }\r\n            });\r\n        }\r\n    });\r\n\r\n    if (rendarableObject.highliteNum !== undefined || rendarableObject.barNum !== undefined) {\r\n        hasUpdates = true;\r\n    }\r\n\r\n    if (Object.keys(rendarableObject).some(k => /^PS\\d+_[XY]$/.test(k))) {\r\n        hasUpdates = true;\r\n    }\r\n\r\n    if (hasUpdates) {\r\n        const evaluatedDoc = resolveDynamicVisibility(doc, rendarableObject);\r\n        applyPlatePositions(rendarableObject, [doc, evaluatedDoc]);\r\n\r\n        // In-place image reference & visibility condition updates (zero-flicker)\r\n        for (const nodeId in evaluatedDoc.nodesById) {\r\n            const prevNode = doc.nodesById[nodeId];\r\n            const nextNode = evaluatedDoc.nodesById[nodeId];\r\n            if (prevNode && nextNode && nextNode.type === 'image') {\r\n                if (prevNode.assetId !== nextNode.assetId) {\r\n                    const nextAsset = (evaluatedDoc.assets && evaluatedDoc.assets[nextNode.assetId]) ||\r\n                                      (projectData.assets && projectData.assets[nextNode.assetId]);\r\n                    if (nextAsset && nextAsset.src) {\r\n                        const nodeEl = app.querySelector('[data-node-id=\"' + nodeId + '\"]');\r\n                        const imgEl = nodeEl ? nodeEl.querySelector(\"image\") : null;\r\n                        if (imgEl) {\r\n                            const targetSrc = (assetCache && assetCache[nextAsset.src]) ? assetCache[nextAsset.src] : nextAsset.src;\r\n                            imgEl.setAttribute(\"href\", targetSrc);\r\n                        }\r\n                    }\r\n                    prevNode.assetId = nextNode.assetId;\r\n                }\r\n            }\r\n            if (prevNode && nextNode && prevNode.visible !== nextNode.visible) {\r\n                const nodeEl = app.querySelector('[data-node-id=\"' + nodeId + '\"]');\r\n                if (nodeEl) {\r\n                    nodeEl.style.display = nextNode.visible === false ? 'none' : '';\r\n                }\r\n                prevNode.visible = nextNode.visible;\r\n            }\r\n        }\r\n\r\n        window.telopDoc = evaluatedDoc;\r\n\r\n        keyExpMap.clear();\r\n\r\n        try {\r\n            const oldDefs = app.firstChild;\r\n            if (oldDefs) oldDefs.innerHTML = '';\r\n\r\n            const newRootNode = createNode(evaluatedDoc.rootId || doc.rootId);\r\n            if (newRootNode) {\r\n                if (app.childNodes.length > 1) {\r\n                    app.replaceChild(newRootNode, app.childNodes[1]);\r\n                } else {\r\n                    app.appendChild(newRootNode);\r\n                }\r\n\r\n                while (app.childNodes.length > 2) {\r\n                    app.removeChild(app.lastChild);\r\n                }\r\n            }\r\n        } catch (e) {\r\n            console.error(\"Error creating new root node in updateTelop:\", e);\r\n        }\r\n\r\n        window.dispatchEvent(new CustomEvent('telopRendered'));\r\n    }\r\n};\r\n\r\n/**\r\n * テロップを非表示にする関数\r\n */\r\nwindow.hideTelop = function () {\r\n    const divElement = document.getElementById(window.containerId || 'player-container');\r\n    if (divElement) {\r\n        divElement.classList.remove(...divElement.classList);\r\n\r\n        let finished = false;\r\n        const completeHide = () => {\r\n            if (finished) return;\r\n            finished = true;\r\n            divElement.style.opacity = '0';\r\n            divElement.classList.remove(\"out_animation\");\r\n            if (window.animationFinishedCallback) {\r\n                window.animationFinishedCallback();\r\n            }\r\n            divElement.removeEventListener('animationend', onAnimationEnd);\r\n        };\r\n\r\n        const onAnimationEnd = (e) => {\r\n            if (!divElement.classList.contains(\"out_animation\")) return;\r\n            completeHide();\r\n        };\r\n\r\n        divElement.addEventListener('animationend', onAnimationEnd);\r\n        divElement.classList.add(\"out_animation\");\r\n\r\n        // Safety fallback: if no animation or animationend doesn't fire, complete after duration or max 1s\r\n        const animTarget = divElement.querySelector('.anim-target') || divElement;\r\n        const animDuration = parseFloat(getComputedStyle(animTarget).animationDuration || '0');\r\n        const animDelay = parseFloat(getComputedStyle(animTarget).animationDelay || '0');\r\n        const timeoutMs = Math.max(1000, (animDuration + animDelay + 0.5) * 1000);\r\n        setTimeout(() => {\r\n            if (!finished && divElement.classList.contains(\"out_animation\")) {\r\n                completeHide();\r\n            }\r\n        }, timeoutMs);\r\n    }\r\n};\r\n\r\n\r\n// 3. Initialization\r\nwindow.addEventListener('load', async () => {\r\n    try {\r\n        if (document.fonts && document.fonts.ready) {\r\n            await document.fonts.ready;\r\n        }\r\n        const dataUrl = './フォーメーション右.telop';\r\n        const dataResp = await fetch(dataUrl);\r\n        if (dataResp.ok) {\r\n            projectData = await dataResp.json();\r\n            console.log(\"[Player] Loaded project data from:\", dataUrl);\r\n        }\r\n        assetCache = {};\r\n        if (window.initPlayer) {\r\n            window.initPlayer('player-container', projectData, assetCache).then(() => {\r\n                window.initialized = true;\r\n                if (window._pendingRenderableObject) {\r\n                    window.updateTelop(window._pendingRenderableObject);\r\n                    window._pendingRenderableObject = null;\r\n                }\r\n                if (window._pendingShow) {\r\n                    window.showTelop();\r\n                    window._pendingShow = false;\r\n                }\r\n            });\r\n        }\r\n    } catch (e) {\r\n        console.error(\"[Player] Failed to initialize project data:\", e);\r\n    }\r\n});\r\n"
       },
       "children": [
         {
@@ -72,7 +72,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 318,
-                "height": 46
+                "height": 46,
+                "keyexp": "PS11_ポジション"
               }
             },
             {
@@ -287,7 +288,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 318,
-                "height": 46
+                "height": 46,
+                "keyexp": "PS5_ポジション"
               }
             },
             {
@@ -502,7 +504,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 318,
-                "height": 46
+                "height": 46,
+                "keyexp": "PS4_ポジション"
               }
             },
             {
@@ -717,7 +720,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 318,
-                "height": 46
+                "height": 46,
+                "keyexp": "PS3_ポジション"
               }
             },
             {
@@ -932,7 +936,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 318,
-                "height": 46
+                "height": 46,
+                "keyexp": "PS2_ポジション"
               }
             },
             {
@@ -1104,7 +1109,7 @@ export default {
         },
         {
           "type": "group",
-          "name": "Group 6",
+          "name": "チーム情報",
           "raw": {
             "x": 1345,
             "y": 981,
@@ -1169,6 +1174,146 @@ export default {
               }
             },
             {
+              "type": "group",
+              "name": "チームカラーザブトン",
+              "raw": {
+                "skewX": -12.556492647850591,
+                "skewY": 0,
+                "x": 689,
+                "y": 5,
+                "rotation": 0,
+                "scaleX": 1.2312344648066182,
+                "scaleY": 1.1749999999999874,
+                "pivotX": 0,
+                "pivotY": 0,
+                "opacity": 1,
+                "visible": true,
+                "locked": false,
+                "blendMode": "normal",
+                "effects": []
+              },
+              "children": [
+                {
+                  "type": "rect",
+                  "name": "ベースカラー",
+                  "w": 17,
+                  "h": 42,
+                  "raw": {
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
+                    "x": -281,
+                    "y": 19,
+                    "rotation": -22,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "opacity": 1,
+                    "width": 17,
+                    "height": 42,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": "#bd39fb",
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "fillKeyexp": "ColorRect"
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": [],
+                    "domId": "TeamColor"
+                  }
+                },
+                {
+                  "type": "rect",
+                  "name": "グラデーションマット",
+                  "w": 17,
+                  "h": 42,
+                  "raw": {
+                    "skewX": 1,
+                    "skewY": 21.999999999999996,
+                    "x": -281,
+                    "y": 19,
+                    "rotation": -22,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "opacity": 1,
+                    "width": 17,
+                    "height": 42,
+                    "style": {
+                      "appearances": [
+                        {
+                          "enabled": true,
+                          "fillEnabled": true,
+                          "fill": [
+                            "#00000073",
+                            "#00000078",
+                            "#ffffff29",
+                            "#00000075",
+                            "#0000001a",
+                            "#000000a1"
+                          ],
+                          "strokeEnabled": false,
+                          "color": "#000000",
+                          "thickness": 2,
+                          "lineJoin": "miter",
+                          "miterLimit": 10,
+                          "gradientConfig": {
+                            "type": "linear",
+                            "angle": 90,
+                            "units": "objectBoundingBox",
+                            "stops": [
+                              {
+                                "offset": 0.05,
+                                "color": "#00000073"
+                              },
+                              {
+                                "offset": 0.05,
+                                "color": "#00000078"
+                              },
+                              {
+                                "offset": 0.5,
+                                "color": "#ffffff29"
+                              },
+                              {
+                                "offset": 0.51,
+                                "color": "#00000075"
+                              },
+                              {
+                                "offset": 0.95,
+                                "color": "#0000001a"
+                              },
+                              {
+                                "offset": 1,
+                                "color": "#000000a1"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "cornerRadius": 0
+                    },
+                    "visible": true,
+                    "locked": false,
+                    "blendMode": "normal",
+                    "effects": []
+                  }
+                }
+              ]
+            },
+            {
               "type": "text",
               "name": "学校名",
               "text": "明秀学園日立",
@@ -1229,8 +1374,6 @@ export default {
           "type": "group",
           "name": "PS1",
           "raw": {
-            "skewX": 0,
-            "skewY": 0,
             "x": 1553,
             "y": 853,
             "rotation": 0,
@@ -1238,6 +1381,8 @@ export default {
             "scaleY": 1,
             "pivotX": 0,
             "pivotY": 0,
+            "skewX": 0,
+            "skewY": 0,
             "opacity": 1,
             "visible": true,
             "locked": false,
@@ -1270,7 +1415,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 318,
-                "height": 46
+                "height": 46,
+                "keyexp": "PS1_ポジション"
               }
             },
             {
@@ -1485,7 +1631,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 319,
-                "height": 47
+                "height": 47,
+                "keyexp": "PS6_ポジション"
               }
             },
             {
@@ -1700,7 +1847,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 319,
-                "height": 47
+                "height": 47,
+                "keyexp": "PS7_ポジション"
               }
             },
             {
@@ -1915,7 +2063,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 319,
-                "height": 47
+                "height": 47,
+                "keyexp": "PS8_ポジション"
               }
             },
             {
@@ -2130,7 +2279,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 319,
-                "height": 47
+                "height": 47,
+                "keyexp": "PS9_ポジション"
               }
             },
             {
@@ -2345,7 +2495,8 @@ export default {
                 "blendMode": "normal",
                 "effects": [],
                 "width": 319,
-                "height": 47
+                "height": 47,
+                "keyexp": "PS10_ポジション"
               }
             },
             {
@@ -2517,67 +2668,5 @@ export default {
         }
       ]
     }
-  ],
-  "samples": {
-  "フォーメーション右": [
-    {
-      "学校名": "札幌大谷",
-      "PS1_氏名": "選手　1",
-      "PS1_背番号": "1",
-      "PS1_学年": "(3年)",
-      "PS1_X": "1553",
-      "PS1_Y": "850",
-      "PS2_氏名": "選手　2",
-      "PS2_背番号": "2",
-      "PS2_学年": "(3年)",
-      "PS2_X": "1202",
-      "PS2_Y": "947",
-      "PS3_氏名": "選手　3",
-      "PS3_背番号": "3",
-      "PS3_学年": "(3年)",
-      "PS3_X": "1202",
-      "PS3_Y": "887",
-      "PS4_氏名": "選手　4",
-      "PS4_背番号": "4",
-      "PS4_学年": "(3年)",
-      "PS4_X": "1202",
-      "PS4_Y": "827",
-      "PS5_氏名": "選手　5",
-      "PS5_背番号": "5",
-      "PS5_学年": "(3年)",
-      "PS5_X": "1202",
-      "PS5_Y": "767",
-      "PS6_氏名": "選手　6",
-      "PS6_背番号": "6",
-      "PS6_学年": "(3年)",
-      "PS6_X": "842",
-      "PS6_Y": "887",
-      "PS7_氏名": "選手　7",
-      "PS7_背番号": "7",
-      "PS7_学年": "(3年)",
-      "PS7_X": "842",
-      "PS7_Y": "827",
-      "PS8_氏名": "選手　8",
-      "PS8_背番号": "8",
-      "PS8_学年": "(3年)",
-      "PS8_X": "482",
-      "PS8_Y": "917",
-      "PS9_氏名": "選手　9",
-      "PS9_背番号": "9",
-      "PS9_学年": "(3年)",
-      "PS9_X": "482",
-      "PS9_Y": "857",
-      "PS10_氏名": "選手　10",
-      "PS10_背番号": "10",
-      "PS10_学年": "(3年)",
-      "PS10_X": "482",
-      "PS10_Y": "797",
-      "PS11_氏名": "選手　11",
-      "PS11_背番号": "11",
-      "PS11_学年": "(3年)",
-      "PS11_X": "122",
-      "PS11_Y": "857"
-    }
   ]
-}
 };

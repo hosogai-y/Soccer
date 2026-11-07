@@ -5,14 +5,14 @@ import { useTeamStaff, registeredStaff, staffComments, StaffMember } from '../ut
 import { TimerState, useShowTimerAtCurrentTime } from './GlobalTimerManager';
 import { buildTimerPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
-import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
+import WeatherStatsSubControl, { StatsData, WeatherControl, Sub1Control, Sub2Control, buildStatsPayload } from './WeatherStatsSubControl';
 import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
 import { TEAM_LINEUPS_KEY, LINEUP_RESET_AT_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
-import { useClearForTake, useClearButtons, KEEP_ON_TAKE } from '../utils/cgExclusive';
+import { useClearForTake, useClearButtons, KEEP_ON_TAKE, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
 
 // Profile 2 (プロ２) はユーザー要望により削除
@@ -37,7 +37,12 @@ const ALL_TELOPS = [
 ];
 
 export default function CGOperator() {
-    const { clearOnAir, clearPreview, clearAll } = useClearAll();
+    const { clearOnAir: sdkClearOnAir, clearPreview, clearAll: sdkClearAll } = useClearAll();
+    // SDK の一括クリアは送出中フラグを戻さない。TAKE は送出中なら UPDATE になるので、
+    // フラグが残って TAKE で出なくならないよう各テロップの HIDE も送ってフラグを戻す
+    const { clearAll: hideAllTelops } = useClearButtons();
+    const clearOnAir = () => { sdkClearOnAir(); hideAllTelops(); };
+    const clearAll = () => { sdkClearAll(); hideAllTelops(); };
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [globalPhotoEnabled, setGlobalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
@@ -153,8 +158,11 @@ export default function CGOperator() {
 
     // キュー項目を送出（TAKE NEXT と、ダブルクリックでの再送出で共用）
     const takeQueueItem = (item: CgQueueItem) => {
+        const payloadTelop = item.payload ? payloadTelops[item.telopName] : undefined;
+        // 同じ CG が送出中なら消さずに UPDATE する（TelopControl 側も送出中なら UPDATE で受ける）
+        const alreadyOnAir = payloadTelop ? payloadTelop.isVisible : false;
         // 小得点・タイマー・アディショナルタイム以外の CG を消してから出す
-        clearForTake(item.telopName);
+        if (!alreadyOnAir) clearForTake(item.telopName);
 
         setCgQueue(prev => (prev || []).map(q => q.id === item.id ? { ...q, played: true } : q));
         setSelectedQueueId(null);
@@ -162,13 +170,14 @@ export default function CGOperator() {
         // 交代・カードは送出時に当日操作ログへ（再送出では同じ内容を重ねない）
         if (item.logEntries && item.logEntries.length > 0) recordLog(item.logEntries);
 
-        const payloadTelop = item.payload ? payloadTelops[item.telopName] : undefined;
         if (payloadTelop && item.payload) {
             const payload = item.payload;
-            setTimeout(() => {
-                payloadTelop.setData(payload);
-                payloadTelop.show(payload);
-            }, 200);
+            payloadTelop.setData(payload);
+            if (alreadyOnAir) {
+                payloadTelop.update(payload);
+                return;
+            }
+            setTimeout(() => payloadTelop.show(payload), 200);
             return;
         }
 
@@ -538,10 +547,10 @@ function OneShotPlayerControl({
 
     // 1Shot 送出 (後出し優先: 1Shotカードが出ている場合は即座に非表示！)
     const handleSend1Shot = (mode: OneShotMode) => {
-        clearForTake('1Shot'); // 1Shotカードなど他の CG を消してから出す（小得点・タイマー・ATは残す）
         const payload = buildBasePayload(mode);
         oneShot.setData(payload);
-        oneShot.show(payload);
+        // 1Shot 送出中なら UPDATE。出ていなければ 1Shotカードなど他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(oneShot, payload, () => clearForTake('1Shot'));
     };
 
     const buildCardPayload = (cardType: CardType) => {
@@ -559,10 +568,10 @@ function OneShotPlayerControl({
 
     // 1Shotカード 送出 (後出し優先: 1Shotが出ている場合は即座に非表示！)
     const handleSend1ShotCard = (cardType: CardType) => {
-        clearForTake('1Shotカード'); // 1Shot など他の CG を消してから出す
         const payload = buildCardPayload(cardType);
         oneShotCard.setData(payload);
-        oneShotCard.show(payload);
+        // 1Shotカード送出中なら UPDATE。出ていなければ 1Shot など他の CG を消してから出す
+        takeOrUpdate(oneShotCard, payload, () => clearForTake('1Shotカード'));
         recordLog(cardLogDraft(cardType));
     };
 
@@ -891,8 +900,13 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
         const payload = kind === 'subs'
             ? buildSubsPayload(lineup, players || [], schoolLabel, teamColor)
             : buildFormationPayload(lineup, players || [], schoolLabel, side, teamConfig?.formationSystem || '4-4-2', teamColor);
-        clearForTake(telopName); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         telop.setData(payload);
+        if (isOnAir) {
+            // このボタンの CG が送出中なら UPDATE（控え選手は同じチームの送出中のときだけ）
+            telop.update(payload);
+            return;
+        }
+        clearForTake(telopName); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
         telop.show(payload);
         if (kind === 'subs') setSubsOnAirSide(side);
     };
@@ -1047,10 +1061,10 @@ function StaffOneShotRow({ school, side, member }: { school: string, side: 'left
     };
 
     const handleTake = () => {
-        clearForTake('1Shot'); // 1Shotカードなど他の CG を消してから出す
         const payload = buildPayload();
         oneShot.setData(payload);
-        oneShot.show(payload);
+        // 1Shot 送出中なら UPDATE。出ていなければ 1Shotカードなど他の CG を消してから出す
+        takeOrUpdate(oneShot, payload, () => clearForTake('1Shot'));
     };
 
     // CG Queue List にストック（送出時は登録時点のデータで出す）
@@ -1135,17 +1149,23 @@ function TelopControl({ telopName, label, queueMode, onAddToQueue, clearForTake 
     useEffect(() => {
         const handleTake = (e: any) => {
             if (e.detail === telopName) {
-                show();
+                // 送出中なら UPDATE（一瞬消えないように）
+                if (isVisible) update();
+                else show();
             }
         };
         window.addEventListener('TRIGGER_TAKE', handleTake);
         return () => {
             window.removeEventListener('TRIGGER_TAKE', handleTake);
         };
-    }, [telopName, show]);
+    }, [telopName, show, update, isVisible]);
 
-    // 小得点・タイマー・AT はそのまま出し、それ以外は他の CG を消してから出す
+    // 送出中なら UPDATE。小得点・タイマー・AT はそのまま出し、それ以外は他の CG を消してから出す
     const handleTake = () => {
+        if (isVisible) {
+            update();
+            return;
+        }
         if (KEEP_ON_TAKE.includes(telopName)) {
             show();
             return;
@@ -1194,6 +1214,8 @@ function MatchScorePanel() {
     const bigScore = useTelop('大得点');
     const smallScore = useTelop('小得点');
     const timer = useTelop('タイマー');
+    const additionalTime = useTelop('アディショナルタイム');
+    const statsTelop = useTelop('スタッツ');
     const showTimerAtCurrentTime = useShowTimerAtCurrentTime();
     const [oaLeftTeam, setOaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam, setOaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
@@ -1301,35 +1323,53 @@ function MatchScorePanel() {
         };
 
         // チーム名は小得点・大得点で表記が違うので、それぞれの名前を左右反転する
-        syncScores(swapped, {
+        const smallNames = {
             '左チーム名': cur['右チーム名'] || defaultRightSmallName,
             '右チーム名': cur['左チーム名'] || defaultLeftSmallName
-        }, {
+        };
+        const bigNames = {
             '左チーム名': curBig['右チーム名'] || defaultRightBigName,
             '右チーム名': curBig['左チーム名'] || defaultLeftBigName
-        });
+        };
+        syncScores(swapped, smallNames, bigNames);
 
-        setStatsData(prev => {
-            const c = prev || {
-                leftShoot: '0', rightShoot: '0',
-                leftFK: '0', rightFK: '0',
-                leftCK: '0', rightCK: '0',
-                leftYellow: '0', rightYellow: '0',
-                leftRed: '0', rightRed: '0'
-            };
-            return {
-                leftShoot: c.rightShoot,
-                rightShoot: c.leftShoot,
-                leftFK: c.rightFK,
-                rightFK: c.leftFK,
-                leftCK: c.rightCK,
-                rightCK: c.leftCK,
-                leftYellow: c.rightYellow,
-                rightYellow: c.leftYellow,
-                leftRed: c.rightRed,
-                rightRed: c.leftRed
-            };
-        });
+        // 送出中の小得点・大得点にも反転後の内容をその場で UPDATE する
+        // （setData は共有ステートを変えるだけで CG には届かないため）
+        if (smallScore.isVisible) smallScore.update({ ...cur, ...swapped, ...smallNames });
+        if (bigScore.isVisible) bigScore.update({ ...curBig, ...swapped, ...bigNames });
+
+        const c = statsData || {
+            leftShoot: '0', rightShoot: '0',
+            leftFK: '0', rightFK: '0',
+            leftCK: '0', rightCK: '0',
+            leftYellow: '0', rightYellow: '0',
+            leftRed: '0', rightRed: '0'
+        };
+        const swappedStats: StatsData = {
+            leftShoot: c.rightShoot,
+            rightShoot: c.leftShoot,
+            leftFK: c.rightFK,
+            rightFK: c.leftFK,
+            leftCK: c.rightCK,
+            rightCK: c.leftCK,
+            leftYellow: c.rightYellow,
+            rightYellow: c.leftYellow,
+            leftRed: c.rightRed,
+            rightRed: c.leftRed
+        };
+        setStatsData(swappedStats);
+
+        // スタッツ送出中なら、反転後のチーム名・得点・数値で UPDATE する
+        if (statsTelop.isVisible) {
+            const statsPayload = buildStatsPayload({
+                leftName: smallNames['左チーム名'],
+                rightName: smallNames['右チーム名'],
+                leftScore: swapped['左チーム得点'],
+                rightScore: swapped['右チーム得点']
+            }, swappedStats);
+            statsTelop.setData(statsPayload);
+            statsTelop.update(statsPayload);
+        }
     };
 
     // 【重要要件】小得点をTAKEする場合は、小得点表記・カラーをセットし、タイマーもONにする
@@ -1348,20 +1388,23 @@ function MatchScorePanel() {
             'RightTeamColorSmallPoint': rightTeamColor
         };
         smallScore.setData((prev: any) => ({ ...prev, ...payload }));
-        smallScore.show(payload);
+        const wasVisible = smallScore.isVisible;
+        // 小得点が送出中なら UPDATE（一瞬消えないように）
+        takeOrUpdate(smallScore, payload);
 
         // タイマーをGUIの通し時間でON(show)にする
         // 小得点とタイマーがどちらも表示中のときだけ再showしない（タイマーはそのまま進み続ける）。
         // Clear On Air などで消えても表示中フラグ(タイマー_visible)は残るため、小得点が未表示なら必ず出す
-        if (!timer.isVisible || !smallScore.isVisible) {
+        if (!timer.isVisible || !wasVisible) {
             showTimerAtCurrentTime();
         }
     };
 
-    // 小得点をOFFする際、タイマーも非表示にする
+    // 小得点をOFFする際、タイマーとアディショナルタイムも非表示にする
     const handleHideSmallScore = () => {
         smallScore.hide();
         timer.hide();
+        additionalTime.hide();
     };
 
     // 大得点 TAKE (大得点のチーム名表記を適用)
@@ -1380,8 +1423,8 @@ function MatchScorePanel() {
             'RightTeamColorLargePoint': rightTeamColor
         };
         bigScore.setData((prev: any) => ({ ...prev, ...payload }));
-        clearForTake('大得点'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-        bigScore.show(payload);
+        // 大得点が送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(bigScore, payload, () => clearForTake('大得点'));
     };
 
     // 大得点 HIDE
@@ -1578,7 +1621,8 @@ function MatchTimerPanel() {
             'アディショナル表示': `img/LossSlide_${targetNum}.png`
         };
         additionalTime.setData(payload);
-        additionalTime.show(payload);
+        // AT が送出中なら UPDATE（一瞬消えないように）
+        takeOrUpdate(additionalTime, payload);
     };
 
     return (

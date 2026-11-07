@@ -1798,7 +1798,8 @@ function expandRepeats(doc, options = {}) {
             // Animation targeting:
             // When an element is a direct child of a telop:
             // If it has clipRect, the frame (root) stays static at fixed position, and its content (.content-wrapper) animates.
-            // If it does not have clipRect, the element (root) animates.
+            // If it does not have clipRect, the parent wraps it in a plain <g class="anim-target"> (see the children loop below),
+            // because root carries the node's position in its transform attribute and a CSS transform animation would replace it.
             // IMPORTANT: Invisible nodes MUST NOT receive anim-target to prevent animation from forcing them visible!
             const shouldBeAnimTarget = isTelopChild && isEffectivelyVisible;
 
@@ -1813,9 +1814,6 @@ function expandRepeats(doc, options = {}) {
                     if (classes.length) content.classList.add(...classes);
                 }
             } else {
-                if (shouldBeAnimTarget) {
-                    root.classList.add("anim-target");
-                }
                 if (node.domId) root.setAttribute("id", node.domId);
                 if (node.domClass) {
                     const classes = node.domClass.trim().split(/\s+/).filter(Boolean);
@@ -2086,7 +2084,17 @@ function expandRepeats(doc, options = {}) {
                 node.children.forEach(cid => {
                     const override = autoLayoutPositions ? autoLayoutPositions[cid] : null;
                     const c = window.createNode(cid, override, childrenAreTelopChildren);
-                    if (c) targetWrapper.appendChild(c);
+                    if (!c) return;
+                    if (childrenAreTelopChildren && !activeDoc.nodesById[cid]?.clipRect) {
+                        // The wrapper has no position of its own, so in/out animations can use transform without moving the node.
+                        // It stays even while the child is hidden: Hub swaps and shows the child in place, inside this wrapper.
+                        const animHost = createSVGElement("g");
+                        animHost.classList.add("anim-target");
+                        animHost.appendChild(c);
+                        targetWrapper.appendChild(animHost);
+                    } else {
+                        targetWrapper.appendChild(c);
+                    }
                 });
             }
 

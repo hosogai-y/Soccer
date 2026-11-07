@@ -1,5 +1,5 @@
 import type { Player } from '../components/PlayerRegistry';
-import { FormationLayout, resolvePositions, toSidePosition } from './formationLayout';
+import { FormationLayout, Role, resolvePositions, roleMap, toSidePosition } from './formationLayout';
 
 /**
  * スタメン・控えの登録データとフォーメーション／控え選手テロップのペイロード生成。
@@ -155,6 +155,16 @@ export function subChangeBaseImage(kind: 'OUT' | 'IN', position?: string) {
 }
 
 /**
+ * フォーメーション左／右のプレート画像（PSn_ポジション）。
+ * 選手登録のポジション（GK/DF/MF/FW）を優先し、未登録・不明なら陣形の枠の役割で選ぶ
+ */
+export function formationPositionImage(registered: string | undefined, slotRole: Role = 'MF') {
+    const pos = normalizePosition(registered);
+    const role = (['GK', 'DF', 'MF', 'FW'] as const).find(r => r === pos) || slotRole;
+    return `img/HD2D_F01_new_Base${role}.png`;
+}
+
+/**
  * フォーメーション左／右のペイロード（空枠は '' を送り、テロップ側で非表示になる）。
  * <ps>_X / <ps>_Y はプレート左上の座標で、テロップの customJs がグループ位置に反映する。
  * ColorRect はチームカラー（チームカラーザブトンの Rectangle に反映）。
@@ -165,9 +175,11 @@ export function buildFormationPayload(
 ) {
     const data: Record<string, string> = { '学校名': schoolLabel, 'ColorRect': teamColor };
     const positions = resolvePositions(lineup?.formation, fallbackSystem);
+    const roles = roleMap(lineup?.formation?.system || fallbackSystem);
     FORMATION_SLOTS.forEach(slot => {
         const p = findPlayer(players, lineup?.starters?.[slot.id]);
         const pos = toSidePosition(positions[slot.ps], side);
+        data[`${slot.ps}_ポジション`] = formationPositionImage(p?.position, roles[slot.ps]);
         data[`${slot.ps}_氏名`] = p?.name || '';
         data[`${slot.ps}_背番号`] = p?.number || '';
         data[`${slot.ps}_学年`] = formatGrade(p?.grade);

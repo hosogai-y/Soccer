@@ -6,8 +6,31 @@ import { useCgQueueRegister } from '../utils/cgQueue';
 import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, formatGrade, subChangeBaseImage } from '../utils/lineup';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
-import { useClearForTake } from '../utils/cgExclusive';
+import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
+
+/** スタッツテロップのペイロード（チーム名・得点は小得点とリンク） */
+export function buildStatsPayload(
+    score: { leftName: string, rightName: string, leftScore: string, rightScore: string },
+    statsData?: StatsData | null
+) {
+    return {
+        '左側チーム名': score.leftName,
+        '右側チーム名': score.rightName,
+        'Left得点数値': score.leftScore,
+        'Right得点数値': score.rightScore,
+        '左側シュート数値': statsData?.leftShoot || '0',
+        '右側シュート数値': statsData?.rightShoot || '0',
+        '左側FK数値': statsData?.leftFK || '0',
+        '右側FK数値': statsData?.rightFK || '0',
+        '左側CK数値': statsData?.leftCK || '0',
+        '右側CK数値': statsData?.rightCK || '0',
+        '左側イエロー数値': statsData?.leftYellow || '0',
+        '右側イエロー数値': statsData?.rightYellow || '0',
+        '左側レッド数値': statsData?.leftRed || '0',
+        '右側レッド数値': statsData?.rightRed || '0'
+    };
+}
 
 export type StatsData = {
     leftShoot: string;
@@ -132,27 +155,12 @@ export default function WeatherStatsSubControl() {
 
     // Send Stats (得点は小得点とリンク！)
     const sendStats = (isTake: boolean = true) => {
-        const payload = {
-            '左側チーム名': leftTeamName,
-            '右側チーム名': rightTeamName,
-            'Left得点数値': leftScore,
-            'Right得点数値': rightScore,
-            '左側シュート数値': statsData?.leftShoot || '0',
-            '右側シュート数値': statsData?.rightShoot || '0',
-            '左側FK数値': statsData?.leftFK || '0',
-            '右側FK数値': statsData?.rightFK || '0',
-            '左側CK数値': statsData?.leftCK || '0',
-            '右側CK数値': statsData?.rightCK || '0',
-            '左側イエロー数値': statsData?.leftYellow || '0',
-            '右側イエロー数値': statsData?.rightYellow || '0',
-            '左側レッド数値': statsData?.leftRed || '0',
-            '右側レッド数値': statsData?.rightRed || '0'
-        };
+        const payload = buildStatsPayload({ leftName: leftTeamName, rightName: rightTeamName, leftScore, rightScore }, statsData);
 
         statsTelop.setData(payload);
         if (isTake) {
-            clearForTake('スタッツ'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-            statsTelop.show(payload);
+            // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+            takeOrUpdate(statsTelop, payload, () => clearForTake('スタッツ'));
         } else {
             statsTelop.update(payload);
         }
@@ -342,8 +350,8 @@ export function WeatherControl() {
             '湿度テキスト': weatherData.humidity
         };
         weatherTelop.setData(payload);
-        clearForTake('気象'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-        weatherTelop.show(payload);
+        // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(weatherTelop, payload, () => clearForTake('気象'));
     };
 
     return (
@@ -513,8 +521,8 @@ export function Sub1Control() {
     const sendSub1 = () => {
         const payload = buildPayload();
         sub1Telop.setData(payload);
-        clearForTake('選手交代1枚'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-        sub1Telop.show(payload);
+        // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(sub1Telop, payload, () => clearForTake('選手交代1枚'));
         recordLog(logDrafts());
     };
 
@@ -606,8 +614,8 @@ export function Sub2Control() {
     const sendSub2 = () => {
         const payload = buildPayload();
         sub2Telop.setData(payload);
-        clearForTake('選手交代2枚'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-        sub2Telop.show(payload);
+        // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(sub2Telop, payload, () => clearForTake('選手交代2枚'));
         recordLog(logDrafts());
     };
 

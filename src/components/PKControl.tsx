@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
-import { useClearForTake } from '../utils/cgExclusive';
+import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 
 type Side = 'left' | 'right';
 
@@ -195,15 +195,15 @@ export default function PKControl() {
     const sendToCenterPK = () => {
         const payload = buildPayload('PK');
         pkCenter.setData(payload);
-        clearForTake('PK'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-        pkCenter.show(payload);
+        // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(pkCenter, payload, () => clearForTake('PK'));
     };
 
     const sendToTopLeftPK = () => {
         const payload = buildPayload('左上PK');
         pkTopLeft.setData(payload);
-        clearForTake('左上PK'); // 他の CG を消してから出す（小得点・タイマー・ATは残す）
-        pkTopLeft.show(payload);
+        // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
+        takeOrUpdate(pkTopLeft, payload, () => clearForTake('左上PK'));
     };
 
     // HIDE は左上PK・センターPK の両方を消す

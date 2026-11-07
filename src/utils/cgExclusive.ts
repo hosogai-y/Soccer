@@ -10,6 +10,27 @@ const CLEAR_ON_TAKE = [
     'サブ下位置左', 'PK', '左上PK', 'スタッツ', '気象', '選手交代1枚', '選手交代2枚'
 ];
 
+type TakeTarget = {
+    isVisible: boolean;
+    show: (data?: any) => void;
+    update: (data?: any) => void;
+};
+
+/**
+ * TAKE ボタン共通: そのテロップが送出中なら UPDATE で中身だけ差し替え（一瞬消えるのを防ぐ）、
+ * 出ていなければ clear（他の CG を消す処理）を実行してから TAKE する。
+ * 戻り値は実際に行った操作
+ */
+export function takeOrUpdate(telop: TakeTarget, payload?: any, clear?: () => void): 'take' | 'update' {
+    if (telop.isVisible) {
+        telop.update(payload);
+        return 'update';
+    }
+    clear?.();
+    telop.show(payload);
+    return 'take';
+}
+
 /**
  * 手動のクリアボタン用。表示中フラグが実際とずれていても消えるよう、フラグを見ずに HIDE を送る。
  * clearCg: 小得点・タイマー・AT 以外を消す／clearAll: 小得点・タイマー・AT も含めて全部消す
