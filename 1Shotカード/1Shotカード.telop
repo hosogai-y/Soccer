@@ -8,10 +8,10 @@
     },
     "creator": "TelopEditor"
   },
-  "rootId": "n1_3zcwlv1pzdpy",
+  "rootId": "n1_06vffso4w4mu",
   "nodesById": {
-    "n1_3zcwlv1pzdpy": {
-      "id": "n1_3zcwlv1pzdpy",
+    "n1_06vffso4w4mu": {
+      "id": "n1_06vffso4w4mu",
       "type": "telop",
       "x": 0,
       "y": 0,
@@ -24,24 +24,24 @@
       "skewY": 0,
       "opacity": 1,
       "children": [
-        "n1_ja4nb1r5muna",
-        "n1_w8jql4bvlf9q",
-        "n1_tx6n5samgvaq",
-        "n1_enk5tci3nxka",
-        "n1_oth6j9h9oba6",
-        "n1_dq8rg3yrz9i2",
-        "n1_1n0prkh712v5",
-        "n1_o53lw31h84dj",
-        "n1_7exzl9xfp0ia",
-        "n1_dfinll4q6dsj",
-        "n1_57dfvngimcw1",
-        "n1_wu4uwypnl2ro",
-        "n1_fdiln1xl8ura",
-        "n1_g1siwong44cl",
-        "n1_hn2o757h6xcb",
-        "n1_lgrunknenre7",
-        "n1_81z11s2u4eoq",
-        "n1_p0qi2k9jhlpq"
+        "n1_y5ni8yp3ogbj",
+        "n1_brj73axeacvy",
+        "n1_b0yzgp6u3ku2",
+        "n1_gtak3mg1h3f1",
+        "n1_uf8j9qsdr8lz",
+        "n1_wyqzo1jkpwik",
+        "n1_bqk4atab6pg5",
+        "n1_fw2pb2z406b4",
+        "n1_4faoe7ll6dua",
+        "n1_jo7qzr1p58v9",
+        "n1_gcyq4s068e5h",
+        "n1_dj156wp08a87",
+        "n1_i5wqfrv1tgpc",
+        "n1_v8rnt3kyrb23",
+        "n1_ithn0b4s0nlr",
+        "n1_ggdcpq5yhvya",
+        "n1_nrsndlwosqe6",
+        "n1_i5wvnawc2ru4"
       ],
       "name": "1Shotカード",
       "visible": true,
@@ -50,8 +50,8 @@
       "effects": [],
       "parentId": "n1_66qrez29fp9f"
     },
-    "n1_ja4nb1r5muna": {
-      "id": "n1_ja4nb1r5muna",
+    "n1_y5ni8yp3ogbj": {
+      "id": "n1_y5ni8yp3ogbj",
       "type": "image",
       "x": 1286,
       "y": 929,
@@ -68,13 +68,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_azxb19oh6hla",
+      "assetId": "a1_sl40jiowmtlk",
       "width": 602,
       "height": 150,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_w8jql4bvlf9q": {
-      "id": "n1_w8jql4bvlf9q",
+    "n1_brj73axeacvy": {
+      "id": "n1_brj73axeacvy",
       "type": "group",
       "x": 1336,
       "y": 957,
@@ -92,22 +92,22 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_wy5spbgm18aq",
-        "n1_faui2rzf23fp"
+        "n1_7u6x0139i2nu",
+        "n1_f23j9iyjyfgu"
       ],
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_wy5spbgm18aq": {
-      "id": "n1_wy5spbgm18aq",
+    "n1_7u6x0139i2nu": {
+      "id": "n1_7u6x0139i2nu",
       "type": "group",
       "x": 162,
       "y": -19,
       "rotation": 0,
-      "scaleX": 1.4321911399652143,
-      "scaleY": 1.1749999999999878,
+      "scaleX": 1,
+      "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
-      "skewX": -14.524950658846302,
+      "skewX": 0,
       "skewY": 0,
       "opacity": 1,
       "name": "チームカラーザブトン",
@@ -116,34 +116,34 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_fd0yqetnxhq5",
-        "n1_rzefnbryen8t",
-        "n1_tss22g8havag",
-        "n1_n6ah4034mvxl",
-        "n1_mxkoqxcjymqx"
+        "n1_264me1ettjkj",
+        "n1_8ul89sbf9w74",
+        "n1_ngotn1guclmv",
+        "n1_m49y9cbpj90i",
+        "n1_dss95u2gc8cv"
       ],
-      "parentId": "n1_w8jql4bvlf9q"
+      "parentId": "n1_brj73axeacvy"
     },
-    "n1_fd0yqetnxhq5": {
-      "id": "n1_fd0yqetnxhq5",
+    "n1_264me1ettjkj": {
+      "id": "n1_264me1ettjkj",
       "type": "rect",
-      "x": -32,
-      "y": -2,
-      "rotation": -1,
+      "x": -44.64734603858301,
+      "y": -4,
+      "rotation": 0,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
-      "skewX": 3,
-      "skewY": 3,
+      "skewX": -10,
+      "skewY": 0,
       "opacity": 1,
       "name": "エッジ左",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "width": 4,
-      "height": 54,
+      "width": 6,
+      "height": 66,
       "style": {
         "appearances": [
           {
@@ -165,28 +165,28 @@
         "targetKeyexp": "ColorEdge",
         "operator": "not_empty"
       },
-      "parentId": "n1_wy5spbgm18aq"
+      "parentId": "n1_7u6x0139i2nu"
     },
-    "n1_rzefnbryen8t": {
-      "id": "n1_rzefnbryen8t",
+    "n1_8ul89sbf9w74": {
+      "id": "n1_8ul89sbf9w74",
       "type": "rect",
-      "x": 12,
-      "y": -2,
-      "rotation": -1,
+      "x": 18.35265396141699,
+      "y": -4,
+      "rotation": 0,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
-      "skewX": 3,
-      "skewY": 3,
+      "skewX": -10,
+      "skewY": 0,
       "opacity": 1,
       "name": "エッジ右",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "width": 4,
-      "height": 54,
+      "width": 6,
+      "height": 66,
       "style": {
         "appearances": [
           {
@@ -208,28 +208,28 @@
         "targetKeyexp": "ColorEdge",
         "operator": "not_empty"
       },
-      "parentId": "n1_wy5spbgm18aq"
+      "parentId": "n1_7u6x0139i2nu"
     },
-    "n1_tss22g8havag": {
-      "id": "n1_tss22g8havag",
+    "n1_ngotn1guclmv": {
+      "id": "n1_ngotn1guclmv",
       "type": "rect",
-      "x": -28,
-      "y": -2,
-      "rotation": -1,
+      "x": -38.64734603858301,
+      "y": -4,
+      "rotation": 0,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
-      "skewX": 3,
-      "skewY": 3,
+      "skewX": -10,
+      "skewY": 0,
       "opacity": 1,
       "name": "ベースカラー",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "width": 40,
-      "height": 54,
+      "width": 57,
+      "height": 66,
       "style": {
         "appearances": [
           {
@@ -247,28 +247,28 @@
         "cornerRadius": 0
       },
       "domId": "TeamColor",
-      "parentId": "n1_wy5spbgm18aq"
+      "parentId": "n1_7u6x0139i2nu"
     },
-    "n1_n6ah4034mvxl": {
-      "id": "n1_n6ah4034mvxl",
+    "n1_m49y9cbpj90i": {
+      "id": "n1_m49y9cbpj90i",
       "type": "rect",
-      "x": -8,
-      "y": -2,
-      "rotation": -1,
+      "x": -10.14734603858301,
+      "y": -4,
+      "rotation": 0,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
-      "skewX": 3,
-      "skewY": 3,
+      "skewX": -10,
+      "skewY": 0,
       "opacity": 1,
       "name": "カラー2",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "width": 20,
-      "height": 54,
+      "width": 28.5,
+      "height": 66,
       "style": {
         "appearances": [
           {
@@ -285,28 +285,28 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_wy5spbgm18aq"
+      "parentId": "n1_7u6x0139i2nu"
     },
-    "n1_mxkoqxcjymqx": {
-      "id": "n1_mxkoqxcjymqx",
+    "n1_dss95u2gc8cv": {
+      "id": "n1_dss95u2gc8cv",
       "type": "rect",
-      "x": -28,
-      "y": -1,
-      "rotation": -3,
+      "x": -38.64734603858301,
+      "y": -4,
+      "rotation": 0,
       "scaleX": 1,
       "scaleY": 1,
       "pivotX": 0,
       "pivotY": 0,
-      "skewX": 3,
-      "skewY": 2,
+      "skewX": -10,
+      "skewY": 0,
       "opacity": 1,
       "name": "グラデーションマット",
       "visible": true,
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "width": 40,
-      "height": 54,
+      "width": 57,
+      "height": 66,
       "style": {
         "appearances": [
           {
@@ -360,10 +360,10 @@
         ],
         "cornerRadius": 0
       },
-      "parentId": "n1_wy5spbgm18aq"
+      "parentId": "n1_7u6x0139i2nu"
     },
-    "n1_faui2rzf23fp": {
-      "id": "n1_faui2rzf23fp",
+    "n1_f23j9iyjyfgu": {
+      "id": "n1_f23j9iyjyfgu",
       "type": "text",
       "x": 149,
       "y": 22,
@@ -413,10 +413,10 @@
       },
       "height": 24,
       "keyexp": "TeamColor",
-      "parentId": "n1_w8jql4bvlf9q"
+      "parentId": "n1_brj73axeacvy"
     },
-    "n1_tx6n5samgvaq": {
-      "id": "n1_tx6n5samgvaq",
+    "n1_b0yzgp6u3ku2": {
+      "id": "n1_b0yzgp6u3ku2",
       "type": "image",
       "x": 1286,
       "y": 887,
@@ -433,13 +433,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_3hy4laa5xct5",
+      "assetId": "a1_0iq1orcg1j5q",
       "width": 602,
       "height": 60,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_enk5tci3nxka": {
-      "id": "n1_enk5tci3nxka",
+    "n1_gtak3mg1h3f1": {
+      "id": "n1_gtak3mg1h3f1",
       "type": "image",
       "x": 1888,
       "y": 886,
@@ -456,13 +456,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_3hy4laa5xct5",
+      "assetId": "a1_0iq1orcg1j5q",
       "width": 602,
       "height": 60,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_oth6j9h9oba6": {
-      "id": "n1_oth6j9h9oba6",
+    "n1_uf8j9qsdr8lz": {
+      "id": "n1_uf8j9qsdr8lz",
       "type": "text",
       "x": 1359,
       "y": 1009,
@@ -512,10 +512,10 @@
       },
       "height": 33,
       "keyexp": "プロ2コメント黄色",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_dq8rg3yrz9i2": {
-      "id": "n1_dq8rg3yrz9i2",
+    "n1_wyqzo1jkpwik": {
+      "id": "n1_wyqzo1jkpwik",
       "type": "text",
       "x": 1359,
       "y": 1009,
@@ -565,10 +565,10 @@
       },
       "height": 33,
       "keyexp": "プロ2コメント",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_1n0prkh712v5": {
-      "id": "n1_1n0prkh712v5",
+    "n1_bqk4atab6pg5": {
+      "id": "n1_bqk4atab6pg5",
       "type": "group",
       "x": 1614,
       "y": 1009,
@@ -586,14 +586,14 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_r7lahcqosr75",
-        "n1_qvxt4r3rhesf",
-        "n1_27c455m5epf5"
+        "n1_oh91bdcds5bx",
+        "n1_yit8zv80nxsq",
+        "n1_ym0n31mv1bey"
       ],
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_r7lahcqosr75": {
-      "id": "n1_r7lahcqosr75",
+    "n1_oh91bdcds5bx": {
+      "id": "n1_oh91bdcds5bx",
       "type": "text",
       "x": -17,
       "y": 0,
@@ -643,10 +643,10 @@
       },
       "height": 33,
       "keyexp": "Total数値",
-      "parentId": "n1_1n0prkh712v5"
+      "parentId": "n1_bqk4atab6pg5"
     },
-    "n1_qvxt4r3rhesf": {
-      "id": "n1_qvxt4r3rhesf",
+    "n1_yit8zv80nxsq": {
+      "id": "n1_yit8zv80nxsq",
       "type": "text",
       "x": 25,
       "y": 0,
@@ -696,10 +696,10 @@
       },
       "height": 33,
       "keyexp": "ゴール(文字)",
-      "parentId": "n1_1n0prkh712v5"
+      "parentId": "n1_bqk4atab6pg5"
     },
-    "n1_27c455m5epf5": {
-      "id": "n1_27c455m5epf5",
+    "n1_ym0n31mv1bey": {
+      "id": "n1_ym0n31mv1bey",
       "type": "text",
       "x": -178,
       "y": 0,
@@ -749,10 +749,10 @@
       },
       "height": 33,
       "keyexp": "今大会通算(文字)",
-      "parentId": "n1_1n0prkh712v5"
+      "parentId": "n1_bqk4atab6pg5"
     },
-    "n1_o53lw31h84dj": {
-      "id": "n1_o53lw31h84dj",
+    "n1_fw2pb2z406b4": {
+      "id": "n1_fw2pb2z406b4",
       "type": "group",
       "x": 1477,
       "y": 1009,
@@ -770,13 +770,13 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_4r7egfe50qrv",
-        "n1_luob6olh3jcu"
+        "n1_puj3yq2m1tp4",
+        "n1_oam5kzaeut91"
       ],
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_4r7egfe50qrv": {
-      "id": "n1_4r7egfe50qrv",
+    "n1_puj3yq2m1tp4": {
+      "id": "n1_puj3yq2m1tp4",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -826,10 +826,10 @@
       },
       "height": 33,
       "keyexp": "Today's(文字)",
-      "parentId": "n1_o53lw31h84dj"
+      "parentId": "n1_fw2pb2z406b4"
     },
-    "n1_luob6olh3jcu": {
-      "id": "n1_luob6olh3jcu",
+    "n1_oam5kzaeut91": {
+      "id": "n1_oam5kzaeut91",
       "type": "text",
       "x": 178,
       "y": 0,
@@ -879,10 +879,10 @@
       },
       "height": 33,
       "keyexp": "Today's数値",
-      "parentId": "n1_o53lw31h84dj"
+      "parentId": "n1_fw2pb2z406b4"
     },
-    "n1_7exzl9xfp0ia": {
-      "id": "n1_7exzl9xfp0ia",
+    "n1_4faoe7ll6dua": {
+      "id": "n1_4faoe7ll6dua",
       "type": "text",
       "x": 1456,
       "y": 939,
@@ -948,10 +948,10 @@
       },
       "height": 65,
       "keyexp": "背番号",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_dfinll4q6dsj": {
-      "id": "n1_dfinll4q6dsj",
+    "n1_jo7qzr1p58v9": {
+      "id": "n1_jo7qzr1p58v9",
       "type": "text",
       "x": 1381,
       "y": 944,
@@ -1001,10 +1001,10 @@
       },
       "height": 49,
       "keyexp": "ポジション",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_57dfvngimcw1": {
-      "id": "n1_57dfvngimcw1",
+    "n1_gcyq4s068e5h": {
+      "id": "n1_gcyq4s068e5h",
       "type": "text",
       "x": 1524,
       "y": 950,
@@ -1054,10 +1054,10 @@
       },
       "height": 42,
       "keyexp": "氏名",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_wu4uwypnl2ro": {
-      "id": "n1_wu4uwypnl2ro",
+    "n1_dj156wp08a87": {
+      "id": "n1_dj156wp08a87",
       "type": "group",
       "x": 1322,
       "y": 900,
@@ -1075,18 +1075,18 @@
       "blendMode": "normal",
       "effects": [],
       "children": [
-        "n1_lrxgfnysbyel",
-        "n1_1sljtu040uk3",
-        "n1_c67lsqistz6b",
-        "n1_rml6rqf6zrlv",
-        "n1_ngqeqemqn7vp",
-        "n1_g65uel4gj16z",
-        "n1_1z5aat2zvfuz"
+        "n1_2kmb1a6nke54",
+        "n1_sk0ta9uc6hfr",
+        "n1_7b8emh98n1xn",
+        "n1_wyzdhltxba8j",
+        "n1_5r6334m5924o",
+        "n1_i8lng29972ow",
+        "n1_7pvoumq8mjrp"
       ],
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_lrxgfnysbyel": {
-      "id": "n1_lrxgfnysbyel",
+    "n1_2kmb1a6nke54": {
+      "id": "n1_2kmb1a6nke54",
       "type": "text",
       "x": 0,
       "y": 0,
@@ -1136,10 +1136,10 @@
       },
       "height": 32,
       "keyexp": "所属",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_1sljtu040uk3": {
-      "id": "n1_1sljtu040uk3",
+    "n1_sk0ta9uc6hfr": {
+      "id": "n1_sk0ta9uc6hfr",
       "type": "text",
       "x": 184,
       "y": -3,
@@ -1189,10 +1189,10 @@
       },
       "height": 42,
       "keyexp": "学年",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_c67lsqistz6b": {
-      "id": "n1_c67lsqistz6b",
+    "n1_7b8emh98n1xn": {
+      "id": "n1_7b8emh98n1xn",
       "type": "text",
       "x": 216,
       "y": -3,
@@ -1242,10 +1242,10 @@
       },
       "height": 42,
       "keyexp": "",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_rml6rqf6zrlv": {
-      "id": "n1_rml6rqf6zrlv",
+    "n1_wyzdhltxba8j": {
+      "id": "n1_wyzdhltxba8j",
       "type": "text",
       "x": 320,
       "y": -3,
@@ -1295,10 +1295,10 @@
       },
       "height": 42,
       "keyexp": "",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_ngqeqemqn7vp": {
-      "id": "n1_ngqeqemqn7vp",
+    "n1_5r6334m5924o": {
+      "id": "n1_5r6334m5924o",
       "type": "text",
       "x": 263,
       "y": -3,
@@ -1348,10 +1348,10 @@
       },
       "height": 42,
       "keyexp": "身長",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_g65uel4gj16z": {
-      "id": "n1_g65uel4gj16z",
+    "n1_i8lng29972ow": {
+      "id": "n1_i8lng29972ow",
       "type": "text",
       "x": 423,
       "y": -6,
@@ -1401,10 +1401,10 @@
       },
       "height": 48,
       "keyexp": "",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_1z5aat2zvfuz": {
-      "id": "n1_1z5aat2zvfuz",
+    "n1_7pvoumq8mjrp": {
+      "id": "n1_7pvoumq8mjrp",
       "type": "text",
       "x": 381,
       "y": -3,
@@ -1454,10 +1454,10 @@
       },
       "height": 42,
       "keyexp": "体重",
-      "parentId": "n1_wu4uwypnl2ro"
+      "parentId": "n1_dj156wp08a87"
     },
-    "n1_fdiln1xl8ura": {
-      "id": "n1_fdiln1xl8ura",
+    "n1_i5wqfrv1tgpc": {
+      "id": "n1_i5wqfrv1tgpc",
       "type": "image",
       "x": 1304,
       "y": 939,
@@ -1474,13 +1474,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_30rh0t66mios",
+      "assetId": "a1_p7tauwd32wxi",
       "width": 84,
       "height": 57,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_g1siwong44cl": {
-      "id": "n1_g1siwong44cl",
+    "n1_v8rnt3kyrb23": {
+      "id": "n1_v8rnt3kyrb23",
       "type": "image",
       "x": 1097.3127164191292,
       "y": 810.1972035133927,
@@ -1497,14 +1497,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_u5dar5gclorv",
+      "assetId": "a1_aopjv1kusraa",
       "width": 205,
       "height": 240,
       "keyexp": "顔写真",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_hn2o757h6xcb": {
-      "id": "n1_hn2o757h6xcb",
+    "n1_ithn0b4s0nlr": {
+      "id": "n1_ithn0b4s0nlr",
       "type": "image",
       "x": 1084,
       "y": 903.9332236160225,
@@ -1521,14 +1521,14 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_wkfzr9fr5lk5",
+      "assetId": "a1_9r99nbku53b2",
       "width": 230,
       "height": 150,
       "keyexp": "カード",
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_lgrunknenre7": {
-      "id": "n1_lgrunknenre7",
+    "n1_ggdcpq5yhvya": {
+      "id": "n1_ggdcpq5yhvya",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1545,13 +1545,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_njaawvkcrx9f",
+      "assetId": "a1_fchgkfam60fx",
       "width": 10,
       "height": 10,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_81z11s2u4eoq": {
-      "id": "n1_81z11s2u4eoq",
+    "n1_nrsndlwosqe6": {
+      "id": "n1_nrsndlwosqe6",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1568,13 +1568,13 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_wkfzr9fr5lk5",
+      "assetId": "a1_9r99nbku53b2",
       "width": 10,
       "height": 10,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     },
-    "n1_p0qi2k9jhlpq": {
-      "id": "n1_p0qi2k9jhlpq",
+    "n1_i5wvnawc2ru4": {
+      "id": "n1_i5wvnawc2ru4",
       "type": "image",
       "x": 0,
       "y": 0,
@@ -1591,82 +1591,82 @@
       "locked": false,
       "blendMode": "normal",
       "effects": [],
-      "assetId": "a1_3bn0wlipjjfd",
+      "assetId": "a1_tbn7ddjm628i",
       "width": 10,
       "height": 10,
-      "parentId": "n1_3zcwlv1pzdpy"
+      "parentId": "n1_06vffso4w4mu"
     }
   },
   "assets": {
-    "a1_30rh0t66mios": {
-      "id": "a1_30rh0t66mios",
-      "kind": "image",
-      "name": "HD2D_S00_MarkHighSchool.png",
-      "src": "img/HD2D_S00_MarkHighSchool.png",
-      "width": 84,
-      "height": 57,
-      "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
-    },
-    "a1_3bn0wlipjjfd": {
-      "id": "a1_3bn0wlipjjfd",
-      "kind": "image",
-      "name": "Red_15.png",
-      "src": "img/Red_15.png",
-      "width": 230,
-      "height": 150,
-      "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
-    },
-    "a1_3hy4laa5xct5": {
-      "id": "a1_3hy4laa5xct5",
+    "a1_0iq1orcg1j5q": {
+      "id": "a1_0iq1orcg1j5q",
       "kind": "image",
       "name": "HD2D_S01_ZabuTeam.png",
       "src": "img/HD2D_S01_ZabuTeam.png",
       "width": 602,
       "height": 60,
       "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
+      "ownerId": "n1_06vffso4w4mu"
     },
-    "a1_azxb19oh6hla": {
-      "id": "a1_azxb19oh6hla",
-      "kind": "image",
-      "name": "HD2D_S01_Base1.png",
-      "src": "img/HD2D_S01_Base1.png",
-      "width": 602,
-      "height": 150,
-      "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
-    },
-    "a1_njaawvkcrx9f": {
-      "id": "a1_njaawvkcrx9f",
-      "kind": "image",
-      "name": "Yellow1_15.png",
-      "src": "img/Yellow1_15.png",
-      "width": 230,
-      "height": 150,
-      "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
-    },
-    "a1_u5dar5gclorv": {
-      "id": "a1_u5dar5gclorv",
-      "kind": "image",
-      "name": "17 小林　龍之介抜き.png",
-      "src": "img/17 小林　龍之介抜き.png",
-      "width": 205,
-      "height": 240,
-      "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
-    },
-    "a1_wkfzr9fr5lk5": {
-      "id": "a1_wkfzr9fr5lk5",
+    "a1_9r99nbku53b2": {
+      "id": "a1_9r99nbku53b2",
       "kind": "image",
       "name": "Yellow2_15.png",
       "src": "img/Yellow2_15.png",
       "width": 230,
       "height": 150,
       "groupId": null,
-      "ownerId": "n1_3zcwlv1pzdpy"
+      "ownerId": "n1_06vffso4w4mu"
+    },
+    "a1_aopjv1kusraa": {
+      "id": "a1_aopjv1kusraa",
+      "kind": "image",
+      "name": "17 小林　龍之介抜き.png",
+      "src": "img/17 小林　龍之介抜き.png",
+      "width": 205,
+      "height": 240,
+      "groupId": null,
+      "ownerId": "n1_06vffso4w4mu"
+    },
+    "a1_fchgkfam60fx": {
+      "id": "a1_fchgkfam60fx",
+      "kind": "image",
+      "name": "Yellow1_15.png",
+      "src": "img/Yellow1_15.png",
+      "width": 230,
+      "height": 150,
+      "groupId": null,
+      "ownerId": "n1_06vffso4w4mu"
+    },
+    "a1_p7tauwd32wxi": {
+      "id": "a1_p7tauwd32wxi",
+      "kind": "image",
+      "name": "HD2D_S00_MarkHighSchool.png",
+      "src": "img/HD2D_S00_MarkHighSchool.png",
+      "width": 84,
+      "height": 57,
+      "groupId": null,
+      "ownerId": "n1_06vffso4w4mu"
+    },
+    "a1_sl40jiowmtlk": {
+      "id": "a1_sl40jiowmtlk",
+      "kind": "image",
+      "name": "HD2D_S01_Base1.png",
+      "src": "img/HD2D_S01_Base1.png",
+      "width": 602,
+      "height": 150,
+      "groupId": null,
+      "ownerId": "n1_06vffso4w4mu"
+    },
+    "a1_tbn7ddjm628i": {
+      "id": "a1_tbn7ddjm628i",
+      "kind": "image",
+      "name": "Red_15.png",
+      "src": "img/Red_15.png",
+      "width": 230,
+      "height": 150,
+      "groupId": null,
+      "ownerId": "n1_06vffso4w4mu"
     }
   },
   "assetGroups": {}

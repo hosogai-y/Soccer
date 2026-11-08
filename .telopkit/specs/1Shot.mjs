@@ -96,8 +96,8 @@ export default {
                   "w": 4,
                   "h": 54,
                   "raw": {
-                    "x": -45,
-                    "y": -2,
+                    "x": -44.64734603858301,
+                    "y": -4,
                     "rotation": 0,
                     "scaleX": 1,
                     "scaleY": 1,
@@ -111,7 +111,7 @@ export default {
                     "blendMode": "normal",
                     "effects": [],
                     "width": 6,
-                    "height": 64,
+                    "height": 66,
                     "style": {
                       "appearances": [
                         {
@@ -141,8 +141,8 @@ export default {
                   "w": 4,
                   "h": 54,
                   "raw": {
-                    "x": 18,
-                    "y": -2,
+                    "x": 18.35265396141699,
+                    "y": -4,
                     "rotation": 0,
                     "scaleX": 1,
                     "scaleY": 1,
@@ -156,7 +156,7 @@ export default {
                     "blendMode": "normal",
                     "effects": [],
                     "width": 6,
-                    "height": 64,
+                    "height": 66,
                     "style": {
                       "appearances": [
                         {
@@ -186,8 +186,8 @@ export default {
                   "w": 40,
                   "h": 54,
                   "raw": {
-                    "x": -39,
-                    "y": -2,
+                    "x": -38.64734603858301,
+                    "y": -4,
                     "rotation": 0,
                     "scaleX": 1,
                     "scaleY": 1,
@@ -201,7 +201,7 @@ export default {
                     "blendMode": "normal",
                     "effects": [],
                     "width": 57,
-                    "height": 64,
+                    "height": 66,
                     "style": {
                       "appearances": [
                         {
@@ -227,8 +227,8 @@ export default {
                   "w": 20,
                   "h": 54,
                   "raw": {
-                    "x": -10.5,
-                    "y": -2,
+                    "x": -10.14734603858301,
+                    "y": -4,
                     "rotation": 0,
                     "scaleX": 1,
                     "scaleY": 1,
@@ -242,7 +242,7 @@ export default {
                     "blendMode": "normal",
                     "effects": [],
                     "width": 28.5,
-                    "height": 64,
+                    "height": 66,
                     "style": {
                       "appearances": [
                         {
@@ -267,8 +267,8 @@ export default {
                   "w": 40,
                   "h": 54,
                   "raw": {
-                    "x": -39,
-                    "y": -2,
+                    "x": -38.64734603858301,
+                    "y": -4,
                     "rotation": 0,
                     "scaleX": 1,
                     "scaleY": 1,
@@ -282,7 +282,7 @@ export default {
                     "blendMode": "normal",
                     "effects": [],
                     "width": 57,
-                    "height": 64,
+                    "height": 66,
                     "style": {
                       "appearances": [
                         {
