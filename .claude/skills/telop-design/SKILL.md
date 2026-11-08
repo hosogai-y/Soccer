@@ -54,14 +54,16 @@ class (DOM class for CSS), domId, showIf, ignoreInLayout, blend, effects, raw`.
 | `group` | `children, clip (true or {x,y,w,h,radius}), layout {dir, gap, padding, align, justify}, repeat {count, var}, bg` |
 
 Paint: `fill` (`"#rrggbb[aa]"`; a gradient `{ angle, stops: ["#a", "#b"] or [[0,"#a"],[1,"#b"]], type: "radial", centerX, centerY, radius }`; or `null`),
-`stroke { color, width, join }`, `shadow { color, blur, x, y, alpha }`, `fillKey` (a data key whose value replaces the color).
+`stroke { color, width, join }`, `shadow { color, blur, x, y, alpha }`, `fillKey` (a data key whose value replaces the color;
+on a gradient it replaces the whole gradient with that one color).
+To key one color of a gradient and keep the gradient, write that stop as `{ color: "#a", key: "teamColor", offset? }`.
 For several stacked looks, use `layers: [top, ..., bottom]` (for example a thick dark outline under a thin colored one).
 `bg` on a group takes the same paint (or `src` + `nineSlice: [t,r,b,l]`) plus `radius`, and sizes itself to the group's children.
 
 - `key` is the data key the dashboard sends. Each telop's sample `<Telop>.json` is generated from the texts.
 - `showIf`: `{ key, op, value }` (`op`: `not_empty` | `empty` | `equals` | `not_equals` | `contains` | `gt` | `gte` | `lt` | `lte`;
   the comparisons are numeric) or a JS expression string. Use it for on/off states: lamps on when `count gte n`, a runner when `base1 equals 1`, a ▲/▼ for top/bottom.
-- A key that only drives `showIf` / `fillKey` gets no sample value. To give it one, add a hidden holder:
+- A key that only drives `showIf` / `fillKey` gets no sample value (a gradient stop `key` gets the stop's color). To give it one, add a hidden holder:
   `{ type: "text", key: "ball", text: "2", w: 40, visible: false }`.
 - `fit`: `shrink_x` (condensed type, the usual choice for names), `shrink_font`, `scale_to_fit`, `expand_xy`, or `none` (clips to the box).
 - Image `fit`: `fill` (default; stretches to `w × h`), `cover` (keeps the ratio and crops; use it for keyed photos whose

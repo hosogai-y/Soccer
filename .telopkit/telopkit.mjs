@@ -13335,7 +13335,12 @@ var PLAYER_JS_CONTENT = `
                     registerRuleList(app.shadowColorRules);
                     registerRuleList(app.colorRules);
                     if (app.gradientConfig?.stops && Array.isArray(app.gradientConfig.stops)) {
-                        app.gradientConfig.stops.forEach((s) => registerRuleList(s.colorRules));
+                        app.gradientConfig.stops.forEach((s, stopIdx) => {
+                            if (s && s.colorKeyexp) {
+                                registerKeyExp(s.colorKeyexp, { type: isBg ? 'bg_appearance_gradient_stop' : 'appearance_gradient_stop', nodeData: node, appearanceIndex: idx, stopIndex: stopIdx, element: outerEl });
+                            }
+                            registerRuleList(s.colorRules);
+                        });
                     }
                 });
             };
@@ -13536,6 +13541,27 @@ window.updateTelop = function (rendarableObject) {
                             docApp.color = String(val);
                         }
                         hasUpdates = true;
+                    }
+                } else if (target.type === 'appearance_gradient_stop' || target.type === 'bg_appearance_gradient_stop') {
+                    // Replace only this stop's color; the gradient itself stays. Empty values keep the current color.
+                    const strVal = String(val);
+                    const isBg = target.type === 'bg_appearance_gradient_stop';
+                    const holder = isBg ? target.nodeData.background : target.nodeData.style;
+                    const app = holder?.appearances?.[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = (isBg ? docNode?.background : docNode?.style)?.appearances?.[target.appearanceIndex];
+                    const setStop = (a) => {
+                        const stops = a?.gradientConfig?.stops;
+                        const stop = stops?.[target.stopIndex];
+                        if (!stop || stop.color === strVal) return false;
+                        stop.color = strVal;
+                        if (Array.isArray(a.fill) && a.fill.length === stops.length) a.fill[target.stopIndex] = strVal;
+                        return true;
+                    };
+                    if (strVal !== "") {
+                        const changed = setStop(app);
+                        if (docApp && docApp !== app) setStop(docApp);
+                        if (changed) hasUpdates = true;
                     }
                 } else if (target.type === 'appearance_color_rule' || target.type === 'bg_appearance_color_rule' || target.type === 'visibility_condition' || target.type === 'image_reference_condition') {
                     hasUpdates = true;
@@ -14079,7 +14105,12 @@ var ProjectExporter = class _ProjectExporter {
                 extractRuleList(app.shadowColorRules);
                 extractRuleList(app.colorRules);
                 if (app.gradientConfig?.stops && Array.isArray(app.gradientConfig.stops)) {
-                  app.gradientConfig.stops.forEach((s) => extractRuleList(s.colorRules));
+                  app.gradientConfig.stops.forEach((s) => {
+                    if (s && s.colorKeyexp && !(s.colorKeyexp in keyexpMap)) {
+                      keyexpMap[s.colorKeyexp] = s.color || "";
+                    }
+                    extractRuleList(s.colorRules);
+                  });
                 }
               });
             };
@@ -14590,7 +14621,15 @@ var Builder = class {
       ...g.centerX !== void 0 ? { centerX: g.centerX } : {},
       ...g.centerY !== void 0 ? { centerY: g.centerY } : {},
       ...g.radius !== void 0 ? { radius: g.radius } : {},
-      stops: g.stops.map((s, i) => Array.isArray(s) ? { offset: s[0], color: this.color(s[1], label) } : { offset: i / (n - 1), color: this.color(s, label) })
+      stops: g.stops.map((s, i) => {
+        if (Array.isArray(s)) return { offset: s[0], color: this.color(s[1], label) };
+        if (typeof s === "string") return { offset: i / (n - 1), color: this.color(s, label) };
+        return {
+          offset: s.offset ?? i / (n - 1),
+          color: this.color(s.color, label),
+          ...s.key ? { colorKeyexp: s.key } : {}
+        };
+      })
     };
   }
   color(c, label) {
