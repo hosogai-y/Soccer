@@ -10,11 +10,13 @@
     "watch-schema": "node ../../scripts/scan_telop_schema.mjs . --watch"
   },
   "dependencies": {
+    "@sglkc/kuromoji": "^1.1.0",
     "jszip": "^3.10.2",
     "peerjs": "^1.5.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.2"
+    "react-router-dom": "^6.14.2",
+    "vosk-browser": "^0.0.8"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

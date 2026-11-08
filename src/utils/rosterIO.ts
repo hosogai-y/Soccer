@@ -15,7 +15,8 @@ const COMMENT_COUNT = 5;
 export const CSV_HEADERS = [
     '高校名', '背番号', 'フルネーム', '苗字', 'ポジション', '学年', '身長', '体重',
     "Today'sゴール", 'Totalゴール', '顔写真パス',
-    ...Array.from({ length: COMMENT_COUNT }, (_, i) => `プロ２コメント#${i + 1}`)
+    ...Array.from({ length: COMMENT_COUNT }, (_, i) => `プロ２コメント#${i + 1}`),
+    'ふりがな' // 音声送出用。前の版の CSV との並びを崩さないよう最後の列
 ];
 const PLAYER_POSITIONS = ['GK', 'DF', 'MF', 'FW'];
 
@@ -89,14 +90,16 @@ export function toCsv(teams: RosterTeam[]): string {
             rows.push([
                 t.school, p.number || '', p.name || '', surnameOf(p.name || ''), p.position || '', p.grade || '',
                 p.height || '', p.weight || '', p.todayGoals || '0', p.totalGoals || '0', p.photoUrl || '',
-                ...Array.from({ length: COMMENT_COUNT }, (_, i) => comments[i]?.text || '')
+                ...Array.from({ length: COMMENT_COUNT }, (_, i) => comments[i]?.text || ''),
+                p.kana || ''
             ]);
         });
         sortStaff(t.staff).forEach(m => {
             const comments = m.pro2List.filter(c => c.text && c.text.trim() !== '');
             rows.push([
                 t.school, '', m.name, surnameOf(m.name), m.role, m.age || '', '', '', '', '', '',
-                ...Array.from({ length: COMMENT_COUNT }, (_, i) => comments[i]?.text || '')
+                ...Array.from({ length: COMMENT_COUNT }, (_, i) => comments[i]?.text || ''),
+                m.kana || ''
             ]);
         });
     });
@@ -185,19 +188,22 @@ export function teamsFromCsv(text: string): RosterTeam[] {
         if (!teams.has(school)) teams.set(school, { school, players: [], staff: [] });
         const team = teams.get(school)!;
         const comments = commentCols.map(h => get(r, h)).filter(Boolean).map(text => ({ text, isYellow: false }));
+        // ふりがな列が無い・空の行は kana を持たせない（取り込み時に今のふりがなを消さない）
+        const kana = get(r, 'ふりがな');
+        const kanaField = kana ? { kana } : {};
         addMember(team, toHalf(get(r, '背番号')), get(r, 'ポジション'),
             () => {
                 const today = toHalf(get(r, "Today'sゴール")) || '0';
                 const total = toHalf(get(r, 'Totalゴール')) || today;
                 return {
-                    id: '', schoolName: school, name,
+                    id: '', schoolName: school, name, ...kanaField,
                     grade: normalizeGrade(get(r, '学年')), height: toHalf(get(r, '身長')), weight: toHalf(get(r, '体重')),
                     todayGoals: today, totalGoals: total, photoUrl: get(r, '顔写真パス'),
                     pro2Comment: comments[0]?.text || '', pro2List: comments
                 };
             },
             // スタッフは学年欄 = 年齢
-            () => ({ name, age: toHalf(get(r, '学年')), pro2List: comments }));
+            () => ({ name, ...kanaField, age: toHalf(get(r, '学年')), pro2List: comments }));
     });
     return [...teams.values()];
 }
@@ -212,14 +218,14 @@ export function toJson(teams: RosterTeam[]): string {
         schools: teams.map(t => ({
             name: t.school,
             players: t.players.map(p => ({
-                number: p.number || '', name: p.name || '', surname: surnameOf(p.name || ''), position: p.position || '',
+                number: p.number || '', name: p.name || '', surname: surnameOf(p.name || ''), kana: p.kana || '', position: p.position || '',
                 grade: p.grade || '', height: p.height || '', weight: p.weight || '',
                 todayGoals: p.todayGoals || '0', totalGoals: p.totalGoals || '0', baseTotalGoals: p.baseTotalGoals || '',
                 yellowCards: p.yellowCards || '0', photoUrl: p.photoUrl || '', photoEnabled: p.photoEnabled !== false,
                 pro2IsYellow: !!p.pro2IsYellow, pro2List: commentsOf(p)
             })),
             staff: t.staff.map(m => ({
-                role: m.role, name: m.name, surname: surnameOf(m.name), age: m.age || '',
+                role: m.role, name: m.name, surname: surnameOf(m.name), kana: m.kana || '', age: m.age || '',
                 pro2List: m.pro2List.filter(c => c.text && c.text.trim() !== '')
             }))
         }))
@@ -237,6 +243,8 @@ export function teamsFromJson(text: string): RosterTeam[] {
         throw new Error('選手一覧の JSON ではありません（この画面で書き出した JSON を使ってください）。');
     }
     const str = (v: any) => (v === undefined || v === null ? '' : String(v));
+    // ふりがなが無い・空なら kana を持たせない（取り込み時に今のふりがなを消さない）
+    const kanaField = (v: any) => (str(v).trim() ? { kana: str(v).trim() } : {});
     const list = (v: any): Pro2CommentItem[] => (Array.isArray(v) ? v : [])
         .map((c: any) => ({ text: str(c?.text).trim(), isYellow: !!c?.isYellow }))
         .filter((c: Pro2CommentItem) => c.text !== '');
@@ -249,7 +257,7 @@ export function teamsFromJson(text: string): RosterTeam[] {
                 const pro2List = list(p.pro2List);
                 addMember(team, toHalf(str(p.number)), str(p.position),
                     () => ({
-                        id: '', schoolName: school, name: str(p.name).trim(),
+                        id: '', schoolName: school, name: str(p.name).trim(), ...kanaField(p.kana),
                         grade: normalizeGrade(str(p.grade)), height: toHalf(str(p.height)), weight: toHalf(str(p.weight)),
                         todayGoals: str(p.todayGoals) || '0', totalGoals: str(p.totalGoals) || '0',
                         ...(str(p.baseTotalGoals) ? { baseTotalGoals: str(p.baseTotalGoals) } : {}),
@@ -257,10 +265,10 @@ export function teamsFromJson(text: string): RosterTeam[] {
                         pro2IsYellow: !!p.pro2IsYellow, pro2Comment: pro2List[0]?.text || '', pro2List
                     }),
                     // players 側に背番号なしで入っているスタッフ（学年欄 = 年齢）
-                    () => ({ name: str(p.name).trim(), age: toHalf(str(p.age ?? p.grade)), pro2List }));
+                    () => ({ name: str(p.name).trim(), ...kanaField(p.kana), age: toHalf(str(p.age ?? p.grade)), pro2List }));
             });
             (Array.isArray(s.staff) ? s.staff : []).filter((m: any) => str(m?.name).trim()).forEach((m: any) => {
-                team.staff.push({ role: str(m.role).trim() || 'コーチ', name: str(m.name).trim(), age: toHalf(str(m.age)), pro2List: list(m.pro2List) });
+                team.staff.push({ role: str(m.role).trim() || 'コーチ', name: str(m.name).trim(), ...kanaField(m.kana), age: toHalf(str(m.age)), pro2List: list(m.pro2List) });
             });
             return team;
         });

@@ -43,6 +43,15 @@ export default function StaffRegistry({ school }: { school: string }) {
                                 <input
                                     type="text"
                                     className="form-input"
+                                    value={m.kana || ''}
+                                    onChange={e => updateMember(school, idx, { kana: e.target.value })}
+                                    placeholder="ふりがな"
+                                    title="ふりがな（音声送出用。姓と名の間に空白）"
+                                    style={{ padding: '4px 8px', flex: 1, minWidth: 120 }}
+                                />
+                                <input
+                                    type="text"
+                                    className="form-input"
                                     value={m.age}
                                     onChange={e => updateMember(school, idx, { age: toHalfWidthNum(e.target.value) })}
                                     placeholder="年齢"

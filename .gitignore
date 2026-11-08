@@ -12,3 +12,6 @@ assets/face/
 .telopkit/preview/
 .telopkit/tmp/
 data/
+
+# 音声送出のオフライン用ファイル（scripts/setup-voice-assets.mjs で用意）
+public/assets/voice/

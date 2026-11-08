@@ -16,6 +16,7 @@ export type Player = {
     schoolName: string; // 高校名 (e.g. "札幌創成", "札幌大谷")
     teamId?: 'left' | 'right'; // Backward compatibility fallback
     name: string; // 氏名
+    kana?: string; // ふりがな（音声送出の照合用。姓と名の間は空白）
     number: string; // 背番号
     position: string; // ポジション (GK, DF, MF, FW)
     grade: string; // 学年 ("", "1年", "2年", "3年")
@@ -41,6 +42,9 @@ export const toHalfWidthNum = (str: string): string => {
 };
 
 const DEFAULT_SCHOOLS = ['札幌創成', '札幌大谷', '帯広北', '北海'];
+
+/** 選手の所属校（古いデータで schoolName が無いときは teamId から推定） */
+export const schoolOfPlayer = (p: Player) => p.schoolName || (p.teamId === 'right' ? '札幌大谷' : '札幌創成');
 
 export default function PlayerRegistry() {
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
@@ -287,6 +291,7 @@ export default function PlayerRegistry() {
                         schoolName: targetSchool,
                         teamId: targetSchool === '札幌大谷' ? 'right' : 'left',
                         name: form.name || '',
+                        kana: (form.kana || '').trim(),
                         number: cleanNumber,
                         position: form.position || 'FW',
                         grade: form.grade || '',
@@ -313,6 +318,7 @@ export default function PlayerRegistry() {
                 schoolName: targetSchool,
                 teamId: targetSchool === '札幌大谷' ? 'right' : 'left',
                 name: form.name || '',
+                kana: (form.kana || '').trim(),
                 number: cleanNumber,
                 position: form.position || 'FW',
                 grade: form.grade || '',
@@ -355,6 +361,7 @@ export default function PlayerRegistry() {
         setForm({
             schoolName: school,
             name: player.name,
+            kana: player.kana || '',
             number: num,
             position: player.position,
             grade: player.grade || '',
@@ -381,6 +388,7 @@ export default function PlayerRegistry() {
         setForm({
             schoolName,
             name: '',
+            kana: '',
             number: '1',
             position: 'FW',
             grade: '',
@@ -435,7 +443,6 @@ export default function PlayerRegistry() {
         }));
     };
 
-    const schoolOfPlayer = (p: Player) => p.schoolName || (p.teamId === 'right' ? '札幌大谷' : '札幌創成');
     const filteredPlayers = (players || []).filter(p => schoolOfPlayer(p) === selectedSchool);
 
     // 選択中の高校の選手を一括削除（監督・コーチ、高校名、顔写真のファイルは残す）
@@ -632,6 +639,17 @@ export default function PlayerRegistry() {
                                 placeholder="例: 月舘 汰壱" 
                                 value={form.name || ''} 
                                 onChange={e => setForm({...form, name: e.target.value})} 
+                            />
+                        </div>
+
+                        {/* ふりがな（音声送出で名前を聞き取るときに使う） */}
+                        <div className="form-group">
+                            <label className="form-label">ふりがな (音声送出用)</label>
+                            <input 
+                                className="form-input" 
+                                placeholder="例: つきだて たいち（姓と名の間に空白）" 
+                                value={form.kana || ''} 
+                                onChange={e => setForm({...form, kana: e.target.value})} 
                             />
                         </div>
 
@@ -952,7 +970,12 @@ export default function PlayerRegistry() {
                                         </td>
                                         <td style={{ fontWeight: 'bold', fontSize: '1rem' }}>#{p.number}</td>
                                         <td><span className="status-badge" style={{ padding: '2px 6px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)' }}>{p.position}</span></td>
-                                        <td style={{ fontWeight: 'bold' }}>{p.name}</td>
+                                        <td style={{ fontWeight: 'bold' }}>
+                                            {p.name}
+                                            {p.kana
+                                                ? <div style={{ fontSize: '0.7rem', color: '#aaa', fontWeight: 'normal' }}>{p.kana}</div>
+                                                : <div style={{ fontSize: '0.65rem', color: '#ff9800', fontWeight: 'normal' }}>ふりがな未登録</div>}
+                                        </td>
                                         <td>{p.grade || '-'}</td>
                                         <td>
                                             <span style={{ color: '#ffca28', fontWeight: 'bold' }}>{p.todayGoals || '0'}</span>

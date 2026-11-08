@@ -5,6 +5,7 @@ import { useTeamStaff, registeredStaff, staffComments, StaffMember } from '../ut
 import { TimerState, useShowTimerAtCurrentTime, nextTimerState, getTimerMs } from './GlobalTimerManager';
 import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import PKControl from './PKControl';
+import VoiceCgPanel from './VoiceCgPanel';
 import WeatherStatsSubControl, { WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
 import { useScoreSideChange, useOaTeamSettings, scoreColorKeys, sameScoreColors } from '../utils/useScoreSideChange';
 import { TeamColorSet, teamColorSet, teamColorKeys, teamColorCss } from '../utils/teamColor';
@@ -196,6 +197,9 @@ export default function CGOperator() {
     };
 
     // 未選択のときは今の左右チームのスタメン先頭（チーム未選択・スタメンが空なら選択なし）
+    // 音声送出の候補（出場 2 校の Starters + Subs）。毎回の再計算で照合の準備をやり直さないよう memo する
+    const voiceLeftPlayers = React.useMemo(() => [...startersOf('left'), ...subsOf('left')], [players, teamLineups, oaLeftTeam]);
+    const voiceRightPlayers = React.useMemo(() => [...startersOf('right'), ...subsOf('right')], [players, teamLineups, oaRightTeam]);
     const selectedPlayer = (players || []).find(p => p.id === selectedPlayerId) || startersOf('left')[0] || startersOf('right')[0] || null;
 
     return (
@@ -231,6 +235,15 @@ export default function CGOperator() {
 
             {/* CENTER COLUMN: Dashboards & CG Controls */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                {/* 音声送出（音声で選手と CG を選び、確認してから TAKE。手動操作モードではマイクを使わない） */}
+                <VoiceCgPanel
+                    leftSchool={oaLeftTeam}
+                    rightSchool={oaRightTeam}
+                    leftPlayers={voiceLeftPlayers}
+                    rightPlayers={voiceRightPlayers}
+                    onSelectPlayer={id => { setActiveTab('match'); setSelectedPlayerId(id); }}
+                />
                 
                 {/* Center Sub-Nav Tabs */}
                 <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>

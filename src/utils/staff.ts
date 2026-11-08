@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSyncedState } from '@sdk/TelopHubSDK';
 import type { Pro2CommentItem } from '../components/PlayerRegistry';
 
@@ -9,6 +9,7 @@ import type { Pro2CommentItem } from '../components/PlayerRegistry';
 export type StaffMember = {
     role: string; // 役職（1 枠目は監督固定）
     name: string;
+    kana?: string; // ふりがな（音声送出の照合用。姓と名の間は空白）
     age: string;
     pro2List: Pro2CommentItem[];
 };
@@ -57,7 +58,8 @@ const parseStaff = (json: string | null | undefined): StaffMap => {
 export function useTeamStaff() {
     const [json, setJson] = useSyncedState<string | null>(STAFF_KEY, null);
     const [legacyManagers] = useSyncedState<Record<string, string>>(LEGACY_MANAGERS_KEY, {});
-    const staffMap = parseStaff(json);
+    // 毎回パースし直すと staffOf が描画ごとに変わり、音声送出の照合準備（読みがな変換）まで毎回やり直しになる
+    const staffMap = useMemo(() => parseStaff(json), [json]);
 
     /** 学校のスタッフ枠（未登録なら空枠。旧形式の監督名は 1 枠目に引き継ぐ） */
     const staffOf = useCallback((school: string) => normalizeSlots(staffMap[school], legacyManagers?.[school] || ''), [staffMap, legacyManagers]);
@@ -78,16 +80,32 @@ export function useTeamStaff() {
     const replaceStaff = useCallback((bySchool: Record<string, StaffMember[]>) => {
         setJson(prevJson => {
             const map = parseStaff(prevJson);
-            Object.entries(bySchool).forEach(([school, slots]) => { map[school] = normalizeSlots(slots); });
+            Object.entries(bySchool).forEach(([school, slots]) => {
+                // 読み込んだファイルにふりがなが無い人は、同じ名前の今のふりがなを引き継ぐ
+                const before = map[school] || [];
+                map[school] = normalizeSlots(slots).map(m => (m.kana || !m.name ? m : { ...m, kana: before.find(b => b.name === m.name)?.kana }));
+            });
             return JSON.stringify(map);
         });
     }, [setJson]);
 
     /** スタッフを登録したことのある学校 */
-    const staffSchools = Object.keys(staffMap);
+    const staffSchools = useMemo(() => Object.keys(staffMap), [staffMap]);
 
     return { staffOf, updateMember, replaceStaff, staffSchools };
 }
+
+/**
+ * 学校を消したあとのスタッフ関連ステート（チーム削除用）。
+ * キーの削除は差分マージでは反映されないので、全体スナップショットに混ぜて書く
+ */
+export const staffStateWithoutSchool = (state: Record<string, any>, school: string): Record<string, any> => {
+    const staff = parseStaff(state[STAFF_KEY]);
+    delete staff[school];
+    const legacy = { ...(state[LEGACY_MANAGERS_KEY] || {}) };
+    delete legacy[school];
+    return { [STAFF_KEY]: JSON.stringify(staff), [LEGACY_MANAGERS_KEY]: legacy };
+};
 
 /** 登録済み（氏名あり）のスタッフだけ */
 export const registeredStaff = (slots: StaffMember[]) => slots.filter(m => m.name.trim() !== '');

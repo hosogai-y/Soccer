@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useSyncedState, useTelopHub, useFullSyncedState } from '@sdk/TelopHubSDK';
 import { teamColorSet, teamColorCss } from '../utils/teamColor';
+import { schoolOfPlayer, type Player } from './PlayerRegistry';
+import { staffStateWithoutSchool } from '../utils/staff';
 
 export interface TeamConfig {
     id: string; // 固有ID
@@ -89,6 +91,9 @@ export default function TeamSettings() {
     const [schools, setSchools] = useSyncedState<string[]>('school_list', ['札幌創成', '札幌大谷', '帯広北', '北海']);
     const [oaLeftTeam, setOaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam, setOaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+    const [roster] = useSyncedState<Player[]>('roster', []);
+    const { syncedStateRef } = useTelopHub();
+    const fullSyncState = useFullSyncedState();
 
     const teams = teamConfigs && teamConfigs.length > 0 ? teamConfigs : DEFAULT_TEAM_CONFIGS;
 
@@ -191,11 +196,48 @@ export default function TeamSettings() {
         }
     };
 
+    const playerCountOf = (school: string) => (roster || []).filter(p => schoolOfPlayer(p) === school).length;
+
+    // 削除時に Player Registry 側に出る説明（選手・監督コーチも消える）
+    const registryDeleteNote = (school: string) => {
+        const count = playerCountOf(school);
+        return count > 0
+            ? `\n\n選手登録（Player Registry）の「${school}」と選手 ${count} 人、監督・コーチも削除されます。元に戻せません。`
+            : `\n\n選手登録（Player Registry）の「${school}」と監督・コーチも削除されます。`;
+    };
+
+    /**
+     * 高校名一覧・選手・スタッフから学校を消す（チーム設定は nextTeams に置き換え）。
+     * 空配列やキー削除は差分マージで反映されないので全体スナップショットで書く
+     */
+    const removeSchoolData = (school: string, nextTeams: TeamConfig[]) => {
+        const current = syncedStateRef.current || {};
+        const currentRoster: Player[] = Array.isArray(current.roster) ? current.roster : [];
+        const currentSchools: string[] = Array.isArray(current.school_list) ? current.school_list : (schools || []);
+        fullSyncState({
+            ...current,
+            team_configs: nextTeams,
+            school_list: currentSchools.filter(s => s !== school),
+            roster: currentRoster.filter(p => schoolOfPlayer(p) !== school),
+            ...staffStateWithoutSchool(current, school)
+        });
+    };
+
+    // チーム設定が無いのに Player Registry に残っている高校（以前に削除したチームなど）
+    const teamNames = new Set(teams.map(t => t.name));
+    const orphanSchools = Array.from(new Set(schools || [])).filter(s => !teamNames.has(s));
+
+    const handleDeleteOrphanSchool = (school: string) => {
+        if (confirm(`「${school}」を選手登録（Player Registry）から削除しますか？${registryDeleteNote(school)}`)) {
+            removeSchoolData(school, teams);
+        }
+    };
+
     // Delete Team
     const handleDeleteTeam = (id: string, name: string) => {
-        if (confirm(`チーム「${name}」を削除しますか？`)) {
+        if (confirm(`チーム「${name}」を削除しますか？${registryDeleteNote(name)}`)) {
             const nextList = teams.filter(t => t.id !== id);
-            setTeamConfigs(nextList);
+            removeSchoolData(name, nextList);
             if (nextList.length > 0) {
                 handleSelectTeam(nextList[0]);
             } else {
@@ -294,6 +336,35 @@ export default function TeamSettings() {
                             );
                         })}
                     </div>
+
+                    {orphanSchools.length > 0 && (
+                        <div style={{ marginTop: 20, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                            <h4 style={{ margin: '0 0 4px', fontSize: '0.9rem', color: '#ff8a80' }}>
+                                チーム設定の無い高校 ({orphanSchools.length})
+                            </h4>
+                            <p style={{ margin: '0 0 8px', fontSize: '0.75rem', color: '#aaa' }}>
+                                Player Registry にだけ残っている高校です（以前に削除したチームなど）。
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {orphanSchools.map(s => (
+                                    <div key={s} className="flex-between" style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <span style={{ color: '#ddd' }}>
+                                            {s}
+                                            <span style={{ marginLeft: 8, fontSize: '0.75rem', color: '#aaa' }}>選手 {playerCountOf(s)} 人</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="btn btn-danger"
+                                            style={{ padding: '2px 10px', fontSize: '0.75rem' }}
+                                            onClick={() => handleDeleteOrphanSchool(s)}
+                                        >
+                                            🗑️ 削除
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* RIGHT: Team Edit & Customization Form */}
