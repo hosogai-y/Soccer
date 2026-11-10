@@ -155,6 +155,8 @@ export default function CGOperator() {
     // 送出済みフラグを戻す（ids を省くと全部）。戻した項目は TAKE NEXT の順番に入る
     const resetPlayed = (ids?: string[]) => {
         setCgQueue(prev => (prev || []).map(item => (item.played && (!ids || ids.includes(item.id)) ? { ...item, played: false } : item)));
+        // ON AIR の印も外す（一括OFF は常に、選択OFF はその項目が ON AIR のとき）。CG 自体は OA に残る
+        if (queueOnAir && (!ids || (queueOnAir.id && ids.includes(queueOnAir.id)))) setQueueOnAir(null);
     };
     const resetSelectedPlayed = () => {
         if (selectedQueueItem?.played) resetPlayed([selectedQueueItem.id]);

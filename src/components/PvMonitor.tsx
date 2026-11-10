@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTelopHub } from '@sdk/TelopHubSDK';
 import { usePv, setPvMode, pvHide, pvClear, telopPageUrl, PvLayer } from '../utils/pv';
 
@@ -73,6 +74,27 @@ export default function PvMonitor() {
     const { projectName } = useTelopHub();
     const [prefs, setPrefsState] = useState<Prefs>(readPrefs);
     const [zoom, setZoom] = useState(false);
+    // 外部モニター出力（別ウィンドウ）。チェックを外す・PV モードを終える・ウィンドウを閉じると止まる
+    const [popup, setPopup] = useState<Window | null>(null);
+    const [externalError, setExternalError] = useState('');
+    const external = !!popup;
+    const closeExternal = () => setPopup(prev => { if (prev && !prev.closed) prev.close(); return null; });
+    const toggleExternal = (on: boolean) => {
+        setExternalError('');
+        if (!on) { closeExternal(); return; }
+        // クリックの中で開く（後から開くとポップアップとしてブロックされる）
+        const w = window.open('', 'telop_pv_external', 'width=1280,height=720');
+        if (!w) { setExternalError('別ウィンドウを開けませんでした。ブラウザーのポップアップのブロックを解除してください'); return; }
+        setPopup(w);
+    };
+    // PV モードを終えたら閉じる
+    useEffect(() => { if (!mode) closeExternal(); }, [mode]);
+    // 利用者がウィンドウを閉じたらチェックを外す
+    useEffect(() => {
+        if (!popup) return;
+        const t = window.setInterval(() => { if (popup.closed) setPopup(null); }, 500);
+        return () => window.clearInterval(t);
+    }, [popup]);
     const setPrefs = (next: Partial<Prefs>) => setPrefsState(prev => {
         const merged = { ...prev, ...next };
         writePrefs(merged);
@@ -92,7 +114,8 @@ export default function PvMonitor() {
     // 見出しのドラッグで移動
     const drag = useRef<{ dx: number, dy: number } | null>(null);
     const onPointerDown = (e: React.PointerEvent) => {
-        if ((e.target as HTMLElement).closest('button')) return;
+        // ボタンやチェックボックスはドラッグにしない（ポインターを奪うとクリックが届かない）
+        if ((e.target as HTMLElement).closest('button, label, input')) return;
         drag.current = { dx: e.clientX - x, dy: e.clientY - y };
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     };
@@ -131,6 +154,11 @@ export default function PvMonitor() {
                     {(Object.keys(SIZES) as SizeKey[]).map(k => (
                         <button key={k} className={`btn ${prefs.size === k ? 'btn-primary' : 'btn-secondary'}`} style={smallBtn} onClick={() => setPrefs({ size: k, collapsed: false })}>{k}</button>
                     ))}
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', fontWeight: 'bold', cursor: 'pointer', background: external ? '#111' : 'transparent', color: external ? '#ff9800' : '#111', borderRadius: 4, padding: '1px 6px' }}
+                        title="PV を別ウィンドウに出します。外部モニターへ動かし、ダブルクリックで全画面にできます">
+                        <input type="checkbox" checked={external} onChange={e => toggleExternal(e.target.checked)} />
+                        外部モニター出力
+                    </label>
                     <button className="btn btn-secondary" style={smallBtn} onClick={() => setZoom(true)} title="画面いっぱいに拡大（クリックか Esc で戻る）">拡大</button>
                     <button className="btn btn-secondary" style={smallBtn} onClick={() => setPrefs({ bg: prefs.bg === 'checker' ? 'black' : prefs.bg === 'black' ? 'gray' : 'checker' })} title="背景を切り替え">
                         背景:{BG_LABEL[prefs.bg]}
@@ -140,6 +168,9 @@ export default function PvMonitor() {
                         {prefs.collapsed ? '▲' : '▼'}
                     </button>
                 </div>
+                {externalError && (
+                    <div style={{ fontSize: '0.72rem', color: '#ff8a80', padding: '4px 8px', background: '#2a1515' }}>{externalError}</div>
+                )}
                 {!prefs.collapsed && (
                     <>
                         <PvStage layers={layers} scale={scale} bg={prefs.bg} projectName={projectName || ''} />
@@ -157,6 +188,8 @@ export default function PvMonitor() {
                 )}
             </div>
 
+            {popup && <ExternalPvWindow popup={popup} layers={layers} bg={prefs.bg} projectName={projectName || ''} />}
+
             {zoom && (
                 <div onClick={() => setZoom(false)} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'zoom-out' }}>
                     <div style={{ color: '#ff9800', fontWeight: 'bold', fontSize: '0.9rem' }}>🟧 PV（OA されません）— クリックか Esc で戻ります</div>
@@ -166,6 +199,65 @@ export default function PvMonitor() {
                 </div>
             )}
         </>
+    );
+}
+
+/**
+ * 外部モニター出力: 別ウィンドウを開き、その中に PV をウィンドウいっぱいの大きさ（16:9）で出す。
+ * 2 台目の画面が分かれば（ブラウザーの「ウィンドウ管理」の許可があれば）その画面に開く。
+ * ダブルクリックで全画面／全画面の解除
+ */
+function ExternalPvWindow({ popup, layers, bg, projectName }: { popup: Window, layers: PvLayer[], bg: Bg, projectName: string }) {
+    const [root, setRoot] = useState<HTMLElement | null>(null);
+    const [size, setSize] = useState({ w: 1280, h: 720 });
+
+    useEffect(() => {
+        const w = popup;
+        const doc = w.document;
+        doc.title = 'PV 外部モニター（OA されません）';
+        doc.body.style.cssText = 'margin:0;background:#000;overflow:hidden;';
+        let el = doc.getElementById('pv-root');
+        if (!el) {
+            el = doc.createElement('div');
+            el.id = 'pv-root';
+            doc.body.appendChild(el);
+        }
+        setRoot(el);
+        const resize = () => setSize({ w: w.innerWidth, h: w.innerHeight });
+        resize();
+        const dbl = () => {
+            if (doc.fullscreenElement) doc.exitFullscreen().catch(() => { });
+            else doc.documentElement.requestFullscreen().catch(() => { });
+        };
+        w.addEventListener('resize', resize);
+        doc.addEventListener('dblclick', dbl);
+        // 2 台目の画面が分かれば（ブラウザーの「ウィンドウ管理」の許可があれば）そこへ動かす
+        let cancelled = false;
+        (async () => {
+            try {
+                const getScreenDetails = (window as any).getScreenDetails;
+                if (!getScreenDetails) return;
+                const details = await getScreenDetails.call(window);
+                const other = details.screens.find((sc: any) => sc !== details.currentScreen) as any;
+                if (cancelled || !other || w.closed) return;
+                w.moveTo(other.availLeft, other.availTop);
+                w.resizeTo(other.availWidth, other.availHeight);
+            } catch { /* 手で動かしてもらう */ }
+        })();
+        return () => {
+            cancelled = true;
+            w.removeEventListener('resize', resize);
+            doc.removeEventListener('dblclick', dbl);
+        };
+    }, [popup]);
+
+    if (!root || popup.closed) return null;
+    const scale = Math.min(size.w / CANVAS_W, size.h / CANVAS_H);
+    return createPortal(
+        <div style={{ width: size.w, height: size.h, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+            <PvStage layers={layers} scale={scale} bg={bg} projectName={projectName} />
+        </div>,
+        root
     );
 }
 
@@ -187,7 +279,8 @@ function PvFrame({ layer, z, projectName }: { layer: PvLayer, z: number, project
 
     useEffect(() => {
         let alive = true;
-        telopPageUrl(projectName, layer.name).then(u => { if (alive) setUrl(u); });
+        // 外部モニターの別ウィンドウからでも開けるよう、完全な URL にする
+        telopPageUrl(projectName, layer.name).then(u => { if (alive) setUrl(u ? new URL(u, window.location.href).href : u); });
         return () => { alive = false; };
     }, [projectName, layer.name]);
 
