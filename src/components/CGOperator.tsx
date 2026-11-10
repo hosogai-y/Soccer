@@ -108,8 +108,9 @@ export default function CGOperator() {
     const sub2Telop = useTelop('選手交代2枚');
     const oneShotTelop = useTelop('1Shot');
     const oneShotCardTelop = useTelop('1Shotカード');
+    const weatherTelop = useTelop('気象'); // 音声送出の気象を Q登録したもの
     const payloadTelops: Record<string, ReturnType<typeof useTelop>> = {
-        '選手交代1枚': sub1Telop, '選手交代2枚': sub2Telop, '1Shot': oneShotTelop, '1Shotカード': oneShotCardTelop
+        '選手交代1枚': sub1Telop, '選手交代2枚': sub2Telop, '1Shot': oneShotTelop, '1Shotカード': oneShotCardTelop, '気象': weatherTelop
     };
 
     // Queue logic

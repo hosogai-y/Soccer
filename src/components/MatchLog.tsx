@@ -5,7 +5,7 @@ import { TimerState, nextTimerState } from './GlobalTimerManager';
 import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import {
     MATCH_LOG_ARCHIVE_LIMIT, MatchLogEntry, MatchLogType,
-    LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals
+    LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals, displayMatchTime, editableMatchTime
 } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 import { TEAM_LINEUPS_KEY, TeamLineup, CLEARED_SUBBED_OUT } from '../utils/lineup';
@@ -156,7 +156,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
     };
 
     const describe = (e: MatchLogEntry) => {
-        const head = `[${e.period} ${e.time}] ${LOG_TYPE_LABELS[e.type]}`;
+        const head = `[${e.period} ${displayMatchTime(e)}] ${LOG_TYPE_LABELS[e.type]}`;
         if (e.type === 'period') return `${head} ${e.event}`;
         const who = e.playerName ? `#${e.playerNumber} ${e.playerName}` : (e.type === 'goal' ? '(選手不明・OG)' : '');
         if (e.type === 'sub') return `${head} ${e.team} OUT #${e.playerNumber} ${e.playerName} → IN #${e.inPlayerNumber} ${e.inPlayerName}`;
@@ -207,7 +207,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
                     {(Object.keys(LOG_TYPE_LABELS) as MatchLogType[]).map(t => <option key={t} value={t}>{LOG_TYPE_LABELS[t]}</option>)}
                 </select>
                 <input className="form-input" style={{ width: 110 }} placeholder="時刻(自動)" value={timeInput} onChange={e => setTimeInput(e.target.value)}
-                    title="空欄なら現在のタイマー時刻で記録します" />
+                    title="空欄なら現在のタイマー時刻で記録します。分だけ（例: 39）で入れると、大得点得点者はその分のまま（+1 しない）。秒まで（例: 39:20）入れると +1 分" />
                 {type === 'period' ? (
                     <select className="form-select" style={{ width: 160 }} value={periodEvent} onChange={e => setPeriodEvent(e.target.value)}>
                         {PERIOD_EVENTS.map(ev => <option key={ev} value={ev}>{ev}</option>)}
@@ -289,7 +289,7 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
     onSave: (next: MatchLogEntry) => void
 }) {
     const [period, setPeriod] = useState(entry.period);
-    const [time, setTime] = useState(entry.time);
+    const [time, setTime] = useState(editableMatchTime(entry));
     const [event, setEvent] = useState(entry.event || PERIOD_EVENTS[0]);
     const [team, setTeam] = useState(entry.team || teams[0] || '');
     const [playerId, setPlayerId] = useState(entry.playerId || '');
@@ -374,7 +374,8 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
                 </div>
                 <div style={rowStyle}>
                     <span style={labelStyle}>時刻</span>
-                    <input className="form-input" value={time} onChange={e => setTime(e.target.value)} placeholder="例: 23:15" style={{ flex: 1 }} autoFocus />
+                    <input className="form-input" value={time} onChange={e => setTime(e.target.value)} placeholder="例: 23:15 / 39（分だけ）" style={{ flex: 1 }} autoFocus
+                        title="分だけ（例: 39）なら大得点得点者はその分のまま。秒まで（例: 39:20）入れると +1 分" />
                 </div>
 
                 {isPeriod ? (

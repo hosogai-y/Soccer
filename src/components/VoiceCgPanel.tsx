@@ -16,9 +16,16 @@ import {
 import {
     EngineKind, EngineState, SpeechEngine, createOnlineEngine, createOfflineEngine, onlineEngineAvailable, pickEngine
 } from '../utils/voice/speechEngines';
+import { parseCommand, VoiceCommand, SideRoster } from '../utils/voice/voiceCommands';
+import { useCgQueueRegister } from '../utils/cgQueue';
+import { MatchLogDraft } from '../utils/matchLog';
+import { useSubTeams } from './WeatherStatsSubControl';
+import VoiceCommandCard from './VoiceCommandCard';
 
 /**
- * 音声で選手・スタッフと CG を選び、確認してから TAKE する。
+ * 音声で選手・スタッフと CG を選び、確認してから TAKE（または Q登録）する。
+ * 選手交代（「13番アウト 20番イン」）・気象（「気温22.3度 湿度81」）・得点者（「前半39分 創成 10番」）も聞き取り、
+ * それぞれの確認カード（VoiceCommandCard）で TAKE / Q登録 / ログに記録 する。
  * - 手動モード: マイクを使わない（今までどおりの操作だけ）
  * - 音声優先モード: 聞き取った内容で選択を置き換える（下の 1Shot パネルの選手も合わせる）。送出は必ず TAKE ボタン
  * モードは開くたびに手動操作から（読み込み直せば必ず操作できる状態に戻す）。認識エンジンは端末ごとの設定。CG のふりがなは共有。
@@ -94,6 +101,10 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
     const [engineMessage, setEngineMessage] = useState('');
     const [partial, setPartial] = useState('');
     const [pending, setPending] = useState<Pending | null>(null);
+    // 1Shot 以外の指示（選手交代・気象・得点者）の確認カード。pending とどちらか一方だけ出す
+    const [command, setCommand] = useState<VoiceCommand | null>(null);
+    // チームを言わなかった交代で使うチーム（直前に選んだ選手・交代のチーム）
+    const lastSideRef = useRef<'left' | 'right'>('left');
     const [log, setLog] = useState<{ text: string, result: string, at: number }[]>([]);
     const [showSettings, setShowSettings] = useState(false);
     const [lockBusy, setLockBusy] = useState(false); // 別のタブが音声優先を使っている
@@ -108,6 +119,8 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
     const oneShotCard = useTelop('1Shotカード');
     const clearForTake = useClearForTake();
     const { record: recordLog } = useMatchLog();
+    const registerQueue = useCgQueueRegister();
+    const subTeams = useSubTeams();
     const [teamConfigs] = useSyncedState<TeamConfig[]>('team_configs', DEFAULT_TEAM_CONFIGS);
     const [globalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
@@ -161,16 +174,39 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
         };
     }, [teams, leftSchool, rightSchool, teamColorWords]);
 
+    // 交代の背番号を選手にするための、チームごとのスタメン・控え（Lineups）
+    const rosterOf = (side: 'left' | 'right'): SideRoster => ({
+        starters: subTeams.startersOf(side),
+        subs: subTeams.subsOf(side),
+        subbedOut: subTeams.subsOf(side).filter(p => subTeams.isSubbedOut(side, p.id)).map(p => p.id)
+    });
+    const rosters = { left: rosterOf('left'), right: rosterOf('right') };
+
     // 最新の値をエンジンのコールバックから読む
-    const latest = useRef({ prepared, tokenizer, aliases, sideWords, onSelectPlayer });
-    latest.current = { prepared, tokenizer, aliases, sideWords, onSelectPlayer };
+    const latest = useRef({ prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters });
+    latest.current = { prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters };
 
     // ---------------------------------------------------------------- 認識結果 → 選択
     const handleFinal = useCallback((alternatives: string[]) => {
         setPartial('');
-        const { prepared, tokenizer, aliases, sideWords, onSelectPlayer } = latest.current;
-        const parse = parseAlternatives(alternatives, prepared, tokenizer, aliases, sideWords);
+        const { prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters } = latest.current;
         const text = alternatives[0] || '';
+        const addLog = (result: string) => setLog(prev => [{ text, result, at: Date.now() }, ...prev].slice(0, 8));
+
+        // 選手交代・気象・得点者の言い方なら、その確認カードを出す
+        const cmd = parseCommand(alternatives, { targets: prepared, tokenizer, sideWords, rosters, lastSide: lastSideRef.current });
+        if (cmd) {
+            setPending(null);
+            setCommand(cmd);
+            if (cmd.kind === 'sub') lastSideRef.current = cmd.side;
+            if (cmd.kind === 'goal' && cmd.side) lastSideRef.current = cmd.side;
+            addLog(cmd.kind === 'sub' ? `選手交代 ${cmd.pairs.length >= 2 ? '2枚' : '1枚'}（${cmd.pairs.map(p => `${p.outNo || '?'}→${p.inNo || '?'}`).join('・')}）`
+                : cmd.kind === 'weather' ? `気象（気温 ${cmd.temp ?? '?'} / 湿度 ${cmd.humidity ?? '?'}）`
+                    : `得点者（${cmd.period || ''}${cmd.minute}分${cmd.plus ? `+${cmd.plus}` : ''} ${cmd.candidates[0]?.target.label || '選手不明'}）`);
+            return;
+        }
+
+        const parse = parseAlternatives(alternatives, prepared, tokenizer, aliases, sideWords);
         if (!parse || parse.candidates.length === 0) {
             setLog(prev => [{ text, result: '該当なし', at: Date.now() }, ...prev].slice(0, 8));
             return;
@@ -178,7 +214,9 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
         const target = parse.candidates[0].target;
         let cg = parse.cg || DEFAULT_VOICE_CG;
         if (target.kind === 'staff' && !voiceCgDef(cg).staffOk) cg = DEFAULT_VOICE_CG;
+        setCommand(null);
         setPending({ target, cg, parse, at: Date.now() });
+        lastSideRef.current = target.side;
         if (target.player) onSelectPlayer(target.player.id);
         setLog(prev => [{ text, result: `${target.label} / ${voiceCgDef(cg).label}`, at: Date.now() }, ...prev].slice(0, 8));
     }, []);
@@ -284,12 +322,13 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
         if (showSettings) loadReadingTokenizer().then(setTokenizer);
     }, [showSettings]);
 
-    const setMode = (m: Mode) => { setModeState(m); setStealNonce(0); setLockBusy(false); if (m === 'manual') { setPending(null); setEngineMessage(''); } };
+    const setMode = (m: Mode) => { setModeState(m); setStealNonce(0); setLockBusy(false); if (m === 'manual') { setPending(null); setCommand(null); setEngineMessage(''); } };
     const setEnginePref = (p: EnginePref) => { setEnginePrefState(p); writeLocal(ENGINE_KEY, p); };
 
-    // ---------------------------------------------------------------- TAKE（確認後）
-    const takePending = () => {
-        if (!pending) return;
+    // ---------------------------------------------------------------- TAKE / Q登録（確認後）
+    /** 確認中の 1Shot の送出内容（テロップ・データ・キューの名前・当日操作ログ） */
+    const pendingCg = (): { telopName: '1Shot' | '1Shotカード', payload: Record<string, any>, label: string, logEntries?: MatchLogDraft[] } | null => {
+        if (!pending) return null;
         const { target, cg } = pending;
         const def = voiceCgDef(cg);
         if (target.player) {
@@ -302,28 +341,44 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
                 player, teamConfig, side: player.teamId === 'right' ? 'right' : 'left', school: rawSchool, mode: m,
                 commentText: comment.text || '', isYellow: false, photoUrl: playerPhotoUrl(player, globalPhotoEnabled !== false)
             });
+            const tag = `#${player.number} ${player.name}`;
             const oneShotMode = ONE_SHOT_MODES[cg];
-            if (oneShotMode) {
-                const payload = base(oneShotMode);
-                oneShot.setData(payload);
-                takeOrUpdate(oneShot, payload, () => clearForTake('1Shot'));
-            } else {
-                const card = CARD_IMAGES[cg as keyof typeof CARD_IMAGES];
-                const payload = { ...base('pro2'), 'カード': card.img, 'cardType': card.cardType };
-                oneShotCard.setData(payload);
-                takeOrUpdate(oneShotCard, payload, () => clearForTake('1Shotカード'));
-                recordLog({
+            if (oneShotMode) return { telopName: '1Shot', payload: base(oneShotMode), label: `${def.label} ${tag}` };
+            const card = CARD_IMAGES[cg as keyof typeof CARD_IMAGES];
+            return {
+                telopName: '1Shotカード',
+                payload: { ...base('pro2'), 'カード': card.img, 'cardType': card.cardType },
+                label: `${def.label.replace('（1Shotカード）', '')} ${tag}`,
+                logEntries: [{
                     type: cg === 'card_red' ? 'red' : 'yellow', team: rawSchool, ...playerFields(player),
                     ...(cg === 'card_yellow2' ? { note: '2枚目' } : {})
-                });
-            }
-        } else if (target.staff && def.staffOk) {
+                }]
+            };
+        }
+        if (target.staff && def.staffOk) {
             const teamConfig = teams.find(t => t.name === target.school);
             const comment = staffComments(target.staff)[0] || { text: '', isYellow: false };
             const payload = buildStaffOneShotPayload({ member: target.staff, teamConfig, side: target.side, school: target.school, comment });
-            oneShot.setData(payload);
-            takeOrUpdate(oneShot, payload, () => clearForTake('1Shot'));
+            return { telopName: '1Shot', payload, label: `1Shot ${target.staff.role} ${target.staff.name}` };
         }
+        return null;
+    };
+
+    const takePending = () => {
+        const cg = pendingCg();
+        if (cg) {
+            const telop = cg.telopName === '1Shot' ? oneShot : oneShotCard;
+            telop.setData(cg.payload);
+            takeOrUpdate(telop, cg.payload, () => clearForTake(cg.telopName));
+            if (cg.logEntries) recordLog(cg.logEntries);
+        }
+        setPending(null);
+    };
+
+    // CG Queue List にストック（送出は TAKE NEXT。カードは送出したときに当日操作ログへ記録される）
+    const registerPending = () => {
+        const cg = pendingCg();
+        if (cg) registerQueue(cg.telopName, cg.label, cg.payload, cg.logEntries);
         setPending(null);
     };
 
@@ -379,10 +434,12 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
             {mode === 'voice' && (
                 <div style={{ marginTop: 10 }}>
                     <div style={{ fontSize: '0.75rem', color: '#aaa', minHeight: '1.2em' }}>
-                        {partial ? <>聞き取り中: <span style={{ color: '#fff' }}>{partial}</span></> : '例:「13番 浅田」「赤の13番」「浅田 イエロー」「札幌創成の監督」「浅田 トゥデイ」'}
+                        {partial ? <>聞き取り中: <span style={{ color: '#fff' }}>{partial}</span></> : '例:「13番 浅田」「赤の13番」「浅田 イエロー」「札幌創成の総監督」「創成 13番アウト 20番イン」「気温22.3度 湿度81」「前半39分 創成 10番」'}
                     </div>
 
-                    {pending ? (
+                    {command ? (
+                        <VoiceCommandCard command={command} onChange={setCommand} onDone={() => setCommand(null)} />
+                    ) : pending ? (
                         <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.35)', border: `2px solid ${pendingColor}` }}>
                             <div className="flex-between" style={{ gap: 8, flexWrap: 'wrap' }}>
                                 <div>
@@ -396,6 +453,9 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
                                 <div style={{ display: 'flex', gap: 8 }}>
                                     <button className="btn btn-success" style={{ padding: '8px 22px', fontWeight: 'bold', fontSize: '1rem' }} onClick={takePending}>
                                         TAKE
+                                    </button>
+                                    <button className="btn btn-warning" style={{ padding: '8px 12px' }} onClick={registerPending} title="CG Queue List にストック（TAKE NEXT で送出）">
+                                        Q登録
                                     </button>
                                     <button className="btn btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setPending(null)}>
                                         取消
@@ -430,7 +490,7 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
                         </div>
                     ) : (
                         <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', color: '#888', fontSize: '0.85rem', textAlign: 'center' }}>
-                            選手名・背番号・CG 名を話すと、ここに送出候補が出ます（送出は TAKE ボタンで確認してから）
+                            選手名・背番号・CG 名、選手交代・気温/湿度・得点（前半〇分）を話すと、ここに確認カードが出ます（送出は TAKE / Q登録 ボタンで）
                         </div>
                     )}
 

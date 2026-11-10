@@ -4,7 +4,7 @@ import { Player } from '../components/PlayerRegistry';
 import { TimerState, getTimerMs } from '../components/GlobalTimerManager';
 import {
     MATCH_LOG_KEY, MATCH_LOG_ARCHIVE_KEY, MatchLogEntry, MatchLogArchive, MatchLogDraft,
-    dedupeKey, parseLogJson, teamGoals, applyLogGoals, formatMatchTime, normalizeMatchTime
+    dedupeKey, parseLogJson, teamGoals, applyLogGoals, formatMatchTime, normalizeMatchTime, isMinuteOnlyInput
 } from './matchLog';
 
 // 書き込んだ直後は共有ステートの反映が次の描画まで遅れるので、連続で記録しても前の記録を消さないよう手元に持つ
@@ -86,12 +86,17 @@ export function useMatchLog() {
             const key = dedupeKey(d);
             if (key && seen.has(key)) return;
             if (key) seen.add(key);
+            const typed = d.time ? normalizeMatchTime(d.time) : '';
+            // 分だけで入れた時刻（"39"）は秒なしとして残す（大得点得点者で +1 しない）。タイマーの時刻は秒あり
+            const minuteOnly = !!typed && (d.minuteOnly ?? isMinuteOnlyInput(d.time || ''));
+            const { minuteOnly: _drop, ...rest } = d;
             added.push({
-                ...d,
+                ...rest,
                 id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                 at: Date.now(),
                 period: d.period || s.match_timer_period || '前半',
-                time: (d.time && normalizeMatchTime(d.time)) || formatMatchTime(getTimerMs(s.match_timer_state as TimerState | undefined))
+                time: typed || formatMatchTime(getTimerMs(s.match_timer_state as TimerState | undefined)),
+                ...(minuteOnly ? { minuteOnly: true } : {})
             });
         });
         if (added.length > 0) commit([...current, ...added], added);
@@ -110,7 +115,11 @@ export function useMatchLog() {
         const current = latestEntries();
         const before = current.find(e => e.id === next.id);
         if (!before) return false;
-        const fixed = { ...next, time: normalizeMatchTime(next.time || '') || before.time };
+        const typed = normalizeMatchTime(next.time || '');
+        const { minuteOnly: _drop, ...rest } = next;
+        // 時刻を分だけで入れ直したら秒なし、秒まで入れたら今まで通り（大得点得点者で +1）
+        const minuteOnly = typed ? isMinuteOnlyInput(next.time || '') : !!before.minuteOnly;
+        const fixed: MatchLogEntry = { ...rest, time: typed || before.time, ...(minuteOnly ? { minuteOnly: true } : {}) };
         commit(current.map(e => (e.id === next.id ? fixed : e)), [before, fixed]);
         return true;
     }, [latestEntries, commit]);

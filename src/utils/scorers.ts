@@ -28,12 +28,13 @@ function toSeconds(time: string): number {
 
 /**
  * タイマーは前半 0:00 からの通し時間（後半は 前後半の長さ から、延長前半は 2 本分から…）として、
- * 前後半の中の分（1 分目 = 0:00〜0:59）を求める。長さを超えた分はアディショナルとして「40+2」と書く。
+ * 前後半の中の分（1 分目 = 0:00〜0:59。分だけで入れた記録は入れた分）を求める。長さを超えた分はアディショナルとして「40+2」と書く。
  * 前後半ごとにタイマーを 0:00 に戻している記録（通し時間より小さい）は、そのままの分を使う
  */
-export function goalMinuteLabel(e: Pick<MatchLogEntry, 'period' | 'time'>, lengths: PeriodMinutes): string {
+export function goalMinuteLabel(e: Pick<MatchLogEntry, 'period' | 'time' | 'minuteOnly'>, lengths: PeriodMinutes): string {
     const period = e.period || '前半';
-    const minuteTotal = Math.floor(toSeconds(e.time) / 60) + 1;
+    // 秒まで入れた時刻（タイマー・"39:20"）は 39:00〜39:59 を 40 分目とする。分だけで入れた（"39"）ときはその分のまま
+    const minuteTotal = Math.floor(toSeconds(e.time) / 60) + (e.minuteOnly ? 0 : 1);
     const isExtra = period.startsWith('延長');
     const length = isExtra ? lengths.extra : lengths.half;
     const base = period === '後半' ? lengths.half

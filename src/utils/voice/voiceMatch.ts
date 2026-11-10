@@ -53,9 +53,10 @@ export type VoiceTarget = {
     kanaMissing: boolean; // ふりがな未登録（名前から自動で読んだ）
 };
 
-type PreparedTarget = VoiceTarget & {
+export type PreparedTarget = VoiceTarget & {
     nameKeys: { key: string, weight: number }[]; // 読み（フル・苗字・名前）
     kanjiKeys: { text: string, weight: number }[]; // 表記（フル・苗字）
+    role?: { text: string, key: string }; // スタッフの役職（「総監督」「コーチ」。チーム名と一緒に言えば役職だけで選べる）
 };
 
 const splitName = (s: string) => s.trim().split(/[\s　]+/).filter(Boolean);
@@ -75,7 +76,9 @@ export function prepareTargets(targets: VoiceTarget[], kanaOf: (t: VoiceTarget) 
         }
         const kanjiKeys = [{ text: noSpace(t.name), weight: 1 }];
         if (nameParts.length >= 2) kanjiKeys.push({ text: nameParts[0], weight: 0.9 });
-        return { ...t, kanaMissing: !given, nameKeys: nameKeys.filter(k => k.key.length >= 2), kanjiKeys: kanjiKeys.filter(k => k.text.length >= 2) };
+        const roleText = t.kind === 'staff' ? noSpace(t.staff?.role || '') : '';
+        const role = roleText ? { text: roleText, key: kanaKey(isKanaOnly(roleText) ? roleText : readingOf(tokenizer, roleText)) } : undefined;
+        return { ...t, kanaMissing: !given, nameKeys: nameKeys.filter(k => k.key.length >= 2), kanjiKeys: kanjiKeys.filter(k => k.text.length >= 2), role };
     });
 }
 
@@ -150,7 +153,7 @@ function colorHit(raw: string, key: string, words: string[]): string | null {
     return null;
 }
 
-function findSide(raw: string, key: string, sideWords: SideWords): { side: 'left' | 'right' | null, why: string } {
+export function findSide(raw: string, key: string, sideWords: SideWords): { side: 'left' | 'right' | null, why: string } {
     const hit = (words: string[]) => words.find(w => w && (raw.includes(w) || (kanaKey(w).length >= 2 && key.includes(kanaKey(w))))) || null;
     const l = hit(sideWords.left) || colorHit(raw, key, sideWords.leftColors || []);
     const r = hit(sideWords.right) || colorHit(raw, key, sideWords.rightColors || []);
@@ -168,6 +171,13 @@ export function parseUtterance(transcript: string, targets: PreparedTarget[], to
     const number = findNumber(raw, key);
     const { side, why: sideWhy } = findSide(raw, key, sideWords);
 
+    // 「総監督」と言ったときに「監督」も当たらないよう、その役職を含む長い役職の部分を除いて探す
+    const roles = targets.map(t => t.role).filter((r): r is NonNullable<PreparedTarget['role']> => !!r);
+    const without = (text: string, part: string, longer: string[]) => longer.filter(l => l !== part && l.includes(part)).reduce((acc, l) => acc.split(l).join(''), text);
+    const roleSaid = (r: NonNullable<PreparedTarget['role']>) =>
+        without(raw, r.text, roles.map(x => x.text)).includes(r.text) ||
+        (r.key.length >= 3 && without(key, r.key, roles.map(x => x.key)).includes(r.key));
+
     const candidates: VoiceCandidate[] = [];
     for (const t of targets) {
         let nameScore = 0;
@@ -180,6 +190,13 @@ export function parseUtterance(transcript: string, targets: PreparedTarget[], to
             // 2〜3 字の短い読みはあいまい一致だと誤爆しやすいので、完全一致だけ
             const ok = k.key.length <= 3 ? key.includes(k.key) : s >= MIN_SCORE * k.weight;
             if (ok && s > nameScore) { nameScore = s; why = `読み「${k.key}」`; }
+        }
+        // 役職だけ（「創成の総監督」）: チーム名と一緒に言ったときだけ候補になる点（0.7 台 + チーム 0.15）。
+        // 長い役職ほど少し高く（「総監督」と言ったら「監督」より「総監督」）
+        if (t.role && roleSaid(t.role)) {
+            const roleScore = Math.min(0.74, 0.7 + 0.01 * t.role.text.length);
+            if (nameScore > 0) { nameScore += 0.1; why = `${why}・役職「${t.role.text}」`; }
+            else if (roleScore > nameScore) { nameScore = roleScore; why = `役職「${t.role.text}」`; }
         }
         const numberHit = !!number && t.kind === 'player' && t.number === number;
         let score = Math.max(nameScore, numberHit ? 0.8 : 0);

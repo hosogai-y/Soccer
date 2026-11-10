@@ -25,6 +25,7 @@ export type MatchLogEntry = {
     event?: string;       // period のときの内容 (例: "後半開始")
     note?: string;        // 補足 (例: イエローの "2枚目")
     pk?: boolean;         // PK で決めたゴール（大得点得点者に "(P)" を付ける）
+    minuteOnly?: boolean; // 時刻を分だけで入れた（秒なし）。大得点得点者は入れた分をそのまま出す（+1 しない）
 };
 
 /** 記録する内容（id・日時・前後半・時刻は記録時に入る） */
@@ -125,13 +126,32 @@ export function resetTodayGoals(players: Player[]): Player[] {
     });
 }
 
-/** "２３：１５" や "23" を "23:15" / "23:00" にそろえる */
+const toHalfWidth = (input: string) => input.trim()
+    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[：]/g, ':');
+
+/** "２３：１５" や "23" / "23分" を "23:15" / "23:00" にそろえる */
 export function normalizeMatchTime(input: string): string {
-    const s = input.trim()
-        .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
-        .replace(/[：]/g, ':');
-    if (/^\d+$/.test(s)) return `${parseInt(s, 10)}:00`;
+    const s = toHalfWidth(input);
+    const m = /^(\d+)\s*分?$/.exec(s);
+    if (m) return `${parseInt(m[1], 10)}:00`;
     return s;
+}
+
+/** 分だけの入力（"39" / "39分"）か。秒まで入れた（"39:00" / "39:20"）ときは false */
+export function isMinuteOnlyInput(input: string): boolean {
+    return /^\d+\s*分?$/.test(toHalfWidth(input));
+}
+
+/** 画面に出す時刻。分だけで入れた記録は "39分"、それ以外は "39:20" */
+export function displayMatchTime(e: Pick<MatchLogEntry, 'time' | 'minuteOnly'>): string {
+    if (!e.minuteOnly) return e.time;
+    return `${parseInt((e.time || '0').split(':')[0], 10) || 0}分`;
+}
+
+/** 編集欄に入れる時刻。分だけで入れた記録は分だけにする（そのまま保存しても秒なしのまま） */
+export function editableMatchTime(e: Pick<MatchLogEntry, 'time' | 'minuteOnly'>): string {
+    return e.minuteOnly ? String(parseInt((e.time || '0').split(':')[0], 10) || 0) : e.time;
 }
 
 /** タイマーの経過 ms を "m:ss" に */

@@ -256,25 +256,36 @@ export default function WeatherStatsSubControl() {
 // --------------------------------------------------------
 // 気象情報 (CG Operation「試合スコア & タイマー & 1Shot」タブで使用)
 // --------------------------------------------------------
+export type WeatherData = { condition: string, temp: string, humidity: string };
+const DEFAULT_WEATHER: WeatherData = { condition: '晴れ', temp: '22.3', humidity: '81' };
+// 気象の入力（音声送出から気温・湿度を入れても、この欄に反映されるよう共有ステートに置く）
+const WEATHER_DATA_KEY = 'weather_data';
+
+/** 気象の入力と屋内施設の切り替え（気象パネルと音声送出で共通） */
+export function useWeatherData() {
+    const [data, setData] = useSyncedState<WeatherData>(WEATHER_DATA_KEY, DEFAULT_WEATHER);
+    // 屋内施設: ON なら天候の行（天候のベース・タイトル・テキスト）を出さずに送出する（テロップ側の showIf 屋内施設）
+    const [indoor, setIndoor] = useSyncedState<boolean>('weather_indoor', false);
+    const weatherData: WeatherData = { ...DEFAULT_WEATHER, ...(data || {}) };
+    return { weatherData, setWeatherData: setData, indoor: !!indoor, setIndoor };
+}
+
+export function buildWeatherPayload(weatherData: WeatherData, indoor: boolean) {
+    return {
+        '天候テキスト': weatherData.condition,
+        '気温テキスト': weatherData.temp,
+        '湿度テキスト': weatherData.humidity,
+        '屋内施設': indoor ? '1' : ''
+    };
+}
+
 export function WeatherControl() {
     const weatherTelop = useTelop('気象');
     const clearForTake = useClearForTake();
-
-    const [weatherData, setWeatherData] = useState({
-        condition: '晴れ',
-        temp: '22.3',
-        humidity: '81'
-    });
-    // 屋内施設: ON なら天候の行（天候のベース・タイトル・テキスト）を出さずに送出する（テロップ側の showIf 屋内施設）
-    const [indoor, setIndoor] = useSyncedState<boolean>('weather_indoor', false);
+    const { weatherData, setWeatherData, indoor, setIndoor } = useWeatherData();
 
     const sendWeather = () => {
-        const payload = {
-            '天候テキスト': weatherData.condition,
-            '気温テキスト': weatherData.temp,
-            '湿度テキスト': weatherData.humidity,
-            '屋内施設': indoor ? '1' : ''
-        };
+        const payload = buildWeatherPayload(weatherData, indoor);
         weatherTelop.setData(payload);
         // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(weatherTelop, payload, () => clearForTake('気象'));
@@ -339,7 +350,7 @@ type Side = 'left' | 'right';
 
 export type { CgQueueItem } from '../utils/cgQueue';
 
-function useSubTeams() {
+export function useSubTeams() {
     const [players] = useSyncedState<Player[]>('roster', []);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
@@ -364,17 +375,69 @@ function useSubTeams() {
     };
 }
 
+export type SubTeams = ReturnType<typeof useSubTeams>;
+export type SubPair = [outId: string, inId: string];
+
 const playerLabel = (p?: Player) => (p ? `${p.number} ${p.name}` : '—');
 
+/** 選手交代1枚のテロップのデータ */
+export function buildSub1Payload(teams: SubTeams, side: Side, [outId, inId]: SubPair) {
+    const outPlayer = teams.findPlayer(outId);
+    const inPlayer = teams.findPlayer(inId);
+    return {
+        '高校名テキスト': teams.schoolOf(side),
+        ...teamColorKeys(teams.colorsOf(side)), // CG の チームカラーザブトン (ColorRect / ColorRect2 / ColorEdge)
+        'OUT背番号': outPlayer?.number || '',
+        'OUT選手名': outPlayer?.name || '',
+        'OUT学年': formatGrade(outPlayer?.grade),
+        'IN背番号': inPlayer?.number || '',
+        'IN選手名': inPlayer?.name || '',
+        'IN学年': formatGrade(inPlayer?.grade),
+        'OUTポジション': subChangeBaseImage('OUT', outPlayer?.position),
+        'INポジション': subChangeBaseImage('IN', inPlayer?.position)
+    };
+}
+
+/** 選手交代2枚のテロップのデータ（pairs[0] = GUI の 1 段目） */
+export function buildSub2Payload(teams: SubTeams, side: Side, pairs: [SubPair, SubPair]) {
+    // テロップは KeyExp「〜2」が上段・「〜1」が下段なので、GUI の 1 段目 → 〜2、2 段目 → 〜1 に送る
+    const rows = [
+        { n: 2, out: teams.findPlayer(pairs[0][0]), in: teams.findPlayer(pairs[0][1]) },
+        { n: 1, out: teams.findPlayer(pairs[1][0]), in: teams.findPlayer(pairs[1][1]) }
+    ];
+    const payload: Record<string, string> = {
+        '高校名テキスト': teams.schoolOf(side),
+        ...teamColorKeys(teams.colorsOf(side)) // CG の チームカラーザブトン (ColorRect / ColorRect2 / ColorEdge)
+    };
+    rows.forEach(({ n, out, in: inP }) => {
+        payload[`OUT背番号${n}`] = out?.number || '';
+        payload[`OUT選手名${n}`] = out?.name || '';
+        payload[`OUT学年${n}`] = formatGrade(out?.grade);
+        payload[`OUTポジション${n}`] = subChangeBaseImage('OUT', out?.position);
+        payload[`IN背番号${n}`] = inP?.number || '';
+        payload[`IN選手名${n}`] = inP?.name || '';
+        payload[`IN学年${n}`] = formatGrade(inP?.grade);
+        payload[`INポジション${n}`] = subChangeBaseImage('IN', inP?.position);
+    });
+    return payload;
+}
+
+/** CG Queue List に出す交代の名前 */
+export function subQueueLabel(teams: SubTeams, side: Side, pairs: SubPair[]) {
+    const f = teams.findPlayer;
+    if (pairs.length === 1) return `交代1枚 ${teams.schoolOf(side)} OUT ${playerLabel(f(pairs[0][0]))} → IN ${playerLabel(f(pairs[0][1]))}`;
+    return `交代2枚 ${teams.schoolOf(side)} OUT ${pairs.map(p => playerLabel(f(p[0]))).join('・')} → IN ${pairs.map(p => playerLabel(f(p[1]))).join('・')}`;
+}
+
 /** 交代の組（OUT, IN）から当日操作ログの記録を作る。片方が未選択の組は記録しない */
-function subLogDrafts(teams: ReturnType<typeof useSubTeams>, side: Side, pairs: [string, string][]): MatchLogDraft[] {
+export function subLogDrafts(teams: SubTeams, side: Side, pairs: SubPair[]): MatchLogDraft[] {
     return pairs
         .map(([outId, inId]) => [teams.findPlayer(outId), teams.findPlayer(inId)] as const)
         .filter(([out, inP]) => out && inP)
         .map(([out, inP]) => ({ type: 'sub' as const, team: teams.schoolOf(side), ...playerFields(out), ...inPlayerFields(inP) }));
 }
 
-function SubTeamSelect({ side, onChange, teams }: { side: Side, onChange: (side: Side) => void, teams: ReturnType<typeof useSubTeams> }) {
+export function SubTeamSelect({ side, onChange, teams }: { side: Side, onChange: (side: Side) => void, teams: ReturnType<typeof useSubTeams> }) {
     return (
         <div>
             <label style={{ fontSize: '0.75rem', color: '#aaa' }}>チーム名 (Lineups)</label>
@@ -391,7 +454,7 @@ function SubTeamSelect({ side, onChange, teams }: { side: Side, onChange: (side:
     );
 }
 
-function SubPlayerSelect({ side, value, onChange, placeholder, teams, style }: { side: Side, value: string, onChange: (id: string) => void, placeholder: string, teams: ReturnType<typeof useSubTeams>, style?: React.CSSProperties }) {
+export function SubPlayerSelect({ side, value, onChange, placeholder, teams, style }: { side: Side, value: string, onChange: (id: string) => void, placeholder: string, teams: ReturnType<typeof useSubTeams>, style?: React.CSSProperties }) {
     const starters = teams.startersOf(side);
     const subs = teams.subsOf(side);
     return (
@@ -430,22 +493,7 @@ export function Sub1Control() {
         inPlayerId: ''
     });
 
-    const buildPayload = () => {
-        const outPlayer = teams.findPlayer(sub1Data.outPlayerId);
-        const inPlayer = teams.findPlayer(sub1Data.inPlayerId);
-        return {
-            '高校名テキスト': teams.schoolOf(sub1Data.side),
-            ...teamColorKeys(teams.colorsOf(sub1Data.side)), // CG の チームカラーザブトン (ColorRect / ColorRect2 / ColorEdge)
-            'OUT背番号': outPlayer?.number || '',
-            'OUT選手名': outPlayer?.name || '',
-            'OUT学年': formatGrade(outPlayer?.grade),
-            'IN背番号': inPlayer?.number || '',
-            'IN選手名': inPlayer?.name || '',
-            'IN学年': formatGrade(inPlayer?.grade),
-            'OUTポジション': subChangeBaseImage('OUT', outPlayer?.position),
-            'INポジション': subChangeBaseImage('IN', inPlayer?.position)
-        };
-    };
+    const buildPayload = () => buildSub1Payload(teams, sub1Data.side, [sub1Data.outPlayerId, sub1Data.inPlayerId]);
 
     // 当日操作ログに残す交代（OUT・IN の両方が選ばれているときだけ）
     const logDrafts = (): MatchLogDraft[] => subLogDrafts(teams, sub1Data.side, [[sub1Data.outPlayerId, sub1Data.inPlayerId]]);
@@ -468,9 +516,7 @@ export function Sub1Control() {
             alert('OUT 選手と IN 選手を選択してください。');
             return;
         }
-        const outPlayer = teams.findPlayer(sub1Data.outPlayerId);
-        const inPlayer = teams.findPlayer(sub1Data.inPlayerId);
-        registerQueue('選手交代1枚', `交代1枚 ${teams.schoolOf(sub1Data.side)} OUT ${playerLabel(outPlayer)} → IN ${playerLabel(inPlayer)}`, buildPayload(), logDrafts());
+        registerQueue('選手交代1枚', subQueueLabel(teams, sub1Data.side, [[sub1Data.outPlayerId, sub1Data.inPlayerId]]), buildPayload(), logDrafts());
     };
 
     return (
@@ -515,28 +561,10 @@ export function Sub2Control() {
     const emptyPicks = { outPlayerId1: '', inPlayerId1: '', outPlayerId2: '', inPlayerId2: '' };
     const [sub2Data, setSub2Data] = useState<{ side: Side } & typeof emptyPicks>({ side: 'left', ...emptyPicks });
 
-    const buildPayload = () => {
-        // テロップは KeyExp「〜2」が上段・「〜1」が下段なので、GUI の 1 段目 → 〜2、2 段目 → 〜1 に送る
-        const rows = [
-            { n: 2, out: teams.findPlayer(sub2Data.outPlayerId1), in: teams.findPlayer(sub2Data.inPlayerId1) },
-            { n: 1, out: teams.findPlayer(sub2Data.outPlayerId2), in: teams.findPlayer(sub2Data.inPlayerId2) }
-        ];
-        const payload: Record<string, string> = {
-            '高校名テキスト': teams.schoolOf(sub2Data.side),
-            ...teamColorKeys(teams.colorsOf(sub2Data.side)) // CG の チームカラーザブトン (ColorRect / ColorRect2 / ColorEdge)
-        };
-        rows.forEach(({ n, out, in: inP }) => {
-            payload[`OUT背番号${n}`] = out?.number || '';
-            payload[`OUT選手名${n}`] = out?.name || '';
-            payload[`OUT学年${n}`] = formatGrade(out?.grade);
-            payload[`OUTポジション${n}`] = subChangeBaseImage('OUT', out?.position);
-            payload[`IN背番号${n}`] = inP?.number || '';
-            payload[`IN選手名${n}`] = inP?.name || '';
-            payload[`IN学年${n}`] = formatGrade(inP?.grade);
-            payload[`INポジション${n}`] = subChangeBaseImage('IN', inP?.position);
-        });
-        return payload;
-    };
+    const buildPayload = () => buildSub2Payload(teams, sub2Data.side, [
+        [sub2Data.outPlayerId1, sub2Data.inPlayerId1],
+        [sub2Data.outPlayerId2, sub2Data.inPlayerId2]
+    ]);
 
     const logDrafts = (): MatchLogDraft[] => subLogDrafts(teams, sub2Data.side, [
         [sub2Data.outPlayerId1, sub2Data.inPlayerId1],
@@ -564,8 +592,10 @@ export function Sub2Control() {
             alert('OUT1 / IN1 / OUT2 / IN2 の選手をすべて選択してください。');
             return;
         }
-        const f = teams.findPlayer;
-        registerQueue('選手交代2枚', `交代2枚 ${teams.schoolOf(sub2Data.side)} OUT ${playerLabel(f(sub2Data.outPlayerId1))}・${playerLabel(f(sub2Data.outPlayerId2))} → IN ${playerLabel(f(sub2Data.inPlayerId1))}・${playerLabel(f(sub2Data.inPlayerId2))}`, buildPayload(), logDrafts());
+        registerQueue('選手交代2枚', subQueueLabel(teams, sub2Data.side, [
+            [sub2Data.outPlayerId1, sub2Data.inPlayerId1],
+            [sub2Data.outPlayerId2, sub2Data.inPlayerId2]
+        ]), buildPayload(), logDrafts());
     };
 
     const pick = (key: keyof typeof emptyPicks, placeholder: string) => (
