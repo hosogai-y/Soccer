@@ -38,7 +38,8 @@ export function PvModeBanner() {
 const CANVAS_W = 1920;
 const CANVAS_H = 1080;
 type SizeKey = 'S' | 'M' | 'L';
-const SIZES: Record<SizeKey, number> = { S: 0.25, M: 0.4, L: 0.6 };
+// 以前の 0.25 / 0.4 / 0.6 の 1.75 倍。画面に収まらないときは画面幅に合わせて縮める
+const SIZES: Record<SizeKey, number> = { S: 0.4375, M: 0.7, L: 1.05 };
 type Bg = 'checker' | 'black' | 'gray';
 const BG_STYLE: Record<Bg, React.CSSProperties> = {
     checker: { background: 'repeating-conic-gradient(#3a3a3a 0% 25%, #2a2a2a 0% 50%) 50% / 24px 24px' },
@@ -78,12 +79,12 @@ export default function PvMonitor() {
         return merged;
     });
 
-    const scale = SIZES[prefs.size];
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1600;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 900;
+    const scale = Math.min(SIZES[prefs.size], (vw - 32) / CANVAS_W, (vh - 120) / CANVAS_H);
     const w = Math.round(CANVAS_W * scale);
     const h = Math.round(CANVAS_H * scale);
     const panelW = w + 2;
-    const vw = typeof window !== 'undefined' ? window.innerWidth : 1600;
-    const vh = typeof window !== 'undefined' ? window.innerHeight : 900;
     // 位置は左上。未設定なら右下。画面からはみ出さないように収める
     const x = Math.max(0, Math.min(prefs.x ?? vw - panelW - 16, vw - 120));
     const y = Math.max(0, Math.min(prefs.y ?? vh - h - 90, vh - 40));
@@ -96,8 +97,11 @@ export default function PvMonitor() {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     };
     const onPointerMove = (e: React.PointerEvent) => {
-        if (!drag.current) return;
-        setPrefsState(prev => ({ ...prev, x: e.clientX - drag.current!.dx, y: e.clientY - drag.current!.dy }));
+        const d = drag.current;
+        if (!d) return;
+        // 位置はここで確定させる（更新関数は後で実行されるため、その時点では drag.current が null の場合がある）
+        const nx = e.clientX - d.dx, ny = e.clientY - d.dy;
+        setPrefsState(prev => ({ ...prev, x: nx, y: ny }));
     };
     const onPointerUp = () => {
         if (!drag.current) return;
