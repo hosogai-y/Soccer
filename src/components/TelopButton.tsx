@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTelop } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 
 export const TelopButton: React.FC<{ label: string, telop: string }> = ({ label, telop: telopName }) => {
     const telop = useTelop(telopName);

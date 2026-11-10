@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 import type { Player } from './PlayerRegistry';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { useTeamStaff, registeredStaff, staffComments } from '../utils/staff';
@@ -21,6 +22,7 @@ import { useCgQueueRegister } from '../utils/cgQueue';
 import { MatchLogDraft } from '../utils/matchLog';
 import { useSubTeams } from './WeatherStatsSubControl';
 import VoiceCommandCard from './VoiceCommandCard';
+import { isPvMode } from '../utils/pv';
 
 /**
  * 音声で選手・スタッフと CG を選び、確認してから TAKE（または Q登録）する。
@@ -370,6 +372,8 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
             const telop = cg.telopName === '1Shot' ? oneShot : oneShotCard;
             telop.setData(cg.payload);
             takeOrUpdate(telop, cg.payload, () => clearForTake(cg.telopName));
+            // PV モードでは記録せず、確認カードも残す（PV モードを終えてそのまま TAKE できる）
+            if (isPvMode()) return;
             if (cg.logEntries) recordLog(cg.logEntries);
         }
         setPending(null);

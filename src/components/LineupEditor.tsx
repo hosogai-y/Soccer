@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useSyncedState, useTelop } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 import { Player } from './PlayerRegistry';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS, FORMATION_OPTIONS } from './TeamSettings';
 import FormationBoard, { BoardPlate } from './FormationBoard';

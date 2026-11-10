@@ -10,6 +10,8 @@ import GlobalTimerManager from './components/GlobalTimerManager';
 import { ScorerCgSync } from './utils/useScorerCg';
 import { MatchupCgSync } from './utils/matchup';
 import DataManager from './components/DataManager';
+import PvMonitor, { PvModeToggle, PvModeBanner } from './components/PvMonitor';
+import { BigScorePkSync } from './utils/useBigScorePk';
 import hubConfig from '../.telopkit/hub.json';
 
 const PROJECT_NAME = "Telops/soccer";
@@ -33,6 +35,7 @@ export default function App() {
             <GlobalTimerManager />
             <ScorerCgSync />
             <MatchupCgSync />
+            <BigScorePkSync />
             <HashRouter>
                 <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                     <nav className="modern-nav flex-between">
@@ -48,8 +51,12 @@ export default function App() {
                                 <NavLink to="/data" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Data</NavLink>
                             </div>
                         </div>
-                        <ConnectionBadge />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <PvModeToggle />
+                            <ConnectionBadge />
+                        </div>
                     </nav>
+                    <PvModeBanner />
                     <main style={{ padding: '32px', flex: 1, maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
                         <Routes>
                             <Route path="/" element={<CGOperator />} />
@@ -62,6 +69,7 @@ export default function App() {
                     </main>
                 </div>
             </HashRouter>
+            <PvMonitor />
         </TelopHubProvider>
     );
 }

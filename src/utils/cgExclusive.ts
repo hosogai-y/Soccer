@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
-import { useTelop } from '@sdk/TelopHubSDK';
+import { isPvMode, pvClear } from './pv';
+import { useTelop } from './telop';
 
 /** CG を送出しても消さないテロップ（左上の小得点・タイマーと、タイマーに付くアディショナルタイム） */
 export const KEEP_ON_TAKE = ['小得点', 'タイマー', 'アディショナルタイム'];
 
 /** 送出の前に消すテロップ（KEEP_ON_TAKE 以外の全テロップ） */
 const CLEAR_ON_TAKE = [
-    '大得点', '大得点得点者', '対戦カード', '対戦カード画像', '1Shot', '1Shotカード', 'フォーメーション左', 'フォーメーション右', '左下ミニフォーメーション',
+    '大得点', '大得点得点者', '大得点PK', '大得点得点者PK', '対戦カード', '対戦カード画像', '1Shot', '1Shotカード', 'フォーメーション左', 'フォーメーション右', '左下ミニフォーメーション',
     'サブ下位置左', 'PK', '左上PK', 'スタッツ', '気象', '選手交代1枚', '選手交代2枚'
 ];
 
@@ -22,6 +23,12 @@ type TakeTarget = {
  * 戻り値は実際に行った操作
  */
 export function takeOrUpdate(telop: TakeTarget, payload?: any, clear?: () => void): 'take' | 'update' {
+    // PV モード: OA の状態に関係なく PV モニターに出す（show が PV モニターに行く）
+    if (isPvMode()) {
+        clear?.();
+        telop.show(payload);
+        return 'take';
+    }
     if (telop.isVisible) {
         telop.update(payload);
         return 'update';
@@ -54,6 +61,11 @@ export function useClearForTake() {
 
     return useCallback((keep: string | string[] = []) => {
         const keepList = Array.isArray(keep) ? keep : [keep];
+        // PV モード: OA は消さず、PV モニターの CG を消す
+        if (isPvMode()) {
+            pvClear([...keepList, ...KEEP_ON_TAKE]);
+            return;
+        }
         telops.forEach(({ name, telop }) => {
             if (!keepList.includes(name) && telop.isVisible) telop.hide();
         });

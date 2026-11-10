@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { useSyncedState, useTelop, useTelopHub } from '@sdk/TelopHubSDK';
+import { useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
+import { useTelop } from './telop';
 import { Player } from '../components/PlayerRegistry';
 import { TimerState, getTimerMs } from '../components/GlobalTimerManager';
 import {

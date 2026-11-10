@@ -1,9 +1,11 @@
 import React from 'react';
-import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useCgQueueRegister } from '../utils/cgQueue';
 import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useApplySubstitution } from '../utils/useSubstitution';
+import { isPvMode } from '../utils/pv';
 import { PERIOD_MINUTES_KEY, PeriodMinutes, DEFAULT_PERIOD_MINUTES, goalMinuteLabel } from '../utils/scorers';
 import { teamColorSet } from '../utils/teamColor';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
@@ -78,6 +80,8 @@ function SubCard({ command, onChange, onDone, teams }: { command: VoiceSubComman
         const data = payload();
         telop.setData(data);
         takeOrUpdate(telop, data, () => clearForTake(telopName));
+        // PV モードでは記録せず、カードも残す（PV モードを終えてそのまま TAKE できる）
+        if (isPvMode()) return;
         recordLog(subLogDrafts(teams, command.side, pairs));
         onDone();
     };
@@ -145,7 +149,7 @@ function WeatherCard({ command, onChange, onDone }: { command: VoiceWeatherComma
         const payload = buildWeatherPayload(next, indoor);
         weather.setData(payload);
         takeOrUpdate(weather, payload, () => clearForTake('気象'));
-        onDone();
+        if (!isPvMode()) onDone();
     };
     const register = () => {
         setWeatherData(next);

@@ -1,0 +1,229 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { useTelopHub } from '@sdk/TelopHubSDK';
+import { usePv, setPvMode, pvHide, pvClear, telopPageUrl, PvLayer } from '../utils/pv';
+
+/**
+ * PV モードのスイッチ（ナビゲーションバー）と、PV モードの間だけ出る注意の帯。
+ * PV モードは読み込み直すと必ず OFF（TAKE が OA に出ないまま本番に入らないように）
+ */
+export function PvModeToggle() {
+    const { mode } = usePv();
+    return (
+        <button
+            className={`btn ${mode ? 'btn-warning' : 'btn-secondary'}`}
+            style={{ padding: '6px 14px', fontWeight: 'bold', fontSize: '0.85rem', ...(mode ? { boxShadow: '0 0 12px rgba(255,152,0,0.7)' } : {}) }}
+            onClick={() => setPvMode(!mode)}
+            title={mode ? 'PV モードを終える（TAKE が OA に出るようにする）' : 'PV モード: TAKE・HIDE・CGクリアを OA に出さず、画面の PV モニターで確認する'}
+        >
+            {mode ? '🟧 PVモード ON' : 'PVモード OFF'}
+        </button>
+    );
+}
+
+export function PvModeBanner() {
+    const { mode } = usePv();
+    if (!mode) return null;
+    return (
+        <div style={{ position: 'sticky', top: 0, zIndex: 900, background: '#ff9800', color: '#111', padding: '6px 16px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <span>🟧 PVモード中 — TAKE・HIDE・CGクリアは PV モニターだけに出ます（OA されません）。送出中の CG の得点などの更新は今まで通り OA に反映されます</span>
+            <button className="btn btn-secondary" style={{ padding: '2px 12px', fontSize: '0.8rem', fontWeight: 'bold', background: '#222', color: '#fff' }} onClick={() => setPvMode(false)}>
+                PVモードを終える
+            </button>
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------- PV モニター
+
+const CANVAS_W = 1920;
+const CANVAS_H = 1080;
+type SizeKey = 'S' | 'M' | 'L';
+const SIZES: Record<SizeKey, number> = { S: 0.25, M: 0.4, L: 0.6 };
+type Bg = 'checker' | 'black' | 'gray';
+const BG_STYLE: Record<Bg, React.CSSProperties> = {
+    checker: { background: 'repeating-conic-gradient(#3a3a3a 0% 25%, #2a2a2a 0% 50%) 50% / 24px 24px' },
+    black: { background: '#000' },
+    gray: { background: '#7f7f7f' }
+};
+const BG_LABEL: Record<Bg, string> = { checker: '市松', black: '黒', gray: 'グレー' };
+const PREFS_KEY = 'pv_monitor_prefs';
+type Prefs = { size: SizeKey, bg: Bg, x: number | null, y: number | null, collapsed: boolean };
+
+const readPrefs = (): Prefs => {
+    const fallback: Prefs = { size: 'S', bg: 'checker', x: null, y: null, collapsed: false };
+    try {
+        const v = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null');
+        return v && typeof v === 'object' ? { ...fallback, ...v } : fallback;
+    } catch {
+        return fallback;
+    }
+};
+const writePrefs = (p: Prefs) => {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch { /* 保存できなくても動く */ }
+};
+
+/**
+ * PV モニター: PV モードで TAKE した CG を、本物のテロップページ（OA と同じ描画）で画面の中に重ねて出す。
+ * 操作の邪魔にならないよう、見出しをドラッグして動かせる・大きさを S/M/L で選べる・たためる。
+ * 「拡大」で画面いっぱいに出して文字を確かめられる（クリックか Esc で戻る）
+ */
+export default function PvMonitor() {
+    const { mode, layers } = usePv();
+    const { projectName } = useTelopHub();
+    const [prefs, setPrefsState] = useState<Prefs>(readPrefs);
+    const [zoom, setZoom] = useState(false);
+    const setPrefs = (next: Partial<Prefs>) => setPrefsState(prev => {
+        const merged = { ...prev, ...next };
+        writePrefs(merged);
+        return merged;
+    });
+
+    const scale = SIZES[prefs.size];
+    const w = Math.round(CANVAS_W * scale);
+    const h = Math.round(CANVAS_H * scale);
+    const panelW = w + 2;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1600;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 900;
+    // 位置は左上。未設定なら右下。画面からはみ出さないように収める
+    const x = Math.max(0, Math.min(prefs.x ?? vw - panelW - 16, vw - 120));
+    const y = Math.max(0, Math.min(prefs.y ?? vh - h - 90, vh - 40));
+
+    // 見出しのドラッグで移動
+    const drag = useRef<{ dx: number, dy: number } | null>(null);
+    const onPointerDown = (e: React.PointerEvent) => {
+        if ((e.target as HTMLElement).closest('button')) return;
+        drag.current = { dx: e.clientX - x, dy: e.clientY - y };
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    };
+    const onPointerMove = (e: React.PointerEvent) => {
+        if (!drag.current) return;
+        setPrefsState(prev => ({ ...prev, x: e.clientX - drag.current!.dx, y: e.clientY - drag.current!.dy }));
+    };
+    const onPointerUp = () => {
+        if (!drag.current) return;
+        drag.current = null;
+        setPrefsState(prev => { writePrefs(prev); return prev; });
+    };
+
+    useEffect(() => {
+        if (!zoom) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoom(false); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [zoom]);
+
+    if (!mode) return null;
+
+    const smallBtn: React.CSSProperties = { padding: '1px 7px', fontSize: '0.7rem' };
+    const zoomScale = Math.min((vw - 40) / CANVAS_W, (vh - 90) / CANVAS_H);
+
+    return (
+        <>
+            <div style={{ position: 'fixed', left: x, top: y, zIndex: 950, width: panelW, background: '#151821', border: '2px solid #ff9800', borderRadius: 8, boxShadow: '0 8px 30px rgba(0,0,0,0.6)', overflow: 'hidden' }}>
+                <div onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', background: '#ff9800', color: '#111', cursor: 'move', userSelect: 'none', flexWrap: 'wrap' }}
+                    title="ドラッグで動かせます">
+                    <span style={{ fontWeight: 'bold', fontSize: '0.8rem', marginRight: 'auto' }}>🟧 PV モニター（OA されません）</span>
+                    {(Object.keys(SIZES) as SizeKey[]).map(k => (
+                        <button key={k} className={`btn ${prefs.size === k ? 'btn-primary' : 'btn-secondary'}`} style={smallBtn} onClick={() => setPrefs({ size: k, collapsed: false })}>{k}</button>
+                    ))}
+                    <button className="btn btn-secondary" style={smallBtn} onClick={() => setZoom(true)} title="画面いっぱいに拡大（クリックか Esc で戻る）">拡大</button>
+                    <button className="btn btn-secondary" style={smallBtn} onClick={() => setPrefs({ bg: prefs.bg === 'checker' ? 'black' : prefs.bg === 'black' ? 'gray' : 'checker' })} title="背景を切り替え">
+                        背景:{BG_LABEL[prefs.bg]}
+                    </button>
+                    <button className="btn btn-secondary" style={smallBtn} onClick={() => pvClear()} disabled={layers.length === 0} title="PV モニターの CG をすべて消す">PVクリア</button>
+                    <button className="btn btn-secondary" style={smallBtn} onClick={() => setPrefs({ collapsed: !prefs.collapsed })} title={prefs.collapsed ? '開く' : 'たたむ'}>
+                        {prefs.collapsed ? '▲' : '▼'}
+                    </button>
+                </div>
+                {!prefs.collapsed && (
+                    <>
+                        <PvStage layers={layers} scale={scale} bg={prefs.bg} projectName={projectName || ''} />
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '4px 6px', minHeight: 24, alignItems: 'center' }}>
+                            {layers.length === 0
+                                ? <span style={{ fontSize: '0.72rem', color: '#888' }}>TAKE（Q の TAKE NEXT・ダブルクリックも）を押すと、ここに出ます</span>
+                                : layers.map(l => (
+                                    <span key={l.name} style={{ fontSize: '0.7rem', background: 'rgba(255,152,0,0.18)', border: '1px solid rgba(255,152,0,0.5)', borderRadius: 4, padding: '0 2px 0 6px', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                        {l.name}
+                                        <button className="btn btn-secondary" style={{ padding: '0 4px', fontSize: '0.65rem', lineHeight: 1.2 }} onClick={() => pvHide(l.name)} title="PV モニターから消す">×</button>
+                                    </span>
+                                ))}
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {zoom && (
+                <div onClick={() => setZoom(false)} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'zoom-out' }}>
+                    <div style={{ color: '#ff9800', fontWeight: 'bold', fontSize: '0.9rem' }}>🟧 PV（OA されません）— クリックか Esc で戻ります</div>
+                    <div style={{ border: '2px solid #ff9800' }}>
+                        <PvStage layers={layers} scale={zoomScale} bg={prefs.bg} projectName={projectName || ''} />
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+function PvStage({ layers, scale, bg, projectName }: { layers: PvLayer[], scale: number, bg: Bg, projectName: string }) {
+    return (
+        <div style={{ position: 'relative', width: Math.round(CANVAS_W * scale), height: Math.round(CANVAS_H * scale), overflow: 'hidden', ...BG_STYLE[bg] }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, width: CANVAS_W, height: CANVAS_H, transform: `scale(${scale})`, transformOrigin: '0 0' }}>
+                {layers.map((l, i) => <PvFrame key={l.name} layer={l} z={i} projectName={projectName} />)}
+            </div>
+        </div>
+    );
+}
+
+/** 1 つのテロップ。本物のテロップページを開き、showTelop / updateTelop で中身を入れる */
+function PvFrame({ layer, z, projectName }: { layer: PvLayer, z: number, projectName: string }) {
+    const [url, setUrl] = useState<string | null | undefined>(undefined);
+    const [ready, setReady] = useState(false);
+    const ref = useRef<HTMLIFrameElement>(null);
+
+    useEffect(() => {
+        let alive = true;
+        telopPageUrl(projectName, layer.name).then(u => { if (alive) setUrl(u); });
+        return () => { alive = false; };
+    }, [projectName, layer.name]);
+
+    const onLoad = async () => {
+        const win = ref.current?.contentWindow as any;
+        for (let i = 0; i < 200; i++) {
+            if (win?.initialized && win.showTelop) { setReady(true); return; }
+            await new Promise(r => setTimeout(r, 50));
+        }
+    };
+
+    const win = () => ref.current?.contentWindow as any;
+    // TAKE（seq が変わる）: イン点から出し直す
+    useEffect(() => {
+        if (!ready) return;
+        try {
+            const w = win();
+            const box = w.document.getElementById(w.containerId || 'player-container');
+            if (box) box.classList.remove(...Array.from(box.classList as DOMTokenList));
+            w.showTelop(layer.data);
+        } catch (e) {
+            console.warn('[PV] showTelop failed', layer.name, e);
+        }
+    }, [ready, layer.seq]);
+    // UPDATE（中身だけ変わる）
+    useEffect(() => {
+        if (!ready) return;
+        try { win().updateTelop(layer.data); } catch { /* 次の TAKE で出し直す */ }
+    }, [layer.data]);
+
+    if (url === null) {
+        return (
+            <div style={{ position: 'absolute', left: 40, top: 40 + z * 70, zIndex: z, color: '#ff8a80', fontSize: 40, fontWeight: 'bold', background: 'rgba(0,0,0,0.6)', padding: '8px 16px' }}>
+                「{layer.name}」のテロップページが見つかりません
+            </div>
+        );
+    }
+    if (!url) return null;
+    return (
+        <iframe ref={ref} src={url} onLoad={onLoad} title={`PV ${layer.name}`} tabIndex={-1}
+            style={{ position: 'absolute', left: 0, top: 0, width: CANVAS_W, height: CANVAS_H, border: 0, zIndex: z, pointerEvents: 'none', background: 'transparent' }} />
+    );
+}

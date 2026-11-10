@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { useSyncedState, useTelop } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from './telop';
 import { useOaTeamSettings } from './useScoreSideChange';
 import { teamColorKeys } from './teamColor';
 import { encodePhotoUrl } from './photoMatcher';

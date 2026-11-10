@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTelop, useClearAll, useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
+import { useClearAll, useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 import { Player, toHalfWidthNum } from './PlayerRegistry';
 import { useTeamStaff, registeredStaff, staffComments, StaffMember } from '../utils/staff';
 import { TimerState, useShowTimerAtCurrentTime, nextTimerState, getTimerMs } from './GlobalTimerManager';
@@ -21,11 +22,15 @@ import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useClearForTake, useClearButtons, KEEP_ON_TAKE, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
 import { OneShotMode, playerComments, playerPhotoUrl, buildPlayerOneShotPayload, buildStaffOneShotPayload } from '../utils/oneShotPayload';
+import { isPvMode, pvClear } from '../utils/pv';
+import { BIG_PK_TELOP, SCORER_PK_TELOP } from '../utils/useBigScorePk';
 
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
     { name: '大得点', label: 'Big Score (大得点)' },
     { name: '大得点得点者', label: 'Big Score + Scorers' },
+    { name: BIG_PK_TELOP, label: 'Big Score + PK (大得点PK)' },
+    { name: SCORER_PK_TELOP, label: 'Big Score + Scorers + PK (大得点得点者PK)' },
     { name: '対戦カード', label: 'Matchup (Text)' },
     { name: '対戦カード画像', label: 'Matchup (Image)' },
     { name: '小得点', label: 'Small Score (小得点)' },
@@ -51,8 +56,8 @@ export default function CGOperator() {
     // SDK の一括クリアは送出中フラグを戻さない。TAKE は送出中なら UPDATE になるので、
     // フラグが残って TAKE で出なくならないよう各テロップの HIDE も送ってフラグを戻す
     const { clearAll: hideAllTelops } = useClearButtons();
-    const clearOnAir = () => { sdkClearOnAir(); hideAllTelops(); };
-    const clearAll = () => { sdkClearAll(); hideAllTelops(); };
+    const clearOnAir = () => { if (isPvMode()) { pvClear(); return; } sdkClearOnAir(); hideAllTelops(); };
+    const clearAll = () => { if (isPvMode()) { pvClear(); return; } sdkClearAll(); hideAllTelops(); };
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [globalPhotoEnabled, setGlobalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
@@ -134,7 +139,8 @@ export default function CGOperator() {
     };
 
     // キューから送出中のCG（HIDE ボタンで消す対象）
-    const [queueOnAir, setQueueOnAir] = useSyncedState<{ telopName: string, label: string } | null>('cg_queue_on_air', null);
+    // id: 送出した項目（キューの一覧で ON AIR の印を付ける）
+    const [queueOnAir, setQueueOnAir] = useSyncedState<{ telopName: string, label: string, id?: string } | null>('cg_queue_on_air', null);
 
     const hideQueueOnAir = () => {
         if (!queueOnAir) return;
@@ -142,7 +148,22 @@ export default function CGOperator() {
         setQueueOnAir(null);
     };
 
-    const selectedQueueItem = (cgQueue || []).find(item => item.id === selectedQueueId && !item.played);
+    // 送出済みの項目も選べる（選んで TAKE NEXT で再送出／「送出済み 選択OFF」で未送出に戻す）
+    const selectedQueueItem = (cgQueue || []).find(item => item.id === selectedQueueId);
+    const playedCount = (cgQueue || []).filter(item => item.played).length;
+
+    // 送出済みフラグを戻す（ids を省くと全部）。戻した項目は TAKE NEXT の順番に入る
+    const resetPlayed = (ids?: string[]) => {
+        setCgQueue(prev => (prev || []).map(item => (item.played && (!ids || ids.includes(item.id)) ? { ...item, played: false } : item)));
+    };
+    const resetSelectedPlayed = () => {
+        if (selectedQueueItem?.played) resetPlayed([selectedQueueItem.id]);
+    };
+    const resetAllPlayed = () => {
+        if (playedCount === 0) return;
+        if (!confirm(`送出済みの ${playedCount} 件を未送出に戻しますか？`)) return;
+        resetPlayed();
+    };
 
     // 交代反映の対象: 選択中の交代項目、なければ直前に送出した未反映の交代項目
     const subEntriesOf = (item?: CgQueueItem) => (item?.logEntries || []).filter(e => e.type === 'sub' && e.team && e.playerId && e.inPlayerId);
@@ -170,6 +191,13 @@ export default function CGOperator() {
     // キュー項目を送出（TAKE NEXT と、ダブルクリックでの再送出で共用）
     const takeQueueItem = (item: CgQueueItem) => {
         const payloadTelop = item.payload ? payloadTelops[item.telopName] : undefined;
+        // PV モード: PV モニターに出すだけ（送出済み・ON AIR・当日操作ログは変えない）
+        if (isPvMode()) {
+            clearForTake(item.telopName);
+            if (payloadTelop && item.payload) payloadTelop.show(item.payload);
+            else window.dispatchEvent(new CustomEvent('TRIGGER_TAKE', { detail: item.telopName }));
+            return;
+        }
         // 同じ CG が送出中なら消さずに UPDATE する（TelopControl 側も送出中なら UPDATE で受ける）
         const alreadyOnAir = payloadTelop ? payloadTelop.isVisible : false;
         // 小得点・タイマー・アディショナルタイム以外の CG を消してから出す
@@ -177,7 +205,7 @@ export default function CGOperator() {
 
         setCgQueue(prev => (prev || []).map(q => q.id === item.id ? { ...q, played: true } : q));
         setSelectedQueueId(null);
-        setQueueOnAir({ telopName: item.telopName, label: item.label });
+        setQueueOnAir({ telopName: item.telopName, label: item.label, id: item.id });
         // 交代・カードは送出時に当日操作ログへ（再送出では同じ内容を重ねない）
         if (item.logEntries && item.logEntries.length > 0) recordLog(item.logEntries);
 
@@ -322,6 +350,17 @@ export default function CGOperator() {
                                     </button>
                                 </div>
                             </div>
+                            {/* 送出済みフラグを戻す（戻すと TAKE NEXT の順番に入る） */}
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '0.75rem', color: '#aaa' }}>送出済み {playedCount} 件</span>
+                                <button className="btn btn-secondary" style={{ padding: '3px 10px', fontSize: '0.75rem' }} onClick={resetSelectedPlayed} disabled={!selectedQueueItem?.played}
+                                    title={selectedQueueItem?.played ? `#${(cgQueue || []).indexOf(selectedQueueItem) + 1} ${selectedQueueItem.label} を未送出に戻す` : '送出済みの項目をクリックで選んでください'}>
+                                    送出済み 選択OFF{selectedQueueItem?.played ? ` #${(cgQueue || []).indexOf(selectedQueueItem) + 1}` : ''}
+                                </button>
+                                <button className="btn btn-secondary" style={{ padding: '3px 10px', fontSize: '0.75rem' }} onClick={resetAllPlayed} disabled={playedCount === 0} title="送出済みの項目をすべて未送出に戻す">
+                                    送出済み 一括OFF
+                                </button>
+                            </div>
                             {queueOnAir && (
                                 <div style={{ fontSize: '0.8rem', color: '#4caf50', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={queueOnAir.label}>
                                     ● ON AIR: {queueOnAir.label}
@@ -336,13 +375,15 @@ export default function CGOperator() {
                                     return (
                                         <div
                                             key={item.id}
-                                            onClick={() => !item.played && setSelectedQueueId(isSelected ? null : item.id)}
+                                            onClick={() => setSelectedQueueId(isSelected ? null : item.id)}
                                             onDoubleClick={() => takeQueueItem(item)}
-                                            title={item.played ? '送出済み（ダブルクリックで再送出）' : 'クリックで選択 → TAKE NEXT で送出／ダブルクリックで即送出'}
+                                            title={item.played ? '送出済み（クリックで選択 → TAKE NEXT で再送出／「送出済み 選択OFF」で未送出に戻す／ダブルクリックで即送出）' : 'クリックで選択 → TAKE NEXT で送出／ダブルクリックで即送出'}
                                             style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? 'rgba(255, 202, 40, 0.25)' : (item.played ? 'rgba(255,255,255,0.03)' : (item.skipped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)')), border: isSelected ? '1px solid #ffca28' : '1px solid transparent', cursor: 'pointer', userSelect: 'none', padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0, opacity: (item.skipped || item.played) && !isSelected ? 0.5 : 1 }}
                                         >
                                             <span style={{ fontWeight: 'bold', color: '#ffca28' }}>#{idx + 1}</span>
                                             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', textDecoration: item.played ? 'line-through' : 'none' }} title={item.label}>{item.label}</span>
+                                            {queueOnAir?.id === item.id && <span style={{ fontSize: '0.65rem', color: '#fff', background: '#4caf50', padding: '1px 5px', borderRadius: 3, fontWeight: 'bold' }}>ON AIR</span>}
+                                            {item.played && <span style={{ fontSize: '0.65rem', color: '#bbb', border: '1px solid #666', padding: '0 4px', borderRadius: 3 }}>送出済</span>}
                                             {item.reflected && <span style={{ fontSize: '0.65rem', color: '#0dcaf0' }}>反映済</span>}
                                             {!item.played && (
                                                 <button className="btn btn-secondary" style={{ padding: '1px 5px', fontSize: '0.65rem' }} onClick={e => { e.stopPropagation(); toggleSkipQueueItem(item.id); }}>SKIP</button>
@@ -568,7 +609,7 @@ function OneShotPlayerControl({
         oneShotCard.setData(payload);
         // 1Shotカード送出中なら UPDATE。出ていなければ 1Shot など他の CG を消してから出す
         takeOrUpdate(oneShotCard, payload, () => clearForTake('1Shotカード'));
-        recordLog(cardLogDraft(cardType));
+        if (!isPvMode()) recordLog(cardLogDraft(cardType));
     };
 
     // 当日操作ログ: カード送出は自動で記録（同じ選手・同じカードは1回だけ）
@@ -1209,6 +1250,8 @@ function MatchScorePanel() {
     const { sdk, isConnected, isSyncingSnapshot } = useTelopHub();
     // 大得点の得点者込み送出（大得点得点者テロップ）
     const scorer = useScorerCg();
+    const bigScorePk = useTelop(BIG_PK_TELOP);
+    const scorerPk = useTelop(SCORER_PK_TELOP);
 
     // OA 左右チームの TeamSettings（チームカラー・小得点/大得点の表記）。スタッツタブ・サイド反転と同じ求め方
     const oa = useOaTeamSettings();
@@ -1334,6 +1377,8 @@ function MatchScorePanel() {
     const handleHideBigScore = () => {
         bigScore.hide();
         scorer.scorerTelop.hide();
+        bigScorePk.hide();
+        scorerPk.hide();
     };
 
     // カットチェンジ: 得点者の次の 4 人へ（最後のページの次は 1 ページ目）。送出中ならその場で UPDATE

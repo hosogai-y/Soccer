@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useSyncedState, useTelop, useTelopHub, useBackgroundInterval } from '@sdk/TelopHubSDK';
+import { useSyncedState, useTelopHub, useBackgroundInterval } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 import { buildTimerPayload, buildTimerClockKeys, buildTimerPeriodPayload } from '../utils/timerHelper';
 
 export type TimerState = {

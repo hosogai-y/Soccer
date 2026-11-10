@@ -1,6 +1,8 @@
 import React from 'react';
-import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from '../utils/telop';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
+import { useBigScorePk } from '../utils/useBigScorePk';
 
 type Side = 'left' | 'right';
 
@@ -432,6 +434,43 @@ export default function PKControl() {
                 HIDE (左上PK・センターPK)
             </button>
 
+            <BigScorePkPanel />
+        </div>
+    );
+}
+
+/** PK 戦の結果込みの大得点（大得点と得点者の間に「4 PK 5」）。得点者込みかは大得点の設定と共通 */
+function BigScorePkPanel() {
+    const big = useBigScorePk();
+    const [bigScoreData] = useSyncedState<Record<string, string>>('大得点', {});
+    const d = bigScoreData || {};
+    const onAir = big.bigPk.isVisible || big.scorerPk.isVisible;
+    return (
+        <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 8, background: 'rgba(253, 221, 16, 0.06)', border: '1px solid rgba(253, 221, 16, 0.35)' }}>
+            <div className="flex-between" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#fddd10' }}>🏆 大得点（PK戦結果込み）</h4>
+                {onAir && <span className="status-badge status-connected" style={{ padding: '2px 6px', fontSize: '0.65rem', background: '#ff9800' }}>ON AIR</span>}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontWeight: 'bold', marginBottom: 8, flexWrap: 'wrap' }}>
+                <span>{d['左チーム名'] || '左チーム'}</span>
+                <span style={{ background: '#0b0b0b', color: '#fddd10', padding: '2px 10px', borderRadius: 4 }}>{d['左チーム得点'] || '0'} - {d['右チーム得点'] || '0'}</span>
+                <span>{d['右チーム名'] || '右チーム'}</span>
+                <span style={{ background: '#0b0b0b', color: '#fddd10', padding: '2px 10px', borderRadius: 4, fontSize: '0.9rem' }}>{big.pk.left} PK {big.pk.right}</span>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', cursor: 'pointer', marginBottom: 8 }}
+                title="CG Operation の「大得点を得点者込みで送出」と同じ設定です">
+                <input type="checkbox" checked={big.withScorers} onChange={e => big.setWithScorers(e.target.checked)} />
+                得点者込み（大得点得点者PK。PK 結果は大得点と得点者の間）
+            </label>
+            <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-success" style={{ flex: 1, padding: '8px', fontWeight: 'bold' }} onClick={big.take}>
+                    大得点 TAKE（PK結果込み{big.withScorers ? '・得点者込み' : ''}）
+                </button>
+                <button className="btn btn-danger" style={{ padding: '8px 14px', fontWeight: 'bold' }} onClick={big.hide}>HIDE</button>
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#888', marginTop: 6 }}>
+                PK の成功数は上の入力から自動で入ります（左右は大得点の並び）。送出中に PK の入力が変わると、その場で更新します。
+            </div>
         </div>
     );
 }

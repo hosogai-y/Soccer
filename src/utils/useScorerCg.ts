@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useSyncedState, useTelop } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from './telop';
 import type { Player } from '../components/PlayerRegistry';
 import { useMatchLog } from './useMatchLog';
 import { useOaTeamSettings, scoreColorKeys } from './useScoreSideChange';

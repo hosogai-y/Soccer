@@ -1,4 +1,5 @@
-import { useTelop, useSyncedState } from '@sdk/TelopHubSDK';
+import { useSyncedState } from '@sdk/TelopHubSDK';
+import { useTelop } from './telop';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from '../components/TeamSettings';
 import { StatsData, STATS_DATA_KEY, EMPTY_STATS, swapStats, buildStatsPayload } from './stats';
 import { TeamColorSet, teamColorSet, teamColorKeys } from './teamColor';
