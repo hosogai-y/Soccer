@@ -8,6 +8,7 @@ import { TEAM_LINEUPS_KEY, TeamLineup, hasRegistered, registeredStarters, regist
 import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
+import { useVoiceActions } from '../utils/voice/voiceActions';
 import { useApplySubstitution } from '../utils/useSubstitution';
 import { runOnAir } from '../utils/pv';
 import { StatsData, buildStatsPayload } from '../utils/stats';
@@ -90,6 +91,8 @@ export default function WeatherStatsSubControl() {
             statsTelop.update(payload);
         }
     };
+    // 音声キーワード: スタッツの TAKE
+    useVoiceActions(['cg.stats'], id => (id === 'cg.stats' ? () => sendStats(true) : undefined));
 
     return (
         <div>
@@ -292,6 +295,8 @@ export function WeatherControl() {
         // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(weatherTelop, payload, () => clearForTake('気象'));
     };
+    // 音声キーワード: 気象の TAKE（入力済みの天候・気温・湿度）
+    useVoiceActions(['cg.weather'], id => (id === 'cg.weather' ? sendWeather : undefined));
 
     return (
         <div className="glass-panel" style={{ padding: '16px' }}>

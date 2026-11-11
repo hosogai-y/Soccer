@@ -23,11 +23,19 @@ import { MatchLogDraft } from '../utils/matchLog';
 import { useSubTeams } from './WeatherStatsSubControl';
 import VoiceCommandCard from './VoiceCommandCard';
 import { isPvMode, pvOnSend } from '../utils/pv';
+import { KEEP_ON_TAKE } from '../utils/cgExclusive';
+import { useBigScorePk } from '../utils/useBigScorePk';
+import { runVoiceAction } from '../utils/voice/voiceActions';
+import {
+    VOICE_KEYWORDS_KEY, VOICE_KEYWORD_CGS, KeywordHit, matchKeyword, parseKeywordSettings
+} from '../utils/voice/voiceKeywords';
 
 /**
  * 音声で選手・スタッフと CG を選び、確認してから TAKE（または Q登録）する。
  * 選手交代（「13番アウト 20番イン」）・気象（「気温22.3度 湿度81」）・得点者（「前半39分 創成 10番」）も聞き取り、
  * それぞれの確認カード（VoiceCommandCard）で TAKE / Q登録 / ログに記録 する。
+ * Voice Keywords タブで登録したキーワード（CG 名・操作コマンド）を言うと、その CG の TAKE・操作を確認カードの「実行」で行う
+ * （「確認なしで実行」にした項目はすぐ実行する）。
  * - 手動モード: マイクを使わない（今までどおりの操作だけ）
  * - 音声優先モード: 聞き取った内容で選択を置き換える（下の 1Shot パネルの選手も合わせる）。送出は必ず TAKE ボタン
  * モードは開くたびに手動操作から（読み込み直せば必ず操作できる状態に戻す）。認識エンジンは端末ごとの設定。CG のふりがなは共有。
@@ -43,9 +51,11 @@ const MIC_LOCK = 'telops-soccer-voice-mic';
 
 declare const __BUILD_TIME__: string;
 const ENGINE_KEY = 'voice_cg_engine';
-const ALIASES_KEY = 'voice_cg_aliases_json';
+export const ALIASES_KEY = 'voice_cg_aliases_json';
 // 学校ごとに足したチームカラーの呼び方 { 学校名: ['えんじ', ...] }（全端末で共有）
-const TEAM_COLOR_WORDS_KEY = 'voice_team_color_words_json';
+export const TEAM_COLOR_WORDS_KEY = 'voice_team_color_words_json';
+// キーワードで TAKE する CG のテロップ（その CG のパネルが画面に無いとき、今のデータのまま送出する）
+const KEYWORD_TELOPS = Array.from(new Set(VOICE_KEYWORD_CGS.map(c => c.telop!).filter(Boolean)));
 
 const readLocal = <T extends string>(key: string, fallback: T, allowed: T[]): T => {
     try {
@@ -105,6 +115,8 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
     const [pending, setPending] = useState<Pending | null>(null);
     // 1Shot 以外の指示（選手交代・気象・得点者）の確認カード。pending とどちらか一方だけ出す
     const [command, setCommand] = useState<VoiceCommand | null>(null);
+    // キーワード（CG 名・操作コマンド）の確認カード
+    const [keywordHit, setKeywordHit] = useState<KeywordHit | null>(null);
     // チームを言わなかった交代で使うチーム（直前に選んだ選手・交代のチーム）
     const lastSideRef = useRef<'left' | 'right'>('left');
     const [log, setLog] = useState<{ text: string, result: string, at: number }[]>([]);
@@ -116,6 +128,10 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
     const aliases = useMemo(() => parseAliases(aliasesJson), [aliasesJson]);
     const [colorWordsJson, setColorWordsJson] = useSyncedState<string | null>(TEAM_COLOR_WORDS_KEY, null);
     const extraColorWords = useMemo(() => parseColorWords(colorWordsJson), [colorWordsJson]);
+    const [keywordsJson] = useSyncedState<string | null>(VOICE_KEYWORDS_KEY, null);
+    const keywordSettings = useMemo(() => parseKeywordSettings(keywordsJson), [keywordsJson]);
+    const keywordTelops = KEYWORD_TELOPS.map(name => ({ name, telop: useTelop(name) }));
+    const bigScorePk = useBigScorePk();
 
     const oneShot = useTelop('1Shot');
     const oneShotCard = useTelop('1Shotカード');
@@ -185,13 +201,36 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
     const rosters = { left: rosterOf('left'), right: rosterOf('right') };
 
     // 最新の値をエンジンのコールバックから読む
-    const latest = useRef({ prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters });
-    latest.current = { prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters };
+    /**
+     * キーワードの項目を実行する。そのパネルが登録した処理（ボタンと同じ）を使い、無ければ CG は今のデータのまま送出する。
+     * 戻り値は結果の説明（ログ用）
+     */
+    const runKeyword = (hit: KeywordHit): string => {
+        const { item } = hit;
+        if (runVoiceAction(item.id)) return `${item.label} を実行`;
+        if (item.id === 'cg.big_score_pk') {
+            bigScorePk.take();
+            return `${item.label} を実行`;
+        }
+        const entry = item.telop ? keywordTelops.find(t => t.name === item.telop) : undefined;
+        if (entry) {
+            const { telop, name } = entry;
+            takeOrUpdate(telop, telop.data, KEEP_ON_TAKE.includes(name) ? undefined : () => clearForTake(name));
+            return `${item.label} を送出（今のデータのまま）`;
+        }
+        const why = item.id.startsWith('cmd.oneshot') ? '1Shot の選手を選んでください'
+            : item.id === 'cmd.scorer_cut_change' ? '得点者込み・2 ページ以上のときだけ使えます'
+            : '今の画面では使えません';
+        return `⚠ ${item.label}: ${why}`;
+    };
+
+    const latest = useRef({ prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters, keywordSettings, runKeyword });
+    latest.current = { prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters, keywordSettings, runKeyword };
 
     // ---------------------------------------------------------------- 認識結果 → 選択
     const handleFinal = useCallback((alternatives: string[]) => {
         setPartial('');
-        const { prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters } = latest.current;
+        const { prepared, tokenizer, aliases, sideWords, onSelectPlayer, rosters, keywordSettings, runKeyword } = latest.current;
         const text = alternatives[0] || '';
         const addLog = (result: string) => setLog(prev => [{ text, result, at: Date.now() }, ...prev].slice(0, 8));
 
@@ -199,12 +238,28 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
         const cmd = parseCommand(alternatives, { targets: prepared, tokenizer, sideWords, rosters, lastSide: lastSideRef.current });
         if (cmd) {
             setPending(null);
+            setKeywordHit(null);
             setCommand(cmd);
             if (cmd.kind === 'sub') lastSideRef.current = cmd.side;
             if (cmd.kind === 'goal' && cmd.side) lastSideRef.current = cmd.side;
             addLog(cmd.kind === 'sub' ? `選手交代 ${cmd.pairs.length >= 2 ? '2枚' : '1枚'}（${cmd.pairs.map(p => `${p.outNo || '?'}→${p.inNo || '?'}`).join('・')}）`
                 : cmd.kind === 'weather' ? `気象（気温 ${cmd.temp ?? '?'} / 湿度 ${cmd.humidity ?? '?'}）`
                     : `得点者（${cmd.period || ''}${cmd.minute}分${cmd.plus ? `+${cmd.plus}` : ''} ${cmd.candidates[0]?.target.label || '選手不明'}）`);
+            return;
+        }
+
+        // Voice Keywords タブのキーワード（CG 名・操作コマンド）
+        const hit = matchKeyword(alternatives, keywordSettings, tokenizer);
+        if (hit) {
+            setPending(null);
+            setCommand(null);
+            if (hit.immediate) {
+                setKeywordHit(null);
+                addLog(`${runKeyword(hit)}（確認なし・「${hit.keyword}」）`);
+            } else {
+                setKeywordHit(hit);
+                addLog(`${hit.item.label}（「${hit.keyword}」）→ 実行ボタンで実行`);
+            }
             return;
         }
 
@@ -217,6 +272,7 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
         let cg = parse.cg || DEFAULT_VOICE_CG;
         if (target.kind === 'staff' && !voiceCgDef(cg).staffOk) cg = DEFAULT_VOICE_CG;
         setCommand(null);
+        setKeywordHit(null);
         setPending({ target, cg, parse, at: Date.now() });
         lastSideRef.current = target.side;
         if (target.player) onSelectPlayer(target.player.id);
@@ -324,7 +380,15 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
         if (showSettings) loadReadingTokenizer().then(setTokenizer);
     }, [showSettings]);
 
-    const setMode = (m: Mode) => { setModeState(m); setStealNonce(0); setLockBusy(false); if (m === 'manual') { setPending(null); setCommand(null); setEngineMessage(''); } };
+    const setMode = (m: Mode) => { setModeState(m); setStealNonce(0); setLockBusy(false); if (m === 'manual') { setPending(null); setCommand(null); setKeywordHit(null); setEngineMessage(''); } };
+
+    // キーワードの確認カードの「実行」
+    const runKeywordHit = () => {
+        if (!keywordHit) return;
+        const result = runKeyword(keywordHit);
+        setLog(prev => [{ text: keywordHit.transcript, result, at: Date.now() }, ...prev].slice(0, 8));
+        setKeywordHit(null);
+    };
     const setEnginePref = (p: EnginePref) => { setEnginePrefState(p); writeLocal(ENGINE_KEY, p); };
 
     // ---------------------------------------------------------------- TAKE / Q登録（確認後）
@@ -447,6 +511,26 @@ export default function VoiceCgPanel({ leftSchool, rightSchool, leftPlayers, rig
 
                     {command ? (
                         <VoiceCommandCard command={command} onChange={setCommand} onDone={() => setCommand(null)} />
+                    ) : keywordHit ? (
+                        <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.35)', border: `2px solid ${keywordHit.item.group === 'cg' ? '#4caf50' : '#ff9800'}` }}>
+                            <div className="flex-between" style={{ gap: 8, flexWrap: 'wrap' }}>
+                                <div>
+                                    <div style={{ fontSize: '1.15rem', fontWeight: 'bold' }}>
+                                        {keywordHit.item.group === 'cg' ? '🎬 ' : '⚙ '}{keywordHit.item.label}
+                                        <span style={{ fontSize: '0.8rem', color: '#ffca28', marginLeft: 8 }}>{keywordHit.item.group === 'cg' ? 'CG TAKE' : '操作コマンド'}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.72rem', color: '#aaa' }}>「{keywordHit.transcript}」（キーワード「{keywordHit.keyword}」）</div>
+                                </div>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <button className="btn btn-success" style={{ padding: '8px 22px', fontWeight: 'bold', fontSize: '1rem' }} onClick={runKeywordHit}>
+                                        {keywordHit.item.group === 'cg' ? 'TAKE' : '実行'}
+                                    </button>
+                                    <button className="btn btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setKeywordHit(null)}>
+                                        取消
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     ) : pending ? (
                         <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.35)', border: `2px solid ${pendingColor}` }}>
                             <div className="flex-between" style={{ gap: 8, flexWrap: 'wrap' }}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePeriodMinutes } from '../utils/useScorerCg';
-import { GoalTimeStyle, GOAL_TIME_STYLE_LABELS, MATCH_FORMAT_PRESETS, formatGoalMinute } from '../utils/scorers';
+import { GoalTimeStyle, GOAL_TIME_STYLE_LABELS, MATCH_FORMAT_PRESETS, goalMinuteText } from '../utils/scorers';
 
 const HALF_OPTIONS = [35, 40, 45];
 const EXTRA_OPTIONS = [10, 15];
@@ -15,7 +15,7 @@ export default function MatchLengthSettings() {
     const presetIdx = MATCH_FORMAT_PRESETS.findIndex(p => p.value.half === len.half && p.value.extra === len.extra);
 
     // 例: 後半の始まり・終わり、後半アディショナル 2 分
-    const sample = (minute: number, added = 0) => `後半${formatGoalMinute('後半', minute, added, len)}分`;
+    const sample = (minute: number, added = 0) => `後半${goalMinuteText('後半', minute, added, len)}`;
     const selectStyle: React.CSSProperties = { width: 'auto', padding: '3px 6px', fontSize: '0.85rem' };
 
     return (

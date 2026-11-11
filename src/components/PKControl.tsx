@@ -3,6 +3,7 @@ import { useSyncedState } from '@sdk/TelopHubSDK';
 import { useTelop } from '../utils/telop';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useBigScorePk } from '../utils/useBigScorePk';
+import { useVoiceActions } from '../utils/voice/voiceActions';
 import { useBigScoreStatus } from '../utils/bigScoreStatus';
 
 type Side = 'left' | 'right';
@@ -42,6 +43,25 @@ function varyPayload(telop: string, payload: Record<string, string>): Record<str
     return out;
 }
 
+const goalsUpTo = (kicks: string[], rounds: number) => kicks.slice(0, rounds).filter(k => k === 'goal').length;
+
+/**
+ * CG に出す 5 回分の枠の先頭の回（0 始まり）。5 回目までは 1〜5 回目。
+ * 6 回目以降は直近 5 回: 5 回目まで同点で終われば 2〜6 回目（6 回目は空欄で結果待ち）、
+ * 6 回目も同点で終われば 3〜7 回目（7 回目は空欄）… と同点が続くかぎり 1 回ずつずらす。
+ * 決着した回（同点でない）はその回を最後の枠のまま残す
+ */
+export function pkWindowStart(kicksFirst: string[], kicksSecond: string[]): number {
+    let last = -1;
+    const len = Math.max(kicksFirst.length, kicksSecond.length);
+    for (let r = 0; r < len; r++) if (kicksFirst[r] || kicksSecond[r]) last = r;
+    let end = Math.max(4, last);
+    if (last >= 4 && kicksFirst[last] && kicksSecond[last] && goalsUpTo(kicksFirst, last + 1) === goalsUpTo(kicksSecond, last + 1)) {
+        end = last + 1; // この回も同点で終わった → 次の回を空欄で待ち構える
+    }
+    return Math.max(0, end - 4);
+}
+
 export default function PKControl() {
     const [pkState, setPkState] = useSyncedState<PKState>('pk_shootout_state', DEFAULT_PK_STATE);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
@@ -70,14 +90,10 @@ export default function PKControl() {
     const scoreSecond5 = state.kicksSecond.slice(0, 5).filter(k => k === 'goal').length;
     const isTiedAfter5 = scoreFirst5 === scoreSecond5;
 
-    // Check if round 5 is completed (both 5th kicks entered)
-    const isRound5Completed = (state.kicksFirst[4] !== '' && state.kicksSecond[4] !== '');
-
-    // Check if any kicks in rounds 6-10 are entered
-    const hasSuddenDeathKicks = state.kicksFirst.slice(5).some(k => k !== '') || state.kicksSecond.slice(5).some(k => k !== '');
-
-    // 6th Inning display condition
-    const showInning6 = state.manualUnlock || hasSuddenDeathKicks || (isRound5Completed && isTiedAfter5);
+    // CG は 5 回分の枠。6 回目以降は直近 5 回にずらす（windowStart はその先頭の回、0 始まり）
+    const windowStart = pkWindowStart(state.kicksFirst, state.kicksSecond);
+    // 入力表の回数（10 回より先も同点が続けば増やす）
+    const roundCount = Math.max(10, state.kicksFirst.length, state.kicksSecond.length, windowStart + 6);
 
     // Determine unlocked status for each round (0 to 9)
     // Rounds 1-5 (indices 0..4) are ALWAYS unlocked.
@@ -105,8 +121,10 @@ export default function PKControl() {
     const handleKickChange = (team: 'first' | 'second', roundIndex: number, val: string) => {
         setPkState(prev => {
             const safe = prev || DEFAULT_PK_STATE;
-            const newFirst = [...(safe.kicksFirst || Array(10).fill(''))];
-            const newSecond = [...(safe.kicksSecond || Array(10).fill(''))];
+            const size = Math.max(10, roundIndex + 1, safe.kicksFirst?.length || 0, safe.kicksSecond?.length || 0);
+            const pad = (a?: string[]) => Array.from({ length: size }, (_, i) => a?.[i] || '');
+            const newFirst = pad(safe.kicksFirst);
+            const newSecond = pad(safe.kicksSecond);
 
             if (team === 'first') newFirst[roundIndex] = val;
             else newSecond[roundIndex] = val;
@@ -143,7 +161,8 @@ export default function PKControl() {
     };
 
     // Prepare data payload for CG Telop
-    // テロップ側のキー: 先攻/後攻学校名、先攻/後攻得点(センター)・合計得点(左上)、先攻1〜6/後攻1〜6(画像)、6回目表示('1' で6本目を表示)
+    // テロップ側のキー: 先攻/後攻学校名、先攻/後攻得点(センター)・合計得点(左上)、先攻1〜5/後攻1〜5(画像)、イニング1〜5(回の番号)
+    // 枠は 5 回分。6 回目以降は直近 5 回（2〜6、3〜7…）にずらし、6本用の枠（6回目表示）は使わない
     const buildPayload = (type: 'PK' | '左上PK', s: PKState = state) => {
         const parts = type === 'PK' ? 'img/HD2D_P07_Parts' : 'img/HD2D_P09_Parts';
         const goalImg = `${parts}1.png`;
@@ -152,7 +171,7 @@ export default function PKControl() {
         const blankImg = `${parts}3.png`;
         const names = teamNamesOf(s);
 
-        const mapKickImg = (val: string) => {
+        const mapKickImg = (val?: string) => {
             if (val === 'goal') return goalImg;
             if (val === 'miss') return missImg;
             return blankImg;
@@ -160,7 +179,6 @@ export default function PKControl() {
 
         const first = s.kicksFirst.filter(k => k === 'goal').length;
         const second = s.kicksSecond.filter(k => k === 'goal').length;
-        // 入れ替えでは先攻・後攻が対称に入れ替わるだけなので、6本目の表示判定は今の状態のものを使う
         const payload: Record<string, string> = {
             '先攻学校名': names.first,
             '後攻学校名': names.second,
@@ -168,29 +186,19 @@ export default function PKControl() {
             '後攻得点': String(second),
             '先攻合計得点': String(first),
             '後攻合計得点': String(second),
-            '6回目表示': showInning6 ? '1' : ''
+            '6回目表示': '',
+            '先攻6': blankImg,
+            '後攻6': blankImg
         };
 
-        // Kicks 1 to 5
+        // 直近 5 回の枠（5 回目までは 1〜5 回目）
+        const start = pkWindowStart(s.kicksFirst, s.kicksSecond);
         for (let i = 0; i < 5; i++) {
-            payload[`先攻${i + 1}`] = mapKickImg(s.kicksFirst[i]);
-            payload[`後攻${i + 1}`] = mapKickImg(s.kicksSecond[i]);
+            const r = start + i;
+            payload[`先攻${i + 1}`] = mapKickImg(s.kicksFirst[r]);
+            payload[`後攻${i + 1}`] = mapKickImg(s.kicksSecond[r]);
+            payload[`イニング${i + 1}`] = String(r + 1);
         }
-
-        // Kick 6 (or current active sudden death kick)
-        // Find if there is an active kick in rounds 6-10
-        let sdFirst = s.kicksFirst[5];
-        let sdSecond = s.kicksSecond[5];
-
-        for (let r = 5; r < 10; r++) {
-            if (s.kicksFirst[r] || s.kicksSecond[r]) {
-                sdFirst = s.kicksFirst[r];
-                sdSecond = s.kicksSecond[r];
-            }
-        }
-
-        payload['先攻6'] = mapKickImg(sdFirst);
-        payload['後攻6'] = mapKickImg(sdSecond);
 
         return varyPayload(type, payload);
     };
@@ -208,6 +216,10 @@ export default function PKControl() {
         // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(pkTopLeft, payload, () => clearForTake('左上PK'));
     };
+
+    // 音声キーワード: PK（センター・左上）の TAKE
+    useVoiceActions(['cg.pk_center', 'cg.pk_topleft'], id =>
+        id === 'cg.pk_center' ? sendToCenterPK : id === 'cg.pk_topleft' ? sendToTopLeftPK : undefined);
 
     // HIDE は左上PK・センターPK の両方を消す
     const hideAllPK = () => {
@@ -263,8 +275,9 @@ export default function PKControl() {
             <div className="flex-between" style={{ marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#ffca28' }}>⚽ PK戦 入力 & CG送出</h3>
-                    <span className="status-badge" style={{ background: showInning6 ? 'rgba(255, 193, 7, 0.2)' : 'rgba(255, 255, 255, 0.05)', color: showInning6 ? '#ffca28' : '#aaa' }}>
-                        {showInning6 ? '⚖️ 6イニング目表示 (5回目ベース非表示 / 6回目得点表示)' : '5イニング目表示 (デフォルト)'}
+                    <span className="status-badge" style={{ background: windowStart > 0 ? 'rgba(255, 193, 7, 0.2)' : 'rgba(255, 255, 255, 0.05)', color: windowStart > 0 ? '#ffca28' : '#aaa' }}
+                        title="CG の枠は 5 回分。6 回目以降は同点が続くかぎり直近 5 回にずらし、最後の枠は結果待ちの空欄になります">
+                        CG 表示: {windowStart + 1}〜{windowStart + 5} 回目{windowStart > 0 ? '（サドンデス）' : ''}
                     </span>
                 </div>
 
@@ -316,7 +329,7 @@ export default function PKControl() {
                         checked={state.manualUnlock} 
                         onChange={e => setPkState(prev => ({ ...(prev || DEFAULT_PK_STATE), manualUnlock: e.target.checked }))} 
                     />
-                    <span>6〜10本目を手動で常に解放する</span>
+                    <span>6本目以降を手動で常に解放する</span>
                 </label>
             </div>
 
@@ -326,10 +339,11 @@ export default function PKControl() {
                     <thead>
                         <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
                             <th style={{ textAlign: 'left', width: '100px' }}>チーム</th>
-                            {[...Array(10)].map((_, i) => {
+                            {[...Array(roundCount)].map((_, i) => {
                                 const isUnlocked = getRoundUnlocked(i);
                                 return (
-                                    <th key={i} style={{ color: i >= 5 ? (isUnlocked ? '#ffca28' : '#666') : 'white', minWidth: '70px' }}>
+                                    <th key={i} style={{ color: i >= 5 ? (isUnlocked ? '#ffca28' : '#666') : 'white', minWidth: '70px', borderBottom: i >= windowStart && i < windowStart + 5 ? '3px solid #ffca28' : undefined }}
+                                        title={i >= windowStart && i < windowStart + 5 ? 'CG に出ている回' : undefined}>
                                         {i + 1}本目 {i >= 5 ? (isUnlocked ? '🔓' : '🔒') : ''}
                                     </th>
                                 );
@@ -342,7 +356,7 @@ export default function PKControl() {
                             <td style={{ fontWeight: 'bold', textAlign: 'left', color: '#198754' }}>
                                 先攻: {teamFirst}
                             </td>
-                            {[...Array(10)].map((_, i) => {
+                            {[...Array(roundCount)].map((_, i) => {
                                 const isUnlocked = getRoundUnlocked(i);
                                 const currentVal = state.kicksFirst[i];
                                 return (
@@ -376,7 +390,7 @@ export default function PKControl() {
                             <td style={{ fontWeight: 'bold', textAlign: 'left', color: '#0dcaf0' }}>
                                 後攻: {teamSecond}
                             </td>
-                            {[...Array(10)].map((_, i) => {
+                            {[...Array(roundCount)].map((_, i) => {
                                 const isUnlocked = getRoundUnlocked(i);
                                 const currentVal = state.kicksSecond[i];
                                 return (

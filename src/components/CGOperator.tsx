@@ -25,6 +25,7 @@ import { OneShotMode, playerComments, playerPhotoUrl, buildPlayerOneShotPayload,
 import { isPvMode, pvClear, pvOnSend, runOnAir } from '../utils/pv';
 import { BIG_PK_TELOP, SCORER_PK_TELOP } from '../utils/useBigScorePk';
 import { useBigScoreStatus, BIG_SCORE_STATUS_KEY } from '../utils/bigScoreStatus';
+import { useVoiceActions } from '../utils/voice/voiceActions';
 
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
@@ -146,6 +147,21 @@ export default function CGOperator() {
         setCgQueue(prev => (prev || []).filter(item => item.id !== id));
     };
 
+    // ドラッグ＆ドロップで並び替え。dropAt は「この番号の前に入れる」位置（末尾は length）
+    const [dragQueueId, setDragQueueId] = useState<string | null>(null);
+    const [dropAt, setDropAt] = useState<number | null>(null);
+    const moveQueueItem = (id: string, to: number) => {
+        setCgQueue(prev => {
+            const list = [...(prev || [])];
+            const from = list.findIndex(item => item.id === id);
+            if (from < 0) return list;
+            const [moved] = list.splice(from, 1);
+            list.splice(from < to ? to - 1 : to, 0, moved);
+            return list;
+        });
+    };
+    const endQueueDrag = () => { setDragQueueId(null); setDropAt(null); };
+
     const clearQueue = () => {
         if (!cgQueue || cgQueue.length === 0) return;
         if (!confirm(`CG Queue List の ${cgQueue.length} 件をすべて削除しますか？`)) return;
@@ -212,7 +228,10 @@ export default function CGOperator() {
     };
 
     const takeNextQueue = () => {
-        if (!cgQueue || cgQueue.length === 0) return;
+        if (!cgQueue || cgQueue.length === 0) {
+            alert('キューに待機中のテロップがありません。');
+            return;
+        }
         const item = selectedQueueItem || cgQueue.find(item => !item.skipped && !item.played);
         if (!item) {
             alert('キューに待機中のテロップがありません。');
@@ -220,6 +239,10 @@ export default function CGOperator() {
         }
         takeQueueItem(item);
     };
+
+    // 音声キーワード（Voice Keywords タブ）: CGクリア・Allクリア・キューの TAKE NEXT
+    useVoiceActions(['cmd.cg_clear', 'cmd.all_clear', 'cmd.queue_take_next'], id =>
+        id === 'cmd.cg_clear' ? clearCg : id === 'cmd.all_clear' ? hideAllTelops : id === 'cmd.queue_take_next' ? takeNextQueue : undefined);
 
     // キュー項目を送出（TAKE NEXT と、ダブルクリックでの再送出で共用）
     const takeQueueItem = (item: CgQueueItem) => {
@@ -407,18 +430,54 @@ export default function CGOperator() {
                             )}
 
                             {/* 登録順に下へ追加。幅は固定のまま、はみ出した分は縦スクロール */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '240px', overflowY: 'auto', overflowX: 'hidden', padding: '4px 0' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '240px', overflowY: 'auto', overflowX: 'hidden', padding: '4px 0' }}
+                                onDragOver={e => {
+                                    // 項目の下の余白に落としたら末尾へ
+                                    if (!dragQueueId || e.target !== e.currentTarget) return;
+                                    e.preventDefault();
+                                    setDropAt((cgQueue || []).length);
+                                }}
+                                onDrop={e => {
+                                    if (!dragQueueId || e.target !== e.currentTarget) return;
+                                    e.preventDefault();
+                                    moveQueueItem(dragQueueId, (cgQueue || []).length);
+                                    endQueueDrag();
+                                }}>
                                 {(cgQueue || []).length === 0 && <div style={{ color: '#aaa', padding: '8px' }}>キューは空です</div>}
                                 {(cgQueue || []).map((item, idx) => {
                                     const isSelected = item.id === selectedQueueItem?.id;
+                                    const isDragging = dragQueueId === item.id;
+                                    // 挿入位置の線（この項目の上／最後の項目の下）
+                                    const lineAbove = dragQueueId !== null && dropAt === idx;
+                                    const lineBelow = dragQueueId !== null && dropAt === (cgQueue || []).length && idx === (cgQueue || []).length - 1;
                                     return (
                                         <div
                                             key={item.id}
+                                            draggable
+                                            onDragStart={e => {
+                                                setDragQueueId(item.id);
+                                                e.dataTransfer.effectAllowed = 'move';
+                                                e.dataTransfer.setData('text/plain', item.id);
+                                            }}
+                                            onDragOver={e => {
+                                                if (!dragQueueId) return;
+                                                e.preventDefault();
+                                                e.dataTransfer.dropEffect = 'move';
+                                                const r = e.currentTarget.getBoundingClientRect();
+                                                setDropAt(e.clientY < r.top + r.height / 2 ? idx : idx + 1);
+                                            }}
+                                            onDrop={e => {
+                                                e.preventDefault();
+                                                if (dragQueueId && dropAt !== null) moveQueueItem(dragQueueId, dropAt);
+                                                endQueueDrag();
+                                            }}
+                                            onDragEnd={endQueueDrag}
                                             onClick={() => setSelectedQueueId(isSelected ? null : item.id)}
                                             onDoubleClick={() => takeQueueItem(item)}
-                                            title={item.played ? '送出済み（クリックで選択 → TAKE NEXT で再送出／「送出済み 選択OFF」で未送出に戻す／ダブルクリックで即送出）' : 'クリックで選択 → TAKE NEXT で送出／ダブルクリックで即送出'}
-                                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? 'rgba(255, 202, 40, 0.25)' : (item.played ? 'rgba(255,255,255,0.03)' : (item.skipped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)')), border: isSelected ? '1px solid #ffca28' : '1px solid transparent', cursor: 'pointer', userSelect: 'none', padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0, opacity: (item.skipped || item.played) && !isSelected ? 0.5 : 1 }}
+                                            title={(item.played ? '送出済み（クリックで選択 → TAKE NEXT で再送出／「送出済み 選択OFF」で未送出に戻す／ダブルクリックで即送出）' : 'クリックで選択 → TAKE NEXT で送出／ダブルクリックで即送出') + '／ドラッグで並び替え'}
+                                            style={{ boxShadow: lineAbove ? '0 -3px 0 0 #0dcaf0' : lineBelow ? '0 3px 0 0 #0dcaf0' : undefined, display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? 'rgba(255, 202, 40, 0.25)' : (item.played ? 'rgba(255,255,255,0.03)' : (item.skipped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)')), border: isSelected ? '1px solid #ffca28' : '1px solid transparent', cursor: isDragging ? 'grabbing' : 'pointer', userSelect: 'none', padding: '6px 10px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0, opacity: isDragging ? 0.35 : (item.skipped || item.played) && !isSelected ? 0.5 : 1 }}
                                         >
+                                            <span style={{ color: '#888', cursor: 'grab', fontSize: '0.9rem', lineHeight: 1 }} title="ドラッグで並び替え">⋮⋮</span>
                                             <span style={{ fontWeight: 'bold', color: '#ffca28' }}>#{idx + 1}</span>
                                             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', textDecoration: item.played ? 'line-through' : 'none' }} title={item.label}>{item.label}</span>
                                             {queueOnAir?.id === item.id && <span style={{ fontSize: '0.65rem', color: '#fff', background: '#4caf50', padding: '1px 5px', borderRadius: 3, fontWeight: 'bold' }}>ON AIR</span>}
@@ -509,6 +568,10 @@ export default function CGOperator() {
 
 // --------------------------------------------------------
 // 1Shot & 1Shotカード Dedicated Control Panel (後出し優先排他送出)
+const ONE_SHOT_VOICE_ACTIONS = [
+    'cmd.oneshot_comment_1', 'cmd.oneshot_comment_2', 'cmd.oneshot_comment_3', 'cmd.oneshot_comment_4', 'cmd.oneshot_comment_5',
+    'cmd.oneshot_comment_next', 'cmd.oneshot_pro2', 'cmd.oneshot_today', 'cmd.oneshot_total'
+];
 // --------------------------------------------------------
 
 type CardType = 'yellow1' | 'yellow2' | 'red';
@@ -555,7 +618,12 @@ function OneShotPlayerControl({
         setIsYellowFlag(false); // 選手交代時は白（通常）表示、黄色非表示のデフォルトに戻す
     }, [player?.id]);
 
+    // 音声キーワード（Voice Keywords タブ）: 選択中の選手の 1Shot を切り替えて送出（選手を選んでいないときは使えない）
+    const voiceHandlers = useRef<Record<string, () => void>>({});
+    useVoiceActions(ONE_SHOT_VOICE_ACTIONS, id => voiceHandlers.current[id]);
+
     if (!player) {
+        voiceHandlers.current = {};
         return (
             <div className="glass-panel" style={{ padding: '16px', color: '#aaa' }}>
                 <CgClearBar />
@@ -610,23 +678,45 @@ function OneShotPlayerControl({
     };
 
     // 共通ペイロード生成（黄色フラグONでプロ2コメント黄色が表示・プロ2コメント非表示、OFFでプロ2コメント表示・黄色非表示）
-    const buildBasePayload = (mode: OneShotMode) => buildPlayerOneShotPayload({
+    // commentOverride: 音声でコメントを切り替えたとき（選択の state はまだ変わっていないので、そのコメントで作る）
+    const buildBasePayload = (mode: OneShotMode, commentOverride?: string) => buildPlayerOneShotPayload({
         player,
         teamConfig,
         side: player.teamId === 'right' ? 'right' : 'left',
         school: rawSchool,
         mode,
-        commentText,
+        commentText: commentOverride ?? commentText,
         isYellow: isYellowFlag,
         photoUrl: isPhotoActive ? effectivePhotoUrl : ''
     });
 
     // 1Shot 送出 (後出し優先: 1Shotカードが出ている場合は即座に非表示！)
-    const handleSend1Shot = (mode: OneShotMode) => {
-        const payload = buildBasePayload(mode);
+    const handleSend1Shot = (mode: OneShotMode, commentOverride?: string) => {
+        const payload = buildBasePayload(mode, commentOverride);
         oneShot.setData(payload);
         // 1Shot 送出中なら UPDATE。出ていなければ 1Shotカードなど他の CG を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(oneShot, payload, () => clearForTake('1Shot'));
+    };
+
+    // 音声: プロ2 のコメントを N 項目目（0 始まり）に切り替えて送出
+    const sendComment = (idx: number) => {
+        if (idx < 0 || idx >= comments.length) {
+            alert(`${player.name} のプロ2コメント ${idx + 1} 項目目は登録されていません（${comments.length} 件）`);
+            return;
+        }
+        setSelectedCommentIdx(idx);
+        handleSend1Shot('pro2', comments[idx].text || '');
+    };
+    voiceHandlers.current = {
+        'cmd.oneshot_comment_1': () => sendComment(0),
+        'cmd.oneshot_comment_2': () => sendComment(1),
+        'cmd.oneshot_comment_3': () => sendComment(2),
+        'cmd.oneshot_comment_4': () => sendComment(3),
+        'cmd.oneshot_comment_5': () => sendComment(4),
+        'cmd.oneshot_comment_next': () => sendComment(comments.length > 0 ? (selectedCommentIdx + 1) % comments.length : 0),
+        'cmd.oneshot_pro2': () => handleSend1Shot('pro2'),
+        'cmd.oneshot_today': () => handleSend1Shot('today'),
+        'cmd.oneshot_total': () => handleSend1Shot('total')
     };
 
     const buildCardPayload = (cardType: CardType) => {
@@ -998,6 +1088,10 @@ function LineupTelopButtons({ side, kind }: { side: 'left' | 'right', kind: 'for
         telop.show(payload);
         if (kind === 'subs') setSubsOnAirSide(side);
     };
+
+    // 音声キーワード: フォーメーション左/右・控え選手（左/右チーム）
+    const voiceId = `cg.${kind === 'subs' ? 'subs' : 'formation'}_${side}`;
+    useVoiceActions([voiceId], id => (id === voiceId ? handleTake : undefined));
 
     // HIDE ボタンは置かない（消すときは 1Shot エリアの CGクリア / Allクリア、または次の CG の TAKE で消える）
     return (
@@ -1405,7 +1499,7 @@ function MatchScorePanel() {
         };
         bigScore.setData((prev: any) => ({ ...prev, ...payload }));
         if (scorer.enabled) {
-            // 得点者込み: 大得点得点者テロップを出す（1 ページ目 = 最新の 4 人から）。送出中なら今のページのまま UPDATE
+            // 得点者込み: 大得点得点者テロップを出す（1 ページ目 = 最新の 4 件から）。送出中なら今のページのまま UPDATE
             const page = scorer.scorerTelop.isVisible ? scorer.page : 0;
             if (!scorer.scorerTelop.isVisible) scorer.setPage(0);
             const scorerPayload = { ...scorer.buildPayload(page), ...payload };
@@ -1425,7 +1519,7 @@ function MatchScorePanel() {
         scorerPk.hide();
     };
 
-    // カットチェンジ: 得点者の次の 4 人へ（最後のページの次は 1 ページ目）。送出中ならその場で UPDATE
+    // カットチェンジ: 得点者の次の 4 件へ（最後のページの次は 1 ページ目）。送出中ならその場で UPDATE
     const handleScorerCutChange = () => {
         const next = (scorer.page + 1) % scorer.pageCount;
         scorer.setPage(next);
@@ -1435,6 +1529,15 @@ function MatchScorePanel() {
             scorer.scorerTelop.update(scorerPayload);
         }
     };
+
+    // 音声キーワード: 大得点・小得点の TAKE / HIDE、得点者カットチェンジ
+    useVoiceActions(['cg.big_score', 'cg.small_score', 'cmd.big_score_hide', 'cmd.small_score_hide', 'cmd.scorer_cut_change'], id => ({
+        'cg.big_score': handleTakeBigScore,
+        'cg.small_score': handleTakeSmallScore,
+        'cmd.big_score_hide': handleHideBigScore,
+        'cmd.small_score_hide': handleHideSmallScore,
+        'cmd.scorer_cut_change': scorer.enabled && scorer.pageCount > 1 ? handleScorerCutChange : undefined
+    } as Record<string, (() => void) | undefined>)[id]);
 
     const bsData = bigScore.data || {};
 
@@ -1551,7 +1654,7 @@ function MatchScorePanel() {
                         </span>
                         {scorer.pageCount > 1 && (
                             <button className="btn btn-warning" style={{ padding: '3px 10px', fontSize: '0.78rem', fontWeight: 'bold', marginLeft: 'auto' }} onClick={handleScorerCutChange}
-                                title="得点者の次の 4 人を表示します（送出中ならその場で切り替え）">
+                                title="得点者の次の 4 件を表示します（送出中ならその場で切り替え）">
                                 ▶ カットチェンジ ({scorer.page + 1}/{scorer.pageCount})
                             </button>
                         )}
@@ -1675,6 +1778,10 @@ function MatchTimerPanel() {
         additionalTime.hide();
         setAtHiddenBySmallScore(false);
     };
+
+    // 音声キーワード: タイマー・アディショナルタイムの TAKE
+    useVoiceActions(['cg.timer', 'cg.additional_time'], id =>
+        id === 'cg.timer' ? showTimerAtCurrentTime : id === 'cg.additional_time' ? () => handleSendAdditionalTime() : undefined);
 
     const handleSendAdditionalTime = (numStr?: string) => {
         setAtHiddenBySmallScore(false);
@@ -1832,6 +1939,9 @@ function MatchupCardButtons() {
         textTelop.hide();
         imageTelop.hide();
     };
+    // 音声キーワード: 対戦カード（文字版・画像版）
+    useVoiceActions(['cg.matchup_text', 'cg.matchup_image'], id =>
+        id === 'cg.matchup_text' ? () => take(textTelop, MATCHUP_TEXT_TELOP, text) : id === 'cg.matchup_image' ? takeImage : undefined);
     const onAir = textTelop.isVisible || imageTelop.isVisible;
 
     return (

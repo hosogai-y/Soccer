@@ -10,6 +10,7 @@ import GlobalTimerManager from './components/GlobalTimerManager';
 import { ScorerCgSync } from './utils/useScorerCg';
 import { MatchupCgSync } from './utils/matchup';
 import DataManager from './components/DataManager';
+import VoiceKeywordSettingsPage from './components/VoiceKeywordSettings';
 import PvMonitor, { PvModeToggle, PvModeBanner } from './components/PvMonitor';
 import { BigScorePkSync } from './utils/useBigScorePk';
 import { BigScoreStatusSync } from './utils/bigScoreStatus';
@@ -51,6 +52,7 @@ export default function App() {
                                 <NavLink to="/lineup" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Lineups</NavLink>
                                 <NavLink to="/teams" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Team Settings</NavLink>
                                 <NavLink to="/data" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Data</NavLink>
+                                <NavLink to="/voice" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>Voice Keywords</NavLink>
                             </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -66,6 +68,7 @@ export default function App() {
                             <Route path="/lineup" element={<LineupEditor />} />
                             <Route path="/teams" element={<TeamSettings />} />
                             <Route path="/data" element={<DataManager />} />
+                            <Route path="/voice" element={<VoiceKeywordSettingsPage />} />
                             <Route path="*" element={<CGOperator />} />
                         </Routes>
                     </main>

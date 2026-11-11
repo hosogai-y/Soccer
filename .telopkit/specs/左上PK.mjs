@@ -1,5 +1,6 @@
 // Pulled from telop "左上PK" by telopkit, then given data keys (keyexp), the 6th-kick show/hide (showIf 6回目表示)
 // and a 0-0 / blank initial state. Images live in ./assets.
+// イニング1〜5 は回の番号（6回目以降は直近5回に合わせて 2〜6、3〜7… とダッシュボードが入れる）
 export default {
   "title": "soccer",
   "canvas": {
@@ -846,7 +847,7 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "",
+            "keyexp": "イニング5",
             "fitMode": "shrink_font"
           }
         },
@@ -902,7 +903,7 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "",
+            "keyexp": "イニング4",
             "fitMode": "shrink_font"
           }
         },
@@ -958,7 +959,7 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "",
+            "keyexp": "イニング3",
             "fitMode": "shrink_font"
           }
         },
@@ -1014,7 +1015,7 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "",
+            "keyexp": "イニング2",
             "fitMode": "shrink_font"
           }
         },
@@ -1070,7 +1071,7 @@ export default {
             "locked": false,
             "blendMode": "normal",
             "effects": [],
-            "keyexp": "",
+            "keyexp": "イニング1",
             "fitMode": "shrink_font"
           }
         },
@@ -1228,26 +1229,60 @@ export default {
         "先攻5": "img/HD2D_P09_Parts1.png",
         "後攻5": "img/HD2D_P09_Parts3.png",
         "先攻6": "img/HD2D_P09_Parts3.png",
-        "後攻6": "img/HD2D_P09_Parts3.png"
+        "後攻6": "img/HD2D_P09_Parts3.png",
+        "イニング1": "1",
+        "イニング2": "2",
+        "イニング3": "3",
+        "イニング4": "4",
+        "イニング5": "5"
       },
       {
         "先攻学校名": "北海道室蘭大谷",
         "後攻学校名": "札幌創成",
-        "6回目表示": "1",
+        "6回目表示": "",
         "先攻合計得点": "5",
-        "後攻合計得点": "4",
+        "後攻合計得点": "5",
+        "先攻1": "img/HD2D_P09_Parts1.png",
+        "後攻1": "img/HD2D_P09_Parts2.png",
+        "先攻2": "img/HD2D_P09_Parts1.png",
+        "後攻2": "img/HD2D_P09_Parts1.png",
+        "先攻3": "img/HD2D_P09_Parts1.png",
+        "後攻3": "img/HD2D_P09_Parts1.png",
+        "先攻4": "img/HD2D_P09_Parts2.png",
+        "後攻4": "img/HD2D_P09_Parts1.png",
+        "先攻5": "img/HD2D_P09_Parts3.png",
+        "後攻5": "img/HD2D_P09_Parts3.png",
+        "先攻6": "img/HD2D_P09_Parts3.png",
+        "後攻6": "img/HD2D_P09_Parts3.png",
+        "イニング1": "3",
+        "イニング2": "4",
+        "イニング3": "5",
+        "イニング4": "6",
+        "イニング5": "7"
+      },
+      {
+        "先攻学校名": "北海道室蘭大谷",
+        "後攻学校名": "札幌創成",
+        "6回目表示": "",
+        "先攻合計得点": "5",
+        "後攻合計得点": "5",
         "先攻1": "img/HD2D_P09_Parts1.png",
         "後攻1": "img/HD2D_P09_Parts1.png",
         "先攻2": "img/HD2D_P09_Parts1.png",
-        "後攻2": "img/HD2D_P09_Parts2.png",
+        "後攻2": "img/HD2D_P09_Parts1.png",
         "先攻3": "img/HD2D_P09_Parts2.png",
         "後攻3": "img/HD2D_P09_Parts1.png",
         "先攻4": "img/HD2D_P09_Parts1.png",
-        "後攻4": "img/HD2D_P09_Parts2.png",
+        "後攻4": "img/HD2D_P09_Parts1.png",
         "先攻5": "img/HD2D_P09_Parts1.png",
         "後攻5": "img/HD2D_P09_Parts3.png",
-        "先攻6": "img/HD2D_P09_Parts2.png",
-        "後攻6": "img/HD2D_P09_Parts2.png"
+        "先攻6": "img/HD2D_P09_Parts3.png",
+        "後攻6": "img/HD2D_P09_Parts3.png",
+        "イニング1": "8",
+        "イニング2": "9",
+        "イニング3": "10",
+        "イニング4": "11",
+        "イニング5": "12"
       }
     ]
   }

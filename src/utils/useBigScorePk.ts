@@ -49,7 +49,7 @@ export function useBigScorePk() {
 
     const take = () => {
         if (scorer.enabled) {
-            // 送出中なら今のページのまま UPDATE、出ていなければ 1 ページ目（最新の 4 人）から
+            // 送出中なら今のページのまま UPDATE、出ていなければ 1 ページ目（最新の 4 件）から
             const onAir = scorerPk.isVisible && !isPvMode();
             const page = onAir ? scorer.page : 0;
             if (!onAir && !isPvMode()) scorer.setPage(0);

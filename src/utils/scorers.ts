@@ -10,21 +10,21 @@ export const SCORER_TELOP = '大得点得点者';
 export const SCORER_ROWS = 4;
 // 大得点 TAKE で得点者込みのテロップを出すか（CGOperation のチェックボックス）
 export const BIG_SCORE_WITH_SCORERS_KEY = 'big_score_with_scorers';
-// 得点者の表示ページ（0 = 最新の 4 人。カットチェンジで次の 4 人）
+// 得点者の表示ページ（0 = 最新の 4 件。カットチェンジで次の 4 件）
 export const SCORER_PAGE_KEY = 'scorer_page';
 // 前後半・延長の 1 本の長さ（分）。得点時間を「前後半の中の何分か」と「アディショナル（+）」に分けるのに使う
 export const PERIOD_MINUTES_KEY = 'match_period_minutes';
 
 /**
  * 得点時間の表記。
- * half: 前後半ごと（後半 1〜40 分。「後半12分」「後半40+2分」）
- * total: 通し（後半 41〜80 分。「後半52分」「後半80+2分」。プロなら 46〜90 分・「後半90+5分」）
+ * half: 前後半ごと（後半 1〜40 分。「後半12分」「後半40分+2」）
+ * total: 通し（後半 41〜80 分。「後半52分」「後半80分+2」。プロなら 46〜90 分・「後半90分+5」）
  * totalPlain: 通しでアディショナルも足す（「後半83分」。プロなら「後半100分」）
  */
 export type GoalTimeStyle = 'half' | 'total' | 'totalPlain';
 export const GOAL_TIME_STYLE_LABELS: Record<GoalTimeStyle, string> = {
-    half: '前後半ごと（後半12分・40+2）',
-    total: '通し（後半52分・80+2）',
+    half: '前後半ごと（後半12分・40分+2）',
+    total: '通し（後半52分・80分+2）',
     totalPlain: '通し・AT加算（後半83分）'
 };
 
@@ -50,7 +50,8 @@ const PERIOD_ORDER = ['前半', '後半', '延長前半', '延長後半'];
 
 /** "23:15" → 秒 */
 function toSeconds(time: string): number {
-    const [m, s] = (time || '0:00').split(':').map(n => parseInt(n, 10) || 0);
+    // 分だけの記録（"82"）は秒が無いので 0 秒として扱う
+    const [m = 0, s = 0] = (time || '0:00').split(':').map(n => parseInt(n, 10) || 0);
     return m * 60 + s;
 }
 
@@ -91,11 +92,19 @@ export function formatGoalMinute(period: string, minute: number, added: number, 
     return added > 0 ? `${offset + minute}+${added}` : String(offset + minute);
 }
 
-/** 大得点得点者・ログに出す得点時間（例: "前半12分" "後半40+2分"。表記は lengths.style） */
+/** 分とアディショナルを「分」付きで（"12分" / "40分+2" / "80分+2" / "83分"）。大得点得点者・ログの表記 */
+export function goalMinuteText(period: string, minute: number, added: number, lengths: PeriodMinutes): string {
+    const style = normalizePeriodMinutes(lengths).style;
+    const offset = style === 'half' ? 0 : periodBase(period, lengths);
+    if (style === 'totalPlain' || added <= 0) return `${offset + minute + (style === 'totalPlain' ? added : 0)}分`;
+    return `${offset + minute}分+${added}`;
+}
+
+/** 大得点得点者・ログに出す得点時間（例: "前半12分" "後半40分+2"。表記は lengths.style） */
 export function goalMinuteLabel(e: Pick<MatchLogEntry, 'period' | 'time' | 'minuteOnly'>, lengths: PeriodMinutes): string {
     const period = e.period || '前半';
     const { minute, added } = goalMinuteParts(e, lengths);
-    return `${period}${formatGoalMinute(period, minute, added, lengths)}分`;
+    return `${period}${goalMinuteText(period, minute, added, lengths)}`;
 }
 
 // ---------------------------------------------------------------- 手入力の時刻 ⇔ 保存する通し時間
@@ -116,8 +125,8 @@ export function inputToLogTime(period: string, input: string, added: number, len
     const style = normalizePeriodMinutes(lengths).style;
     const base = periodBase(period, lengths);
     const length = periodLength(period, lengths);
-    let s = toHalfWidth(input).replace(/分$/, '');
-    // "40+2" のようにアディショナルごと入れたとき
+    let s = toHalfWidth(input).replace(/分$/, '').replace(/分\s*\+/, '+');
+    // "40+2"・"40分+2" のようにアディショナルごと入れたとき
     const plus = /^(\d+)\s*\+\s*(\d+)$/.exec(s);
     if (plus) {
         added = Math.max(added, parseInt(plus[2], 10) || 0);
@@ -151,19 +160,19 @@ export function logTimeToInput(e: Pick<MatchLogEntry, 'period' | 'time' | 'minut
     return { time: `${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, '0')}`, added: 0 };
 }
 
-/** ログ一覧に出す時刻（表記に合わせる。アディショナルは "40+2分"、分だけの記録は "39分"、ほかは "23:15"） */
+/** ログ一覧に出す時刻（表記に合わせる。アディショナルは "40分+2"、分だけの記録は "39分"、ほかは "23:15"） */
 export function logTimeLabel(e: Pick<MatchLogEntry, 'period' | 'time' | 'minuteOnly'>, lengths: PeriodMinutes): string {
     const period = e.period || '前半';
     const { minute, added } = goalMinuteParts(e, lengths);
-    if (added > 0 || e.minuteOnly) return `${formatGoalMinute(period, minute, added, lengths)}分`;
+    if (added > 0 || e.minuteOnly) return goalMinuteText(period, minute, added, lengths);
     return logTimeToInput(e, lengths).time;
 }
 
 export type ScorerLine = {
-    key: string;          // 選手 id（オウンゴール・選手不明はゴールごと）
+    key: string;          // ゴールごと（ログの id）
     name: string;         // フルネーム
-    times: string;        // 例: "前半12分 後半5分(P)"
-    lastOrder: number;    // いちばん新しいゴールの並び順（大きいほど新しい）
+    times: string;        // 例: "前半12分" "後半5分(P)"
+    lastOrder: number;    // ゴールの並び順（大きいほど新しい）
 };
 
 /** ゴールの時間順（前後半 → 時刻 → ログの順） */
@@ -173,42 +182,33 @@ function goalOrder(e: MatchLogEntry, index: number): number {
 }
 
 /**
- * チームの得点者一覧（新しくゴールした選手が先）。
- * 同じ選手の複数得点は 1 行にまとめ、得点時間を古い順に並べる
+ * チームの得点者一覧（新しいゴールが先）。
+ * 同じ選手の 2 点目以降も 1 行にまとめず、ほかの選手と同じようにゴールごとに新しい行で足す
+ * （まとめると 3 点以上で時間の欄が詰まって読めないため）
  */
 export function scorerLines(entries: MatchLogEntry[], team: string, players: Player[], lengths: PeriodMinutes): ScorerLine[] {
-    const goals = entries
+    return entries
         .map((e, i) => ({ e, order: goalOrder(e, i) }))
         .filter(({ e }) => e.type === 'goal' && e.team === team)
-        .sort((a, b) => a.order - b.order);
-
-    const lines = new Map<string, ScorerLine & { parts: string[] }>();
-    goals.forEach(({ e, order }) => {
-        const key = e.playerId || `og_${e.id}`;
-        const player = e.playerId ? players.find(p => p.id === e.playerId) : undefined;
-        const name = player?.name || e.playerName || 'オウンゴール';
-        const part = goalMinuteLabel(e, lengths) + (e.pk ? '(P)' : '');
-        const line = lines.get(key);
-        if (line) {
-            line.parts.push(part);
-            line.lastOrder = order;
-        } else {
-            lines.set(key, { key, name, times: '', lastOrder: order, parts: [part] });
-        }
-    });
-
-    return Array.from(lines.values())
-        .map(({ parts, ...line }) => ({ ...line, times: parts.join(' ') }))
-        .sort((a, b) => b.lastOrder - a.lastOrder);
+        .sort((a, b) => b.order - a.order)
+        .map(({ e, order }) => {
+            const player = e.playerId ? players.find(p => p.id === e.playerId) : undefined;
+            return {
+                key: `goal_${e.id}`,
+                name: player?.name || e.playerName || 'オウンゴール',
+                times: goalMinuteLabel(e, lengths) + (e.pk ? '(P)' : ''),
+                lastOrder: order
+            };
+        });
 }
 
-/** ページ数（どちらかのチームが 5 人以上なら 2 ページ目がある） */
+/** ページ数（どちらかのチームが 5 点以上なら 2 ページ目がある） */
 export function scorerPageCount(left: ScorerLine[], right: ScorerLine[]): number {
     return Math.max(1, Math.ceil(left.length / SCORER_ROWS), Math.ceil(right.length / SCORER_ROWS));
 }
 
 /**
- * テロップの行のキー。1 ページ 4 人で、行は下詰め（2 人なら 3・4 行目）、上の行ほど新しい得点者
+ * テロップの行のキー。1 ページ 4 件（ゴールごと）で、行は下詰め（2 件なら 3・4 行目）、上の行ほど新しい得点者
  */
 export function scorerRowKeys(left: ScorerLine[], right: ScorerLine[], page: number): Record<string, string> {
     const data: Record<string, string> = {};
