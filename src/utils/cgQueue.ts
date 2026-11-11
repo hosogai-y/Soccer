@@ -49,6 +49,32 @@ export function useCgQueue(): [CgQueueItem[], (next: CgQueueItem[] | ((prev: CgQ
     return [queue, setQueue];
 }
 
+/** キューから送出中の CG（一覧の ON AIR の印・HIDE ボタンの対象） */
+export type CgQueueOnAir = { telopName: string, label: string, id?: string };
+
+/**
+ * 送出中の記録も JSON 文字列で保存する（'{}' = 送出中なし）。
+ * SDK の状態マージは null を「変更なし」として無視し、100 文字を超える文字列を空文字では上書きしない
+ * （選手交代2枚などラベルが長いと '' で消せない）ため、「なし」も空でない文字列にする。
+ */
+const CG_QUEUE_ON_AIR_KEY = 'cg_queue_on_air_json';
+const NO_ON_AIR = '{}';
+
+export function useCgQueueOnAir(): [CgQueueOnAir | null, (next: CgQueueOnAir | null) => void] {
+    const [json, setJson] = useSyncedState<string>(CG_QUEUE_ON_AIR_KEY, NO_ON_AIR);
+    let onAir: CgQueueOnAir | null = null;
+    if (json) {
+        try {
+            const parsed = JSON.parse(json);
+            if (parsed && typeof parsed.telopName === 'string') onAir = parsed;
+        } catch { /* 壊れた値は送出中なしとして扱う */ }
+    }
+    const setOnAir = useCallback((next: CgQueueOnAir | null) => {
+        setJson(next ? JSON.stringify(next) : NO_ON_AIR);
+    }, [setJson]);
+    return [onAir, setOnAir];
+}
+
 /** payload 付きでキューに積む関数を返す */
 export function useCgQueueRegister() {
     const [, setQueue] = useCgQueue();

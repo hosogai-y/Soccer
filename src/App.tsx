@@ -12,6 +12,7 @@ import { MatchupCgSync } from './utils/matchup';
 import DataManager from './components/DataManager';
 import PvMonitor, { PvModeToggle, PvModeBanner } from './components/PvMonitor';
 import { BigScorePkSync } from './utils/useBigScorePk';
+import { BigScoreStatusSync } from './utils/bigScoreStatus';
 import hubConfig from '../.telopkit/hub.json';
 
 const PROJECT_NAME = "Telops/soccer";
@@ -36,6 +37,7 @@ export default function App() {
             <ScorerCgSync />
             <MatchupCgSync />
             <BigScorePkSync />
+            <BigScoreStatusSync />
             <HashRouter>
                 <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                     <nav className="modern-nav flex-between">

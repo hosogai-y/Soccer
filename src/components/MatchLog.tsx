@@ -6,8 +6,10 @@ import { TimerState, nextTimerState } from './GlobalTimerManager';
 import { buildTimerPeriodPayload } from '../utils/timerHelper';
 import {
     MATCH_LOG_ARCHIVE_LIMIT, MatchLogEntry, MatchLogType,
-    LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals, displayMatchTime, editableMatchTime
+    LOG_TYPE_LABELS, PERIOD_EVENTS, periodFromLog, teamGoals, applyLogGoals, resetTodayGoals
 } from '../utils/matchLog';
+import { PeriodMinutes, inputToLogTime, logTimeToInput, logTimeLabel, periodLength, formatGoalMinute } from '../utils/scorers';
+import { usePeriodMinutes } from '../utils/useScorerCg';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 import { TEAM_LINEUPS_KEY, TeamLineup, CLEARED_SUBBED_OUT } from '../utils/lineup';
 
@@ -26,7 +28,7 @@ export const resetSummary = (left: string, right: string, logCount: number) =>
  */
 export function useMatchReset() {
     const { syncedStateRef } = useTelopHub();
-    const { entries, archives, saveEntries, saveArchives, writeScores } = useMatchLog();
+    const { entries, archives, saveEntries, saveArchives, writeScores, writeStatsFromLog } = useMatchLog();
     const [, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [, setTimerState] = useSyncedState<TimerState | null>('match_timer_state', null);
     const [, setTimerPeriod] = useSyncedState<string>('match_timer_period', '前半');
@@ -45,6 +47,7 @@ export function useMatchReset() {
         }
         setPlayers(prev => resetTodayGoals(prev || []));
         writeScores(0, 0);
+        writeStatsFromLog([]); // スタッツのイエロー・レッドも 0 に（シュート・FK・CK はそのまま）
         // 0:00 で停止（版を上げて、ON AIR 中のタイマーも合わせ直させる）
         setTimerState(nextTimerState(syncedStateRef.current?.match_timer_state as TimerState | undefined, { isRunning: false, lastTick: Date.now(), accumulatedMs: 0 }));
         changePeriod('前半');
@@ -59,7 +62,7 @@ export function useMatchReset() {
  * 「ログから復元」「初期状態にする」で CGOperation の得点・ゴール数・前後半をそろえる。
  */
 export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: string, oaRightTeam: string }) {
-    const { entries, archives, record, remove, update, writeScores } = useMatchLog();
+    const { entries, archives, record, remove, update, writeScores, writeStatsFromLog } = useMatchLog();
     const { resetMatch, changePeriod } = useMatchReset();
     // ダブルクリックで開く編集ダイアログの対象（当日ログのみ）
     const [editing, setEditing] = useState<MatchLogEntry | null>(null);
@@ -73,6 +76,11 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
     const [inPlayerId, setInPlayerId] = useState('');
     const [periodEvent, setPeriodEvent] = useState(PERIOD_EVENTS[0]);
     const [timeInput, setTimeInput] = useState('');
+    // アディショナルタイム（分）。入れると前後半の終わり + AT で記録（例: 前半40+2分）
+    const [atInput, setAtInput] = useState('');
+    // 試合時間（前後半の長さ・得点時間の表記）。時刻の入力・表示はこの表記に合わせる
+    const [len] = usePeriodMinutes();
+    const [timerPeriod] = useSyncedState<string>('match_timer_period', '前半');
     // ゴールを PK で決めたか（大得点得点者に "(P)" を付ける）
     const [pkInput, setPkInput] = useState(false);
     // 表示中のログ（'' = 当日ログ、数字 = 過去ログの番号）
@@ -93,9 +101,12 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             alert('カードの選手を選んでください。');
             return;
         }
+        // 入れた時刻は表記（前後半ごと／通し）に合わせた分なので、今の前後半で通し時間に直して記録する
+        const period = timerPeriod || '前半';
         const added = record({
             type,
-            time: timeInput,
+            period,
+            time: inputToLogTime(period, timeInput, parseAt(atInput), len),
             ...(type === 'period'
                 ? { event: periodEvent }
                 : { team, ...playerFields(findPlayer(playerId)), ...(type === 'sub' ? inPlayerFields(findPlayer(inPlayerId)) : {}) }),
@@ -108,6 +119,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         setPlayerId('');
         setInPlayerId('');
         setTimeInput('');
+        setAtInput('');
         setPkInput(false);
     };
 
@@ -134,6 +146,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
         )) return;
         setPlayers(prev => applyLogGoals(prev || [], entries));
         writeScores(left, right);
+        writeStatsFromLog(entries);
         if (period) changePeriod(period);
     };
 
@@ -157,7 +170,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
     };
 
     const describe = (e: MatchLogEntry) => {
-        const head = `[${e.period} ${displayMatchTime(e)}] ${LOG_TYPE_LABELS[e.type]}`;
+        const head = `[${e.period} ${logTimeLabel(e, len)}] ${LOG_TYPE_LABELS[e.type]}`;
         if (e.type === 'period') return `${head} ${e.event}`;
         const who = e.playerName ? `#${e.playerNumber} ${e.playerName}` : (e.type === 'goal' ? '(選手不明・OG)' : '');
         if (e.type === 'sub') return `${head} ${e.team} OUT #${e.playerNumber} ${e.playerName} → IN #${e.inPlayerNumber} ${e.inPlayerName}`;
@@ -208,7 +221,9 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
                     {(Object.keys(LOG_TYPE_LABELS) as MatchLogType[]).map(t => <option key={t} value={t}>{LOG_TYPE_LABELS[t]}</option>)}
                 </select>
                 <input className="form-input" style={{ width: 110 }} placeholder="時刻(自動)" value={timeInput} onChange={e => setTimeInput(e.target.value)}
-                    title="空欄なら現在のタイマー時刻で記録します。分だけ（例: 39）で入れると、大得点得点者はその分のまま（+1 しない）。秒まで（例: 39:20）入れると +1 分" />
+                    title={`空欄なら現在のタイマー時刻で記録します（前後半は今のタイマーの前後半）。時刻は表記「${len.style === 'half' ? '前後半ごと' : '通し'}」の分で入れます。分だけ（例: 39）で入れると、大得点得点者はその分のまま（+1 しない）。秒まで（例: 39:20）入れると +1 分。${len.half}分を超えた分はアディショナルになります`} />
+                <input className="form-input" style={{ width: 70 }} placeholder="AT+分" value={atInput} onChange={e => setAtInput(e.target.value)}
+                    title="アディショナルタイム（分）。入れると前後半の終わり + AT で記録します（例: 2 → 前半40+2分）" />
                 {type === 'period' ? (
                     <select className="form-select" style={{ width: 160 }} value={periodEvent} onChange={e => setPeriodEvent(e.target.value)}>
                         {PERIOD_EVENTS.map(ev => <option key={ev} value={ev}>{ev}</option>)}
@@ -263,6 +278,7 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
             {editing && (
                 <LogEditDialog
                     entry={editing}
+                    lengths={len}
                     players={players || []}
                     teams={[oaLeftTeam, oaRightTeam]}
                     onCancel={() => setEditing(null)}
@@ -282,15 +298,28 @@ export default function MatchLog({ oaLeftTeam, oaRightTeam }: { oaLeftTeam: stri
 
 const PERIOD_OPTIONS = ['前半', '後半', '延長前半', '延長後半'];
 
-function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
+/** アディショナルタイムの入力（全角・"+2" も可）→ 分。空・不正は 0 */
+const parseAt = (s: string) => {
+    const n = parseInt(s.trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/^[+＋]/, ''), 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+};
+
+function LogEditDialog({ entry, lengths, players, teams, onCancel, onSave }: {
     entry: MatchLogEntry,
+    lengths: PeriodMinutes,
     players: Player[],
     teams: string[],
     onCancel: () => void,
     onSave: (next: MatchLogEntry) => void
 }) {
+    // 時刻は表記（前後半ごと／通し）に合わせた分で出し、長さを超えた分はアディショナル欄に分ける
+    const initial = logTimeToInput(entry, lengths);
     const [period, setPeriod] = useState(entry.period);
-    const [time, setTime] = useState(editableMatchTime(entry));
+    const [time, setTime] = useState(initial.time);
+    const [at, setAt] = useState(initial.added > 0 ? String(initial.added) : '');
+    const atMinutes = parseAt(at);
+    // AT を入れたときに記録される得点時間（例: 前半40+2分）
+    const atPreview = `${period}${formatGoalMinute(period, periodLength(period, lengths), atMinutes, lengths)}分`;
     const [event, setEvent] = useState(entry.event || PERIOD_EVENTS[0]);
     const [team, setTeam] = useState(entry.team || teams[0] || '');
     const [playerId, setPlayerId] = useState(entry.playerId || '');
@@ -316,10 +345,12 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
     };
 
     const handleSave = () => {
-        if (!time.trim()) {
+        if (!time.trim() && atMinutes === 0) {
             alert('時刻を入力してください。');
             return;
         }
+        // 表記に合わせた分 + アディショナル → 保存する通し時間
+        const logTime = inputToLogTime(period, time, atMinutes, lengths);
         if (isSub && (!playerId || !inPlayerId)) {
             alert('交代は OUT と IN の選手を選んでください。');
             return;
@@ -329,13 +360,13 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
             return;
         }
         if (isPeriod) {
-            onSave({ ...entry, period, time, event });
+            onSave({ ...entry, period, time: logTime, event });
             return;
         }
         const out = fieldsFor(playerId, entry.playerId, entry.playerName, entry.playerNumber);
         const inn = fieldsFor(inPlayerId, entry.inPlayerId, entry.inPlayerName, entry.inPlayerNumber);
         onSave({
-            ...entry, period, time, team,
+            ...entry, period, time: logTime, team,
             playerId: out.id, playerName: out.name, playerNumber: out.number,
             ...(isSub ? { inPlayerId: inn.id, inPlayerName: inn.name, inPlayerNumber: inn.number } : {}),
             ...(entry.type === 'goal' ? { pk: pk || undefined } : {})
@@ -376,7 +407,17 @@ function LogEditDialog({ entry, players, teams, onCancel, onSave }: {
                 <div style={rowStyle}>
                     <span style={labelStyle}>時刻</span>
                     <input className="form-input" value={time} onChange={e => setTime(e.target.value)} placeholder="例: 23:15 / 39（分だけ）" style={{ flex: 1 }} autoFocus
-                        title="分だけ（例: 39）なら大得点得点者はその分のまま。秒まで（例: 39:20）入れると +1 分" />
+                        disabled={atMinutes > 0}
+                        title={`${lengths.style === 'half' ? '前後半ごと' : '通し'}の分で入れます。分だけ（例: 39）なら大得点得点者はその分のまま。秒まで（例: 39:20）入れると +1 分。${periodLength(period, lengths)}分を超えた分は自動でアディショナルになります`} />
+                </div>
+                <div style={rowStyle}>
+                    <span style={labelStyle}>AT</span>
+                    <span style={{ fontSize: '0.9rem', color: '#aaa' }}>+</span>
+                    <input className="form-input" value={at} onChange={e => setAt(e.target.value)} placeholder="0" style={{ width: 70 }}
+                        title="アディショナルタイム（分）。入れると前後半の終わり + AT で記録します" />
+                    <span style={{ fontSize: '0.8rem', color: atMinutes > 0 ? '#ffca28' : '#888' }}>
+                        {atMinutes > 0 ? `→ ${atPreview}` : '分（アディショナルタイムのとき）'}
+                    </span>
                 </div>
 
                 {isPeriod ? (

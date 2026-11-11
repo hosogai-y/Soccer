@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTelopHub } from '@sdk/TelopHubSDK';
 import { usePv, setPvMode, pvHide, pvClear, telopPageUrl, PvLayer } from '../utils/pv';
+import { usePvSendToOnAir, useOnAirCgClear } from '../utils/cgExclusive';
 
 /**
  * PV モードのスイッチ（ナビゲーションバー）と、PV モードの間だけ出る注意の帯。
@@ -74,6 +75,26 @@ export default function PvMonitor() {
     const { projectName } = useTelopHub();
     const [prefs, setPrefsState] = useState<Prefs>(readPrefs);
     const [zoom, setZoom] = useState(false);
+    // PV の CG を OA に送出（PV モードのまま）
+    const sendToOnAir = usePvSendToOnAir();
+    // ONAIR の CG を消す（PV モードのまま。小得点・タイマー・AT は残す）
+    const clearOnAirCg = useOnAirCgClear();
+    // 直前の操作の結果（少しの間だけ出す）
+    const [notice, setNotice] = useState('');
+    const send = (target: PvLayer[]) => {
+        if (target.length === 0) return;
+        sendToOnAir(target);
+        setNotice('✔ ONAIR に送出しました');
+    };
+    const clearOnAir = () => {
+        clearOnAirCg();
+        setNotice('✔ ONAIR の CG を消しました');
+    };
+    useEffect(() => {
+        if (!notice) return;
+        const t = window.setTimeout(() => setNotice(''), 1500);
+        return () => window.clearTimeout(t);
+    }, [notice]);
     // 外部モニター出力（別ウィンドウ）。チェックを外す・PV モードを終える・ウィンドウを閉じると止まる
     const [popup, setPopup] = useState<Window | null>(null);
     const [externalError, setExternalError] = useState('');
@@ -95,6 +116,23 @@ export default function PvMonitor() {
         const t = window.setInterval(() => { if (popup.closed) setPopup(null); }, 500);
         return () => window.clearInterval(t);
     }, [popup]);
+    // ショートカット（PV モードの間だけ）: F1 = ONAIRへ送出、F3 = ONAIR CGクリア。
+    // ブラウザーの F1（ヘルプ）・F3（検索）は止める。押しっぱなしの連続入力は無視。外部モニターのウィンドウでも効く
+    const keyActions = useRef({ send: () => send(layers), clear: clearOnAir });
+    keyActions.current = { send: () => send(layers), clear: clearOnAir };
+    useEffect(() => {
+        if (!mode) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'F1' && e.key !== 'F3') return;
+            e.preventDefault();
+            if (e.repeat) return;
+            if (e.key === 'F1') keyActions.current.send();
+            else keyActions.current.clear();
+        };
+        const targets: Window[] = [window, ...(popup && !popup.closed ? [popup] : [])];
+        targets.forEach(w => w.addEventListener('keydown', onKey));
+        return () => targets.forEach(w => w.removeEventListener('keydown', onKey));
+    }, [mode, popup]);
     const setPrefs = (next: Partial<Prefs>) => setPrefsState(prev => {
         const merged = { ...prev, ...next };
         writePrefs(merged);
@@ -171,6 +209,20 @@ export default function PvMonitor() {
                 {externalError && (
                     <div style={{ fontSize: '0.72rem', color: '#ff8a80', padding: '4px 8px', background: '#2a1515' }}>{externalError}</div>
                 )}
+                {/* PV の CG を ONAIR に TAKE（たたんでいても押せるよう見出しの下に置く） */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', background: '#2a1515', borderBottom: '1px solid rgba(255,152,0,0.4)' }}>
+                    <button className="btn btn-danger" style={{ padding: '3px 14px', fontSize: '0.8rem', fontWeight: 'bold' }} onClick={() => send(layers)} disabled={layers.length === 0}
+                        title={layers.length === 0 ? 'PV に CG が出ていません' : `PV の CG（${layers.map(l => l.name).join('・')}）を ONAIR に TAKE します。他の CG は消えます（小得点・タイマー・AT は残す）`}>
+                        ▶ ONAIRへ送出{layers.length > 1 ? `（${layers.length}件）` : ''} [F1]
+                    </button>
+                    <button className="btn btn-secondary" style={{ padding: '3px 10px', fontSize: '0.75rem', fontWeight: 'bold', borderColor: 'var(--accent-danger)' }} onClick={clearOnAir}
+                        title="ONAIR に出ている CG を消します（小得点・タイマー・AT は残す）。PV モニターの CG はそのまま">
+                        ONAIR CGクリア [F3]
+                    </button>
+                    <span style={{ fontSize: '0.72rem', color: notice ? '#4caf50' : '#aaa', fontWeight: notice ? 'bold' : 'normal' }}>
+                        {notice || 'PV で確認した CG をそのまま OA に出します'}
+                    </span>
+                </div>
                 {!prefs.collapsed && (
                     <>
                         <PvStage layers={layers} scale={scale} bg={prefs.bg} projectName={projectName || ''} />
@@ -180,6 +232,7 @@ export default function PvMonitor() {
                                 : layers.map(l => (
                                     <span key={l.name} style={{ fontSize: '0.7rem', background: 'rgba(255,152,0,0.18)', border: '1px solid rgba(255,152,0,0.5)', borderRadius: 4, padding: '0 2px 0 6px', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                                         {l.name}
+                                        <button className="btn btn-danger" style={{ padding: '0 4px', fontSize: '0.65rem', lineHeight: 1.2 }} onClick={() => send([l])} title={`「${l.name}」だけを ONAIR に TAKE`}>OA</button>
                                         <button className="btn btn-secondary" style={{ padding: '0 4px', fontSize: '0.65rem', lineHeight: 1.2 }} onClick={() => pvHide(l.name)} title="PV モニターから消す">×</button>
                                     </span>
                                 ))}

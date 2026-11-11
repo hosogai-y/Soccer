@@ -166,6 +166,27 @@ window.updateTelop = function (rendarableObject) {
                         }
                         hasUpdates = true;
                     }
+                } else if (target.type === 'appearance_gradient_stop' || target.type === 'bg_appearance_gradient_stop') {
+                    // Replace only this stop's color; the gradient itself stays. Empty values keep the current color.
+                    const strVal = String(val);
+                    const isBg = target.type === 'bg_appearance_gradient_stop';
+                    const holder = isBg ? target.nodeData.background : target.nodeData.style;
+                    const app = holder?.appearances?.[target.appearanceIndex];
+                    const docNode = doc.nodesById[target.nodeData.id];
+                    const docApp = (isBg ? docNode?.background : docNode?.style)?.appearances?.[target.appearanceIndex];
+                    const setStop = (a) => {
+                        const stops = a?.gradientConfig?.stops;
+                        const stop = stops?.[target.stopIndex];
+                        if (!stop || stop.color === strVal) return false;
+                        stop.color = strVal;
+                        if (Array.isArray(a.fill) && a.fill.length === stops.length) a.fill[target.stopIndex] = strVal;
+                        return true;
+                    };
+                    if (strVal !== "") {
+                        const changed = setStop(app);
+                        if (docApp && docApp !== app) setStop(docApp);
+                        if (changed) hasUpdates = true;
+                    }
                 } else if (target.type === 'appearance_color_rule' || target.type === 'bg_appearance_color_rule' || target.type === 'visibility_condition' || target.type === 'image_reference_condition') {
                     hasUpdates = true;
                 }
@@ -238,44 +259,63 @@ window.updateTelop = function (rendarableObject) {
 
 /**
  * テロップを非表示にする関数
+ * Out は、コンテナの下で動いているすべての有限アニメーションが終わってから完了する
+ * （時間差のある Out が最初の animationend で切れないように）。無限ループは待たない。
  */
 window.hideTelop = function () {
     const divElement = document.getElementById(window.containerId || 'player-container');
-    if (divElement) {
-        divElement.classList.remove(...divElement.classList);
+    if (!divElement) return;
 
-        let finished = false;
-        const completeHide = () => {
-            if (finished) return;
-            finished = true;
-            divElement.style.opacity = '0';
-            divElement.classList.remove("out_animation");
-            if (window.animationFinishedCallback) {
-                window.animationFinishedCallback();
-            }
-            divElement.removeEventListener('animationend', onAnimationEnd);
-        };
+    const token = {};
+    window.__telopHideToken = token;
+    divElement.classList.remove(...divElement.classList);
 
-        const onAnimationEnd = (e) => {
-            if (!divElement.classList.contains("out_animation")) return;
-            completeHide();
-        };
+    let finished = false;
+    const completeHide = () => {
+        if (finished) return;
+        finished = true;
+        // A newer hide, or a show that replaced out_animation, owns the container now
+        if (window.__telopHideToken !== token || !divElement.classList.contains("out_animation")) return;
+        divElement.style.opacity = '0';
+        divElement.classList.remove("out_animation");
+        if (window.animationFinishedCallback) {
+            window.animationFinishedCallback();
+        }
+    };
 
-        divElement.addEventListener('animationend', onAnimationEnd);
-        divElement.classList.add("out_animation");
+    divElement.classList.add("out_animation");
 
-        // Safety fallback: if no animation or animationend doesn't fire, complete after duration or max 1s
+    if (typeof divElement.getAnimations !== 'function') {
+        // Old engines: the first animationend, with a timeout as a safety net
+        divElement.addEventListener('animationend', completeHide, { once: true });
         const animTarget = divElement.querySelector('.anim-target') || divElement;
         const animDuration = parseFloat(getComputedStyle(animTarget).animationDuration || '0');
         const animDelay = parseFloat(getComputedStyle(animTarget).animationDelay || '0');
-        const timeoutMs = Math.max(1000, (animDuration + animDelay + 0.5) * 1000);
-        setTimeout(() => {
-            if (!finished && divElement.classList.contains("out_animation")) {
-                completeHide();
-            }
-        }, timeoutMs);
+        setTimeout(completeHide, Math.max(1000, (animDuration + animDelay + 0.5) * 1000));
+        return;
     }
+
+    // getAnimations flushes styles, so the out_animation rules are already applied here
+    const animations = divElement.getAnimations({ subtree: true }).filter((a) => {
+        const end = a.effect && a.effect.getComputedTiming().endTime;
+        return typeof end === 'number' && Number.isFinite(end);
+    });
+    if (animations.length === 0) {
+        completeHide();
+        return;
+    }
+    const remainingMs = Math.max(0, ...animations.map((a) => {
+        const end = Number(a.effect.getComputedTiming().endTime || 0);
+        const current = Number(a.currentTime || 0);
+        return (end - current) / (a.playbackRate || 1);
+    }));
+    // Safety net in case a finished promise never settles (e.g. the page is throttled while hidden)
+    setTimeout(completeHide, Math.min(15000, remainingMs + 500));
+    // finished rejects when an animation is cancelled (classes swapped by a re-show); completeHide checks for that
+    Promise.all(animations.map((a) => a.finished)).then(completeHide, completeHide);
 };
+// TelopHub skips its own hideTelop patch for players that already wait for every animation
+window.hideTelop.waitsForAllAnimations = true;
 
 
 // 3. Initialization

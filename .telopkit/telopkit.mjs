@@ -10083,9 +10083,9 @@ function generateUniqueName(doc, baseName) {
     if (node.name) {
       const match = node.name.match(regex);
       if (match && match[1]) {
-        const num = parseInt(match[1], 10);
-        if (!isNaN(num) && num > maxNum) {
-          maxNum = num;
+        const num2 = parseInt(match[1], 10);
+        if (!isNaN(num2) && num2 > maxNum) {
+          maxNum = num2;
         }
       }
     }
@@ -13281,11 +13281,20 @@ var PLAYER_JS_CONTENT = `
                 const childrenAreTelopChildren = (node.type === 'telop');
                 node.children.forEach(cid => {
                     const override = autoLayoutPositions ? autoLayoutPositions[cid] : null;
-                    const c = window.createNode(cid, override, childrenAreTelopChildren);
-                    if (!c) return;
+                    const created = window.createNode(cid, override, childrenAreTelopChildren);
+                    if (!created) return;
+                    // Per-node in/out animation (<Telop>.anim.css) targets [data-anim-node]. The node's own root carries its
+                    // position in the transform attribute, so scale / rotate around its center need a wrapper without one.
+                    // Hub swaps replace the node inside the wrapper, so the wrapper (and a running animation) stays.
+                    const c = createSVGElement("g");
+                    c.classList.add("node-anim");
+                    c.setAttribute("data-anim-node", cid);
+                    c.appendChild(created);
                     if (childrenAreTelopChildren && !activeDoc.nodesById[cid]?.clipRect) {
                         // The wrapper has no position of its own, so in/out animations can use transform without moving the node.
                         // It stays even while the child is hidden: Hub swaps and shows the child in place, inside this wrapper.
+                        // Kept apart from .node-anim: one element can run only one animation list, so the telop-wide and the
+                        // per-node animation would override each other.
                         const animHost = createSVGElement("g");
                         animHost.classList.add("anim-target");
                         animHost.appendChild(c);
@@ -13372,6 +13381,7 @@ var HTML_TEMPLATE = `<!DOCTYPE html>
     <title>{{TITLE}}</title>
     <link rel="stylesheet" href="/fonts/fonts.css">
     <link rel="stylesheet" href="./{{CSS_FILENAME}}">
+    <link rel="stylesheet" href="./{{ANIM_CSS_FILENAME}}">
     <script src="../viewer/renderer.js{{RENDERER_VERSION}}"></script>
     <script src="./{{JS_FILENAME}}"></script>
 </head>
@@ -13635,68 +13645,209 @@ window.updateTelop = function (rendarableObject) {
 
 /**
  * \u30C6\u30ED\u30C3\u30D7\u3092\u975E\u8868\u793A\u306B\u3059\u308B\u95A2\u6570
+ * Out \u306F\u3001\u30B3\u30F3\u30C6\u30CA\u306E\u4E0B\u3067\u52D5\u3044\u3066\u3044\u308B\u3059\u3079\u3066\u306E\u6709\u9650\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u304C\u7D42\u308F\u3063\u3066\u304B\u3089\u5B8C\u4E86\u3059\u308B
+ * \uFF08\u6642\u9593\u5DEE\u306E\u3042\u308B Out \u304C\u6700\u521D\u306E animationend \u3067\u5207\u308C\u306A\u3044\u3088\u3046\u306B\uFF09\u3002\u7121\u9650\u30EB\u30FC\u30D7\u306F\u5F85\u305F\u306A\u3044\u3002
  */
 window.hideTelop = function () {
     const divElement = document.getElementById(window.containerId || 'player-container');
-    if (divElement) {
-        divElement.classList.remove(...divElement.classList);
+    if (!divElement) return;
 
-        let finished = false;
-        const completeHide = () => {
-            if (finished) return;
-            finished = true;
-            divElement.style.opacity = '0';
-            divElement.classList.remove("out_animation");
-            if (window.animationFinishedCallback) {
-                window.animationFinishedCallback();
-            }
-            divElement.removeEventListener('animationend', onAnimationEnd);
-        };
+    const token = {};
+    window.__telopHideToken = token;
+    divElement.classList.remove(...divElement.classList);
 
-        const onAnimationEnd = (e) => {
-            if (!divElement.classList.contains("out_animation")) return;
-            completeHide();
-        };
+    let finished = false;
+    const completeHide = () => {
+        if (finished) return;
+        finished = true;
+        // A newer hide, or a show that replaced out_animation, owns the container now
+        if (window.__telopHideToken !== token || !divElement.classList.contains("out_animation")) return;
+        divElement.style.opacity = '0';
+        divElement.classList.remove("out_animation");
+        if (window.animationFinishedCallback) {
+            window.animationFinishedCallback();
+        }
+    };
 
-        divElement.addEventListener('animationend', onAnimationEnd);
-        divElement.classList.add("out_animation");
+    divElement.classList.add("out_animation");
 
-        // Safety fallback: if no animation or animationend doesn't fire, complete after duration or max 1s
+    if (typeof divElement.getAnimations !== 'function') {
+        // Old engines: the first animationend, with a timeout as a safety net
+        divElement.addEventListener('animationend', completeHide, { once: true });
         const animTarget = divElement.querySelector('.anim-target') || divElement;
         const animDuration = parseFloat(getComputedStyle(animTarget).animationDuration || '0');
         const animDelay = parseFloat(getComputedStyle(animTarget).animationDelay || '0');
-        const timeoutMs = Math.max(1000, (animDuration + animDelay + 0.5) * 1000);
-        setTimeout(() => {
-            if (!finished && divElement.classList.contains("out_animation")) {
-                completeHide();
-            }
-        }, timeoutMs);
+        setTimeout(completeHide, Math.max(1000, (animDuration + animDelay + 0.5) * 1000));
+        return;
     }
+
+    // getAnimations flushes styles, so the out_animation rules are already applied here
+    const animations = divElement.getAnimations({ subtree: true }).filter((a) => {
+        const end = a.effect && a.effect.getComputedTiming().endTime;
+        return typeof end === 'number' && Number.isFinite(end);
+    });
+    if (animations.length === 0) {
+        completeHide();
+        return;
+    }
+    const remainingMs = Math.max(0, ...animations.map((a) => {
+        const end = Number(a.effect.getComputedTiming().endTime || 0);
+        const current = Number(a.currentTime || 0);
+        return (end - current) / (a.playbackRate || 1);
+    }));
+    // Safety net in case a finished promise never settles (e.g. the page is throttled while hidden)
+    setTimeout(completeHide, Math.min(15000, remainingMs + 500));
+    // finished rejects when an animation is cancelled (classes swapped by a re-show); completeHide checks for that
+    Promise.all(animations.map((a) => a.finished)).then(completeHide, completeHide);
 };
+// TelopHub skips its own hideTelop patch for players that already wait for every animation
+window.hideTelop.waitsForAllAnimations = true;
 `;
 var CSS_CONTENT = `/* @telop-editor-default-template: If you modify this file, remove this line to prevent TelopEditor from overwriting your changes. */
-body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
-svg { width: 100%; height: 100%; display: block; }
-#player-container { opacity: 0; width: 1920px; height: 1080px; }
-.in_animation, #player-container.in_animation { opacity: 1; }
-.out_animation, #player-container.out_animation { opacity: 1; }
-#player-container.in_animation .anim-target, .in_animation:not(#player-container) { animation: fadeIn 0s forwards; opacity: 1; }
-#player-container.out_animation .anim-target, .out_animation:not(#player-container) { animation: fadeOut 0s forwards; }
-#player-container.in_animation:not(:has(.anim-target)) { animation: fadeIn 0s forwards; opacity: 1; }
-#player-container.out_animation:not(:has(.anim-target)) { animation: fadeOut 0s forwards; }
-/* Invisible node guard: never display or animate invisible nodes */
-svg [visibility="hidden"],
-.is-invisible,
-.is-invisible * {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    animation: none !important;
-    transform: none !important;
-    pointer-events: none !important;
+/* Player defaults live in @layer telop-base and the dashboard's In/Out in @layer telop-anim (<Telop>.anim.css).
+   Unlayered rules you add to this file always win over both, whatever their specificity. */
+@layer telop-base, telop-anim;
+@layer telop-base {
+    body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+    svg { width: 100%; height: 100%; display: block; }
+    #player-container { opacity: 0; width: 1920px; height: 1080px; }
+    .in_animation, #player-container.in_animation { opacity: 1; }
+    .out_animation, #player-container.out_animation { opacity: 1; }
+    #player-container.in_animation .anim-target, .in_animation:not(#player-container) { animation: fadeIn 0s forwards; opacity: 1; }
+    #player-container.out_animation .anim-target, .out_animation:not(#player-container) { animation: fadeOut 0s forwards; }
+    #player-container.in_animation:not(:has(.anim-target)) { animation: fadeIn 0s forwards; opacity: 1; }
+    #player-container.out_animation:not(:has(.anim-target)) { animation: fadeOut 0s forwards; }
+    /* Invisible node guard: never display or animate invisible nodes (!important in a layer beats every unlayered rule) */
+    svg [visibility="hidden"],
+    .is-invisible,
+    .is-invisible * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        animation: none !important;
+        transform: none !important;
+        pointer-events: none !important;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+}`;
+
+// vendor/TelopEditor/src/persistence/telopCss.ts
+var LAYER_BASE = "telop-base";
+var LAYER_ANIM = "telop-anim";
+var LAYER_ORDER_STATEMENT = `@layer ${LAYER_BASE}, ${LAYER_ANIM};`;
+var animCssFileName = (telopName) => `${telopName}.anim.css`;
+function splitTopLevel(css) {
+  const items = [];
+  let i = 0;
+  const n = css.length;
+  const skipString = (j) => {
+    const q = css[j];
+    j++;
+    while (j < n && css[j] !== q) j += css[j] === "\\" ? 2 : 1;
+    return j + 1;
+  };
+  const skipComment = (j) => {
+    const e = css.indexOf("*/", j + 2);
+    return e < 0 ? n : e + 2;
+  };
+  while (i < n) {
+    const start = i;
+    if (/\s/.test(css[i])) {
+      while (i < n && /\s/.test(css[i])) i++;
+      items.push({ kind: "ws", text: css.substring(start, i) });
+      continue;
+    }
+    if (css.startsWith("/*", i)) {
+      i = skipComment(i);
+      items.push({ kind: "comment", text: css.substring(start, i) });
+      continue;
+    }
+    while (i < n && css[i] !== ";" && css[i] !== "{") {
+      if (css[i] === '"' || css[i] === "'") i = skipString(i);
+      else if (css.startsWith("/*", i)) i = skipComment(i);
+      else i++;
+    }
+    if (i >= n) {
+      items.push({ kind: "statement", text: css.substring(start) });
+      break;
+    }
+    if (css[i] === ";") {
+      i++;
+      items.push({ kind: "statement", text: css.substring(start, i) });
+      continue;
+    }
+    const prelude = css.substring(start, i).trim();
+    let depth = 0;
+    while (i < n) {
+      const c = css[i];
+      if (c === '"' || c === "'") {
+        i = skipString(i);
+        continue;
+      }
+      if (css.startsWith("/*", i)) {
+        i = skipComment(i);
+        continue;
+      }
+      if (c === "{") depth++;
+      else if (c === "}") {
+        depth--;
+        if (depth === 0) {
+          i++;
+          break;
+        }
+      }
+      i++;
+    }
+    items.push({ kind: "block", text: css.substring(start, i), prelude });
+  }
+  return items;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }`;
+var normalizeSelector = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, "");
+var IN_OUT_SELECTORS = (c) => [
+  `.${c}`,
+  `.${c},#player-container.${c}`,
+  `#player-container.${c}`,
+  `#player-container.${c}.anim-target,.${c}:not(#player-container)`,
+  `#player-container.${c}.anim-target`,
+  `#player-container.${c}:not(:has(.anim-target))`
+];
+var BASE_SELECTORS = /* @__PURE__ */ new Set([
+  "body",
+  "svg",
+  "canvas",
+  "#player-container",
+  `svg[visibility="hidden"],.is-invisible,.is-invisible*`,
+  ...IN_OUT_SELECTORS("in_animation"),
+  ...IN_OUT_SELECTORS("out_animation")
+]);
+function isBaseSelector(selector) {
+  return BASE_SELECTORS.has(normalizeSelector(selector));
+}
+function layerTelopBase(css) {
+  const items = splitTopLevel(css);
+  const moved = [];
+  let insertAt = -1;
+  const kept = [];
+  for (const item of items) {
+    if (item.kind === "block" && item.prelude && !item.prelude.startsWith("@") && isBaseSelector(item.prelude)) {
+      if (insertAt < 0) insertAt = kept.length;
+      moved.push(item.text.trim());
+      continue;
+    }
+    kept.push(item);
+  }
+  if (moved.length === 0) return css;
+  const hasOrder = items.some((it) => it.kind === "statement" && it.text.replace(/\s+/g, " ").trim() === LAYER_ORDER_STATEMENT);
+  const eol = css.includes("\r\n") ? "\r\n" : "\n";
+  const layered = `${hasOrder ? "" : LAYER_ORDER_STATEMENT + "\n"}@layer ${LAYER_BASE} {
+${moved.map((r) => indent(r.replace(/\r\n/g, "\n"))).join("\n")}
+}
+`.replace(/\n/g, eol);
+  kept.splice(insertAt, 0, { kind: "block", text: layered });
+  return kept.map((it) => it.text).join("").replace(/(\r?\n)(?:[ \t]*\r?\n){2,}/g, "$1$1");
+}
+var indent = (s) => s.split("\n").map((l) => l ? "    " + l : l).join("\n");
 
 // vendor/TelopEditor/src/persistence/ProjectRepair.ts
 var ProjectRepair = class {
@@ -14205,7 +14356,7 @@ window.addEventListener('load', async () => {
             }).join("\n") + "\n\n";
           }
           const customCss = telopNode.customCss;
-          const cssContent = fontFaceRules + (customCss ? _ProjectExporter.stripGeneratedFontFaces(customCss) : CSS_CONTENT);
+          const cssContent = fontFaceRules + (customCss ? layerTelopBase(_ProjectExporter.stripGeneratedFontFaces(customCss)) : CSS_CONTENT);
           files.push({ path: `${telopName}/${jsFileName}`, content: finalJs });
           files.push({ path: `${telopName}/${cssFileName}`, content: cssContent });
           const getStringHash = (str) => {
@@ -14220,7 +14371,7 @@ window.addEventListener('load', async () => {
           const jsHash = getStringHash(finalJs);
           const cssHash = getStringHash(cssContent);
           const rendererHash = getStringHash(PLAYER_JS);
-          const html = HTML_TEMPLATE.replace("{{TITLE}}", telopNode.name || telopName).replace("{{CSS_FILENAME}}", `${cssFileName}?v=${cssHash}`).replace("{{JS_FILENAME}}", `${jsFileName}?v=${jsHash}`).replace("{{RENDERER_VERSION}}", `?v=${rendererHash}`);
+          const html = HTML_TEMPLATE.replace("{{TITLE}}", telopNode.name || telopName).replace("{{CSS_FILENAME}}", `${cssFileName}?v=${cssHash}`).replace("{{ANIM_CSS_FILENAME}}", animCssFileName(telopName)).replace("{{JS_FILENAME}}", `${jsFileName}?v=${jsHash}`).replace("{{RENDERER_VERSION}}", `?v=${rendererHash}`);
           files.push({ path: `${telopName}/${telopName}.html`, content: html });
         }
       }
@@ -14250,6 +14401,243 @@ window.addEventListener('load', async () => {
     saveAs(blob, safeTitle + ".zip");
   }
 };
+
+// vendor/TelopEditor/src/persistence/telopAnim.ts
+var animJsonFileName = (telopName) => `${telopName}.anim.json`;
+var PARAM_TYPES = ["number", "px", "s", "deg", "%", "color"];
+var PARAM_LINE = /@param\s+(--[\w-]+)\s+([\w%]+)([^*\n]*)/g;
+function parseCssParams(css) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const m of css.matchAll(PARAM_LINE)) {
+    const [, name, typeRaw, restRaw] = m;
+    const type = typeRaw;
+    if (!PARAM_TYPES.includes(type) || seen.has(name)) continue;
+    seen.add(name);
+    let rest = restRaw.trim();
+    const param = { name, type, label: name };
+    const range = rest.match(/^(-?[\d.]+)\.\.(-?[\d.]+)\s*/);
+    if (range) {
+      param.min = parseFloat(range[1]);
+      param.max = parseFloat(range[2]);
+      rest = rest.slice(range[0].length);
+    }
+    const step = rest.match(/^step\s+([\d.]+)\s*/);
+    if (step) {
+      param.step = parseFloat(step[1]);
+      rest = rest.slice(step[0].length);
+    }
+    if (rest) param.label = rest;
+    const decl = css.match(new RegExp(`${name.replace(/[-]/g, "\\-")}\\s*:\\s*([^;}]+)`));
+    if (decl) param.defaultValue = type === "color" ? decl[1].trim() : String(parseFloat(decl[1]));
+    out.push(param);
+  }
+  return out;
+}
+function cssParamValue(type, value) {
+  const v = String(value).trim();
+  if (type === "color") return /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v) ? v : null;
+  if (!/^-?\d+(\.\d+)?$/.test(v)) return null;
+  return type === "number" ? v : `${v}${type}`;
+}
+var PHASE_CLASS = { in: "in_animation", out: "out_animation" };
+var INSTANT_KEYFRAMES = { in: "th-instant-in", out: "th-instant-out" };
+var INVALID_TIMING = ["forwards", "backwards", "both", "none", "normal", "reverse", "alternate", "alternate-reverse", "running", "paused"];
+var normalizeTiming = (timing) => timing && !INVALID_TIMING.includes(timing.toLowerCase()) ? timing : "ease";
+var DEFAULT_EASE = {
+  slide: "cubic-bezier(0.16, 1, 0.3, 1)",
+  wipe: "cubic-bezier(0.16, 1, 0.3, 1)",
+  pop: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+  zoom: "cubic-bezier(0.16, 1, 0.3, 1)"
+};
+var num = (v, fallback) => typeof v === "number" && Number.isFinite(v) ? v : fallback;
+var px = (v) => `${Math.round(v * 100) / 100}px`;
+var sec = (v) => `${Math.round(v * 1e3) / 1e3}s`;
+var indent2 = (s) => s.split("\n").map((l) => l ? "    " + l : l).join("\n");
+var cssString = (s) => `"${s.replace(/["\\]/g, "\\$&")}"`;
+var isNodeTarget = (t) => typeof t === "object" && !!t && typeof t.nodeId === "string";
+var targetKey = (t) => isNodeTarget(t) ? `node:${t.nodeId}` : "telop";
+function hiddenState(track) {
+  const fade = track.fade !== false;
+  const dir = track.dir || (track.effect === "wipe" ? "left" : "down");
+  switch (track.effect) {
+    case "fade":
+      return ["opacity: 0"];
+    case "slide": {
+      const d = num(track.distance, 40);
+      const [x, y] = dir === "left" ? [-d, 0] : dir === "right" ? [d, 0] : dir === "up" ? [0, -d] : [0, d];
+      return [`translate: ${px(x)} ${px(y)}`, ...fade ? ["opacity: 0"] : []];
+    }
+    case "wipe": {
+      const inset = dir === "left" ? "0 100% 0 0" : dir === "right" ? "0 0 0 100%" : dir === "up" ? "0 0 100% 0" : "100% 0 0 0";
+      return [`clip-path: inset(${inset})`];
+    }
+    case "pop":
+    case "zoom": {
+      const s = num(track.scale, track.effect === "pop" ? 0.6 : 0.85);
+      return [`scale: ${s}`, ...fade ? ["opacity: 0"] : []];
+    }
+    default:
+      return null;
+  }
+}
+var SHOWN_STATE = {
+  opacity: "opacity: 1",
+  translate: "translate: 0 0",
+  "clip-path": "clip-path: inset(0 0 0 0)",
+  scale: "scale: 1"
+};
+function generatedKeyframes(name, phase, hidden) {
+  const shown = hidden.map((d) => SHOWN_STATE[d.split(":")[0].trim()]).filter(Boolean);
+  const [from, to] = phase === "in" ? [hidden, shown] : [shown, hidden];
+  return `@keyframes ${name} { from { ${from.join("; ")}; } to { ${to.join("; ")}; } }`;
+}
+function buildTrack(track, phase, index) {
+  const duration = Math.max(0, num(track.duration, 0));
+  const delay = num(track.delay, 0);
+  const ease = normalizeTiming(track.ease || DEFAULT_EASE[track.effect]);
+  let name;
+  let keyframes;
+  if (track.effect === "keyframes") {
+    if (!track.name || !/^[\w-]+$/.test(track.name)) return null;
+    name = track.name;
+  } else {
+    const hidden = hiddenState(track);
+    if (!hidden) return null;
+    name = `th-${phase}-${index + 1}`;
+    keyframes = generatedKeyframes(name, phase, hidden);
+  }
+  const iteration = track.effect === "keyframes" && track.iteration ? track.iteration : "1";
+  const direction = track.effect === "keyframes" && track.direction ? track.direction : "normal";
+  const fill = phase === "in" && track.effect !== "keyframes" ? "backwards" : "both";
+  return { animation: `${name} ${sec(duration)} ${ease} ${sec(delay)} ${iteration} ${direction} ${fill}`, keyframes };
+}
+var LEGACY_SAFE = ["fade", "slide"];
+function containerRules(cls) {
+  return `.${cls}, #player-container.${cls} {
+    opacity: 1;
+    position: fixed;
+    width: 1920px;
+    height: 1080px;
+    top: 0px;
+    left: 0px;
+}`;
+}
+function telopRules(cls, animations, origin) {
+  const decl = `    animation: ${animations.join(", ")};`;
+  return `/* Animate targets: content inside clipRect, or normal elements without clipRect */
+#player-container.${cls} .anim-target,
+.${cls}:not(#player-container) {
+    transform-box: view-box;
+    transform-origin: ${origin};
+${decl}
+}
+/* Fallback for containers without .anim-target elements */
+#player-container.${cls}:not(:has(.anim-target)) {
+    transform-origin: ${origin};
+${decl}
+}`;
+}
+function nodeRules(cls, nodeId, animations, origin, legacyAnimations) {
+  const id = cssString(nodeId);
+  const rules = [`#player-container.${cls} [data-anim-node=${id}] {
+    transform-box: fill-box;
+    transform-origin: ${origin};
+    animation: ${animations.join(", ")};
+}`];
+  if (legacyAnimations.length) {
+    rules.push(`#player-container.${cls} :not(.node-anim) > [data-node-id=${id}] {
+    animation: ${legacyAnimations.join(", ")};
+}`);
+  }
+  return rules.join("\n");
+}
+function phaseCss(anim, phase) {
+  const cls = PHASE_CLASS[phase];
+  const tracks = (anim[phase] || []).filter((t) => t && t.target && t.effect);
+  const groups = /* @__PURE__ */ new Map();
+  const keyframes = [];
+  tracks.forEach((track, index) => {
+    const built = buildTrack(track, phase, index);
+    if (!built) return;
+    const key2 = targetKey(track.target);
+    let group = groups.get(key2);
+    if (!group) {
+      group = { target: track.target, built: [], legacy: [], origin: `${num(track.originX, 50)}% ${num(track.originY, 50)}%` };
+      groups.set(key2, group);
+    }
+    group.built.push(built);
+    if (LEGACY_SAFE.includes(track.effect)) group.legacy.push(built.animation);
+    if (built.keyframes) keyframes.push(built.keyframes);
+  });
+  const out = [containerRules(cls)];
+  const telop = groups.get("telop");
+  if (telop) {
+    out.push(telopRules(cls, telop.built.map((b) => b.animation), telop.origin));
+  } else {
+    out.push(telopRules(cls, [`${INSTANT_KEYFRAMES[phase]} 0s ease 0s 1 normal both`], "50% 50%"));
+    keyframes.push(phase === "in" ? `@keyframes ${INSTANT_KEYFRAMES.in} { from { opacity: 0; } to { opacity: 1; } }` : `@keyframes ${INSTANT_KEYFRAMES.out} { from { opacity: 1; } to { opacity: 0; } }`);
+  }
+  for (const group of groups.values()) {
+    if (!isNodeTarget(group.target)) continue;
+    out.push(nodeRules(cls, group.target.nodeId, group.built.map((b) => b.animation), group.origin, group.legacy));
+  }
+  return { rules: out.join("\n"), keyframes };
+}
+var BASE_DEFAULTS = `#player-container { opacity: 0; }
+/* Invisible node guard: never display or animate invisible nodes */
+svg [visibility="hidden"],
+.is-invisible,
+.is-invisible * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    animation: none !important;
+    transform: none !important;
+    pointer-events: none !important;
+}`;
+function buildAnimCss(anim, externalKeyframes = "", params = []) {
+  const inCss = phaseCss(anim, "in");
+  const outCss = phaseCss(anim, "out");
+  const values = [];
+  for (const p of params) {
+    const set = anim.params?.[p.name];
+    const v = set !== void 0 ? cssParamValue(p.type, set) : null;
+    if (v) values.push(`    ${p.name}: ${v};`);
+  }
+  const paramRule = values.length ? `#player-container {
+${values.join("\n")}
+}` : "";
+  const body = [paramRule, inCss.rules, outCss.rules, ...inCss.keyframes, ...outCss.keyframes, externalKeyframes.trim()].filter(Boolean).join("\n");
+  return `/* GENERATED by the TelopHub dashboard (In/Out animation panel) from <Telop>.anim.json. Do not edit: changes are overwritten.
+   Hand-written animation goes in <Telop>.css; its unlayered rules always win over this file. */
+${LAYER_ORDER_STATEMENT}
+@layer ${LAYER_BASE} {
+${indent2(BASE_DEFAULTS)}
+}
+@layer ${LAYER_ANIM} {
+${indent2(body)}
+}
+`;
+}
+function parseTelopAnim(text) {
+  if (!text) return null;
+  try {
+    const raw = JSON.parse(text);
+    if (!raw || typeof raw !== "object" || raw.version !== 1) return null;
+    const tracks = (v) => Array.isArray(v) ? v.filter((t) => t && typeof t === "object" && t.target && t.effect) : [];
+    const params = {};
+    if (raw.params && typeof raw.params === "object" && !Array.isArray(raw.params)) {
+      for (const [k8, v] of Object.entries(raw.params)) {
+        if (/^--[\w-]+$/.test(k8) && (typeof v === "string" || typeof v === "number")) params[k8] = String(v);
+      }
+    }
+    return { version: 1, in: tracks(raw.in), out: tracks(raw.out), ...Object.keys(params).length ? { params } : {} };
+  } catch {
+    return null;
+  }
+}
+var stringifyTelopAnim = (anim) => JSON.stringify(anim, null, 2) + "\n";
 
 // vendor/TelopEditor/src/domain/projectdoc/commonKeys.ts
 function getCommonKeys(doc) {
@@ -14391,6 +14779,11 @@ var Builder = class {
   blobs = /* @__PURE__ */ new Map();
   assetCache = /* @__PURE__ */ new Map();
   doc;
+  /** Per telop id: node name / text key -> node ids, for `anim` targets */
+  animTargets = /* @__PURE__ */ new Map();
+  animSpecs = [];
+  /** telop name -> its In / Out, written next to the telop as <Telop>.anim.json / .anim.css */
+  anims = /* @__PURE__ */ new Map();
   build() {
     const names = /* @__PURE__ */ new Set();
     for (const telop of this.spec.telops) {
@@ -14401,6 +14794,7 @@ var Builder = class {
     }
     let doc = this.doc;
     for (const cmd of this.commands) doc = applyDocumentCommand(doc, cmd);
+    for (const { spec, telopId } of this.animSpecs) this.anims.set(spec.name, this.resolveAnim(spec, telopId));
     return doc;
   }
   addTelop(spec) {
@@ -14424,7 +14818,30 @@ var Builder = class {
       }
     });
     if (!spec.raw) this.commands.push(...buildEnsureCommonKeysCommands(this.doc, id));
+    this.animTargets.set(id, /* @__PURE__ */ new Map());
     for (const child of spec.children || []) this.addNode(child, id, id, spec.name);
+    if (spec.anim) this.animSpecs.push({ spec, telopId: id });
+  }
+  /** `anim` short-hand -> anim.json, with node names / keys turned into node ids */
+  resolveAnim(spec, telopId) {
+    const targets = this.animTargets.get(telopId);
+    const phase = (list, which) => (list || []).flatMap((t, i) => {
+      const label = `${spec.name} > anim.${which}[${i}]`;
+      const { target, ...rest } = t;
+      if (rest.effect === "keyframes" && rest.library) {
+        this.warnings.push(`${label}: ${rest.library} keyframes are not bundled with telopkit; pick "${rest.name}" in the dashboard's Animation Panel, or define the @keyframes in css`);
+        return [];
+      }
+      if (target === void 0 || target === "telop") return [{ ...rest, target: "telop" }];
+      const ids = targets.get(target) || [];
+      if (ids.length !== 1) {
+        this.warnings.push(`${label}: target "${target}" ${ids.length ? `matches ${ids.length} nodes; give them distinct names` : "is not a node name or key in this telop"}`);
+        return [];
+      }
+      return [{ ...rest, target: { nodeId: ids[0] } }];
+    });
+    const params = Object.fromEntries(Object.entries(spec.anim?.params || {}).map(([k8, v]) => [k8, String(v)]));
+    return { version: 1, in: phase(spec.anim?.in, "in"), out: phase(spec.anim?.out, "out"), ...Object.keys(params).length ? { params } : {} };
   }
   /** Replaces "@asset:<path>" strings (written by `telopkit pull`) with asset ids registered for this telop */
   resolveAssetRefs(value, telopId, label) {
@@ -14474,6 +14891,10 @@ var Builder = class {
         throw new Error(`${label}: unknown node type ${spec.type}`);
     }
     if (spec.raw) Object.assign(node, this.resolveAssetRefs(spec.raw, telopId, label));
+    const targets = this.animTargets.get(telopId);
+    for (const ref of new Set([node.name, node.keyexp].filter((v) => typeof v === "string" && v))) {
+      targets?.set(ref, [...targets.get(ref) || [], id]);
+    }
     this.commands.push({ kind: "AddNode", parentId, node });
     if (spec.type === "group") {
       if (spec.repeat && (spec.children || []).length !== 1) {
@@ -14694,6 +15115,13 @@ async function buildProject(spec, baseDir, base, customFonts2) {
   const doc = builder.build();
   const assetRegistry = { getAssetBlob: async (id) => builder.blobs.get(id) ?? null };
   const { files, safeTitle } = await ProjectExporter.generateProjectFiles(doc, assetRegistry, void 0, true, customFonts2);
+  for (const [name, anim] of builder.anims) {
+    const folder = name.replace(/[\\/:*?"<>|]/g, "_").trim();
+    files.push({ path: `${folder}/${animJsonFileName(folder)}`, content: stringifyTelopAnim(anim) });
+    const css = files.find((f) => f.path === `${folder}/${folder}.css`)?.content;
+    const params = typeof css === "string" ? parseCssParams(css) : [];
+    files.push({ path: `${folder}/${animCssFileName(folder)}`, content: buildAnimCss(anim, "", params) });
+  }
   return { doc, files, safeTitle, warnings: builder.warnings };
 }
 async function writeProject(result, outDir) {
@@ -14773,6 +15201,10 @@ function startServer(projectDir, fonts, extra) {
     }
     const file = path3.resolve(root, rel);
     if (!file.startsWith(path3.resolve(root)) || !fs3.existsSync(file) || fs3.statSync(file).isDirectory()) {
+      if (file.startsWith(path3.resolve(root)) && file.endsWith(".anim.css")) {
+        res.writeHead(200, { "Content-Type": MIME[".css"] }).end();
+        return;
+      }
       res.writeHead(404).end();
       return;
     }
@@ -15036,6 +15468,23 @@ import path4 from "node:path";
 var KIT_DIR = ".telopkit";
 var TEMPLATE_MARKER = "@telop-editor-default-template";
 var FONT_FILE = /\.(ttf|otf|woff2?)$/i;
+function animSpecOf(t, problems) {
+  const file = path4.join(t.dir, animJsonFileName(t.name));
+  const anim = fs4.existsSync(file) ? parseTelopAnim(fs4.readFileSync(file, "utf8")) : null;
+  if (!anim) return void 0;
+  const nodes = Object.values(t.sub?.nodesById || {});
+  const phase = (tracks, which) => tracks.flatMap((track, i) => {
+    const { target, ...rest } = track;
+    if (!isNodeTarget(target)) return [rest];
+    const name = t.sub?.nodesById?.[target.nodeId]?.name;
+    if (!name || nodes.filter((n) => n.name === name).length !== 1) {
+      problems.push(`${t.name} > anim.${which}[${i}]: node ${target.nodeId} ${name ? `shares its name "${name}" with other nodes` : "no longer exists"}; track dropped`);
+      return [];
+    }
+    return [{ ...rest, target: name }];
+  });
+  return { in: phase(anim.in, "in"), out: phase(anim.out, "out"), ...anim.params ? { params: anim.params } : {} };
+}
 function readProject(dir) {
   const pjPath = path4.join(dir, "project.json");
   const projectJson = fs4.existsSync(pjPath) ? JSON.parse(fs4.readFileSync(pjPath, "utf8")) : null;
@@ -15161,7 +15610,9 @@ function pullTelop(p, telopName, outFile) {
       if (!content.includes(TEMPLATE_MARKER)) raw[key2] = content;
     }
   }
-  const telop = { name: t.name, raw, children: (children || []).map(toSpec) };
+  const problems = [];
+  const anim = animSpecOf(t, problems);
+  const telop = { name: t.name, raw, children: (children || []).map(toSpec), ...anim ? { anim } : {} };
   const spec = {
     title: p.projectJson?.meta?.title ?? path4.basename(p.dir),
     canvas: p.projectJson?.meta?.canvas,
@@ -15171,6 +15622,7 @@ function pullTelop(p, telopName, outFile) {
   fs4.writeFileSync(outFile, [
     `// Pulled from telop "${t.name}" by telopkit. Every node keeps its full editor props in \`raw\`.`,
     `// Edit (or replace nodes with the short-hand), then: node .telopkit/telopkit.mjs push ${path4.relative(p.dir, outFile).split(path4.sep).join("/")}`,
+    ...problems.map((m) => `// WARNING ${m}`),
     `export default ${JSON.stringify(spec, null, 2)};`,
     ""
   ].join("\n"));
@@ -15259,6 +15711,19 @@ async function pushSpec(projectDir, spec, specDir) {
       throw new Error(`"${name}" already exists in the project and is not a TelopEditor telop; pick another telop name`);
     }
   }
+  const carried = [];
+  const carryWarnings = [];
+  spec = {
+    ...spec,
+    telops: spec.telops.map((t) => {
+      if (t.anim) return t;
+      const old = before.telops.find((x) => x.name === t.name);
+      const anim = old ? animSpecOf(old, carryWarnings) : void 0;
+      if (!anim) return t;
+      carried.push(t.name);
+      return { ...t, anim };
+    })
+  };
   const base = pj ? { rootId: pj.rootId, meta: pj.meta } : void 0;
   const result = await buildProject(pj ? spec : { ...spec, title: path4.basename(projectDir) }, specDir, base, customFonts(projectDir));
   const replaced = before.telops.filter((t) => names.includes(t.name));
@@ -15299,7 +15764,11 @@ async function pushSpec(projectDir, spec, specDir) {
     added: names.filter((n) => !replaced.some((t) => t.name === n)),
     replaced: replaced.map((t) => t.name),
     backup,
-    warnings: result.warnings
+    warnings: [
+      ...carried.map((n) => `${n}: kept the dashboard's In / Out (<Telop>.anim.json); add \`anim\` to the spec to change it`),
+      ...carryWarnings,
+      ...result.warnings
+    ]
   };
 }
 async function zipProjectForEditor(p, outFile) {

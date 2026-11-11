@@ -9,7 +9,7 @@ import { MatchLogDraft } from '../utils/matchLog';
 import { useMatchLog, playerFields, inPlayerFields } from '../utils/useMatchLog';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
-import { isPvMode } from '../utils/pv';
+import { runOnAir } from '../utils/pv';
 import { StatsData, buildStatsPayload } from '../utils/stats';
 import { useOaTeamSettings, useScoreSideChange } from '../utils/useScoreSideChange';
 import { teamColorSet, teamColorKeys } from '../utils/teamColor';
@@ -505,7 +505,9 @@ export function Sub1Control() {
         sub1Telop.setData(payload);
         // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(sub1Telop, payload, () => clearForTake('選手交代1枚'));
-        if (!isPvMode()) recordLog(logDrafts()); // PV モードでは当日操作ログに入れない
+        // PV モードでは、PV の「ONAIRへ送出」で OA に出したときに当日操作ログへ入れる
+        const drafts = logDrafts();
+        runOnAir('選手交代1枚', () => recordLog(drafts));
     };
 
     // 交代反映: Lineups のスタメンと控えを入れ替える
@@ -578,7 +580,9 @@ export function Sub2Control() {
         sub2Telop.setData(payload);
         // 送出中なら UPDATE。出ていなければ他の CG を消してから出す（小得点・タイマー・ATは残す）
         takeOrUpdate(sub2Telop, payload, () => clearForTake('選手交代2枚'));
-        if (!isPvMode()) recordLog(logDrafts()); // PV モードでは当日操作ログに入れない
+        // PV モードでは、PV の「ONAIRへ送出」で OA に出したときに当日操作ログへ入れる
+        const drafts = logDrafts();
+        runOnAir('選手交代2枚', () => recordLog(drafts));
     };
 
     // 交代反映: Lineups のスタメンと控えを入れ替える（選ばれている組だけ）

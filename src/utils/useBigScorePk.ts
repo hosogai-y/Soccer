@@ -5,11 +5,13 @@ import { useScorerCg } from './useScorerCg';
 import { useClearForTake, takeOrUpdate } from './cgExclusive';
 import { isPvMode } from './pv';
 import { SCORER_ROWS } from './scorers';
+import { BIG_SCORE_STATUS_KEY, useBigScoreStatus } from './bigScoreStatus';
 
 /**
  * PK 戦の結果込みの大得点（大得点PK / 大得点得点者PK テロップ）。
  * 大得点と得点者の間に「4 PK 5」（左チーム・右チームの順。大得点の並びと同じ）を出す。
  * 得点者込みにするかは、大得点の「得点者込みで送出」と同じ設定を使う。
+ * ステータスは PK 戦なので、終了表示なら「試合終了」（PK 結果はステータスの上）、表示なしなら出さない。
  */
 export const BIG_PK_TELOP = '大得点PK';
 export const SCORER_PK_TELOP = '大得点得点者PK';
@@ -34,8 +36,9 @@ export function useBigScorePk() {
     const clearForTake = useClearForTake();
     const [pkState] = useSyncedState<PkKicks | null>('pk_shootout_state', null);
     const [oaRightTeam] = useSyncedState<string>('oa_right_team', '帯広北');
+    const { pkStatus } = useBigScoreStatus();
     const pk = pkScoresByLeftRight(pkState, oaRightTeam);
-    const pkKeys = { '左PK得点': String(pk.left), '右PK得点': String(pk.right) };
+    const pkKeys = { '左PK得点': String(pk.left), '右PK得点': String(pk.right), [BIG_SCORE_STATUS_KEY]: pkStatus };
 
     /** 得点者込みなら得点者の行も入れる。page は得点者のページ */
     const buildPayload = (withScorers: boolean, page: number): Record<string, string> => {

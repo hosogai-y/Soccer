@@ -22,12 +22,38 @@ export const isPvMode = () => snapshot.mode;
 
 export function setPvMode(mode: boolean) {
     // 終わったら PV モニターの中身も消す（次に ON にしたとき古い CG が残らない）
+    if (!mode) sendHooks.clear();
     set({ mode, layers: mode ? snapshot.layers : [] });
+}
+
+/**
+ * PV に出した CG を「ONAIR へ送出」したときに行う処理（当日ログへの記録・キューの送出済み・ON AIR の印など）。
+ * PV モードの TAKE では行わず、OA に出したときに初めて行う。テロップごとに 1 つ（TAKE し直すと入れ替わる）
+ */
+const sendHooks = new Map<string, () => void>();
+
+/** PV に出した name の CG を OA に送出したときに fn を実行する（pvShow の後に呼ぶ） */
+export function pvOnSend(name: string, fn: () => void) {
+    sendHooks.set(name, fn);
+}
+
+/** 送出したときの処理を取り出す（1 回だけ実行するため取り出したら消す） */
+export function takePvSendHook(name: string): (() => void) | undefined {
+    const fn = sendHooks.get(name);
+    sendHooks.delete(name);
+    return fn;
+}
+
+/** OA に出したときだけ行う処理: PV モードなら ONAIR へ送出したときまで待ち、そうでなければすぐ行う */
+export function runOnAir(name: string, fn: () => void) {
+    if (snapshot.mode) pvOnSend(name, fn);
+    else fn();
 }
 
 /** PV モニターに出す（同じテロップなら中身を差し替えて一番上に） */
 export function pvShow(name: string, data: Record<string, any> | undefined) {
     seq += 1;
+    sendHooks.delete(name); // 前の TAKE の処理は持ち越さない（この後 pvOnSend で付け直す）
     set({ layers: [...snapshot.layers.filter(l => l.name !== name), { name, data: { ...(data || {}) }, seq }] });
 }
 
@@ -38,6 +64,7 @@ export function pvUpdate(name: string, data: Record<string, any> | undefined) {
 }
 
 export function pvHide(name: string) {
+    sendHooks.delete(name);
     if (!snapshot.layers.some(l => l.name === name)) return;
     set({ layers: snapshot.layers.filter(l => l.name !== name) });
 }
@@ -46,6 +73,7 @@ export const pvHas = (name: string) => snapshot.layers.some(l => l.name === name
 
 /** keep に入っているテロップ以外を PV モニターから消す（keep を省くと全部） */
 export function pvClear(keep: string[] = []) {
+    [...sendHooks.keys()].forEach(name => { if (!keep.includes(name)) sendHooks.delete(name); });
     set({ layers: snapshot.layers.filter(l => keep.includes(l.name)) });
 }
 

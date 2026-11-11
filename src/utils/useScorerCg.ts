@@ -4,10 +4,19 @@ import { useTelop } from './telop';
 import type { Player } from '../components/PlayerRegistry';
 import { useMatchLog } from './useMatchLog';
 import { useOaTeamSettings, scoreColorKeys } from './useScoreSideChange';
+import { useBigScoreStatus, BIG_SCORE_STATUS_KEY } from './bigScoreStatus';
 import {
     SCORER_TELOP, BIG_SCORE_WITH_SCORERS_KEY, SCORER_PAGE_KEY, PERIOD_MINUTES_KEY,
-    PeriodMinutes, DEFAULT_PERIOD_MINUTES, scorerLines, scorerPageCount, scorerRowKeys
+    PeriodMinutes, DEFAULT_PERIOD_MINUTES, scorerLines, scorerPageCount, scorerRowKeys, normalizePeriodMinutes
 } from './scorers';
+
+/** 試合時間の設定（前後半・延長の長さと得点時間の表記）。Lineups で設定し、ログ・大得点得点者・音声送出で使う */
+export function usePeriodMinutes(): [Required<PeriodMinutes>, (next: PeriodMinutes) => void] {
+    const [lengths, setLengths] = useSyncedState<PeriodMinutes>(PERIOD_MINUTES_KEY, DEFAULT_PERIOD_MINUTES);
+    const len = normalizePeriodMinutes(lengths);
+    const set = useCallback((next: PeriodMinutes) => setLengths(normalizePeriodMinutes(next)), [setLengths]);
+    return [len, set];
+}
 
 /**
  * 大得点得点者テロップのデータ。チーム名・得点は大得点と同じ値（大得点の表記）、色は TeamSettings、
@@ -20,13 +29,10 @@ export function useScorerCg() {
     const [players] = useSyncedState<Player[]>('roster', []);
     const [enabled, setEnabled] = useSyncedState<boolean>(BIG_SCORE_WITH_SCORERS_KEY, false);
     const [page, setPage] = useSyncedState<number>(SCORER_PAGE_KEY, 0);
-    const [lengths, setLengths] = useSyncedState<PeriodMinutes>(PERIOD_MINUTES_KEY, DEFAULT_PERIOD_MINUTES);
+    const [len, setLengths] = usePeriodMinutes();
     const oa = useOaTeamSettings();
+    const { status } = useBigScoreStatus();
 
-    const len: PeriodMinutes = {
-        half: lengths?.half || DEFAULT_PERIOD_MINUTES.half,
-        extra: lengths?.extra || DEFAULT_PERIOD_MINUTES.extra
-    };
     const left = scorerLines(entries, oa.oaLeftTeam, players || [], len);
     const right = scorerLines(entries, oa.oaRightTeam, players || [], len);
     const pageCount = scorerPageCount(left, right);
@@ -39,8 +45,9 @@ export function useScorerCg() {
         '左チーム得点': big['左チーム得点'] || '0',
         '右チーム得点': big['右チーム得点'] || '0',
         ...scoreColorKeys(oa.leftSet, oa.rightSet),
-        ...scorerRowKeys(left, right, p)
-    }), [big, oa, left, right]);
+        ...scorerRowKeys(left, right, p),
+        [BIG_SCORE_STATUS_KEY]: status
+    }), [big, oa, left, right, status]);
 
     return {
         scorerTelop, enabled: !!enabled, setEnabled,

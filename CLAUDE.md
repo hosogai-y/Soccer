@@ -20,7 +20,8 @@ It previews them with the real player and checks that the project still opens in
 How to write specs, the player's pitfalls, and design guidance are in the `telop-design` skill (`.claude/skills/telop-design/SKILL.md`).
 
 Rules:
-- Don't hand-edit `project.json`, `*.telop`, `viewer/`, or a telop's generated `.html` / `.js`.
+- Don't hand-edit `project.json`, `*.telop`, `viewer/`, or a telop's generated `.html` / `.js` / `.anim.css` / `.anim.json`
+  (they hold the In/Out set in the TelopHub dashboard; change it with the spec's `anim`).
   TelopEditor rewrites them; go through telopkit.
 - If TelopEditor is open on this project, its next save overwrites what you pushed.
   Ask the user to save and close the editor before you push or run `common set`, and to reopen it (or reload TelopHub) afterwards to see the result.

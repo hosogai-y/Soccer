@@ -92,6 +92,11 @@ export function teamGoals(log: MatchLogEntry[], team: string): number {
     return log.filter(e => e.type === 'goal' && e.team === team).length;
 }
 
+/** チームごとのカード数（イエローは「2枚目」も 1 枚として数える） */
+export function teamCards(log: MatchLogEntry[], team: string, type: 'yellow' | 'red'): number {
+    return log.filter(e => e.type === type && e.team === team).length;
+}
+
 /** 選手ごとの Today ゴール数 */
 export function playerGoals(log: MatchLogEntry[], playerId: string): number {
     return log.filter(e => e.type === 'goal' && e.playerId === playerId).length;

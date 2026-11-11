@@ -10,8 +10,9 @@ import {
     emptyLineup, migrateStarters, buildFormationPayload
 } from '../utils/lineup';
 import { Point, defaultPositions, resolvePositions, roleMap } from '../utils/formationLayout';
-import { useCgQueue } from '../utils/cgQueue';
+import { useCgQueue, useCgQueueOnAir } from '../utils/cgQueue';
 import MatchupCardSettings from './MatchupCardSettings';
+import MatchLengthSettings from './MatchLengthSettings';
 import { teamColorSet } from '../utils/teamColor';
 
 // Mirror map for horizontally flipping left formation onto right formation
@@ -152,7 +153,7 @@ export default function LineupEditor() {
     const [, setLineupResetAt] = useSyncedState<number>(LINEUP_RESET_AT_KEY, 0);
     // CG Queue List（待機キュー）と、キューから送出中の記録も空にする
     const [cgQueue, setCgQueue] = useCgQueue();
-    const [, setQueueOnAir] = useSyncedState<{ telopName: string, label: string } | null>('cg_queue_on_air', null);
+    const [, setQueueOnAir] = useCgQueueOnAir();
     const handleResetAll = () => {
         const left = oaLeftTeam || '左チーム';
         const right = oaRightTeam || '右チーム';
@@ -333,6 +334,9 @@ export default function LineupEditor() {
 
             {/* 対戦カード（某対某）のタイトル・試合時間 */}
             <MatchupCardSettings />
+
+            {/* 試合時間（前後半・延長の長さと得点時間の表記） */}
+            <MatchLengthSettings />
 
             <MatchLog oaLeftTeam={oaLeftTeam} oaRightTeam={oaRightTeam} />
 

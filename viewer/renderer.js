@@ -2083,11 +2083,20 @@ function expandRepeats(doc, options = {}) {
                 const childrenAreTelopChildren = (node.type === 'telop');
                 node.children.forEach(cid => {
                     const override = autoLayoutPositions ? autoLayoutPositions[cid] : null;
-                    const c = window.createNode(cid, override, childrenAreTelopChildren);
-                    if (!c) return;
+                    const created = window.createNode(cid, override, childrenAreTelopChildren);
+                    if (!created) return;
+                    // Per-node in/out animation (<Telop>.anim.css) targets [data-anim-node]. The node's own root carries its
+                    // position in the transform attribute, so scale / rotate around its center need a wrapper without one.
+                    // Hub swaps replace the node inside the wrapper, so the wrapper (and a running animation) stays.
+                    const c = createSVGElement("g");
+                    c.classList.add("node-anim");
+                    c.setAttribute("data-anim-node", cid);
+                    c.appendChild(created);
                     if (childrenAreTelopChildren && !activeDoc.nodesById[cid]?.clipRect) {
                         // The wrapper has no position of its own, so in/out animations can use transform without moving the node.
                         // It stays even while the child is hidden: Hub swaps and shows the child in place, inside this wrapper.
+                        // Kept apart from .node-anim: one element can run only one animation list, so the telop-wide and the
+                        // per-node animation would override each other.
                         const animHost = createSVGElement("g");
                         animHost.classList.add("anim-target");
                         animHost.appendChild(c);

@@ -32,6 +32,7 @@ Never hand-write `project.json`, `.telop` files or the player HTML.
 export default {
   telops: [{
     name: "GoalLowerThird",            // folder name = the name the dashboard uses in useTelop()
+    anim: { in: [ /* tracks */ ], out: [ /* tracks */ ] },  // optional simple In/Out the dashboard can edit (see below)
     css: `...`,                        // optional animation CSS (see below)
     children: [ /* nodes */ ],
   }],
@@ -72,11 +73,50 @@ For several stacked looks, use `layers: [top, ..., bottom]` (for example a thick
 - Repeat (rankings, lists): a `layout` group with `repeat: { count }` and exactly one template child.
   `{i}` in keys and texts becomes the row number (`key: "name{i}"` gives `name1` … `nameN`).
 
+## In / Out: `anim` or `css`
+
+- `anim` is for In/Out the user should be able to change later in the TelopHub dashboard (Animation Panel).
+  It is written to `<Telop>.anim.json`, and `<Telop>.anim.css` is generated from it.
+  A track: `{ target, effect, dir, distance, scale, fade, duration, delay, ease }`.
+  - `target`: a node `name` or text `key` in this telop (must be unique); omit it for the whole telop.
+  - `effect`: `fade` | `slide` (`dir` = where it comes from / goes to: `left` `right` `up` `down`, `distance` px, default 40)
+    | `wipe` (`dir` = the side the reveal starts from) | `pop` / `zoom` (`scale` at the hidden end) |
+    `keyframes` (`name` of a `@keyframes` you define in `css`). `slide` / `pop` / `zoom` also fade unless `fade: false`.
+  - Seconds for `duration` / `delay`. `ease` is any CSS timing function; each effect has a sensible default.
+  - Tracks on the same target run together; stagger them with `delay`. The Out track list is separate.
+  ```js
+  anim: {
+    in:  [ { effect: "fade", duration: 0.2 },
+           { target: "plate", effect: "wipe", dir: "left", duration: 0.5 },
+           { target: "name", effect: "slide", dir: "up", distance: 24, duration: 0.45, delay: 0.18 } ],
+    out: [ { effect: "fade", duration: 0.3 } ],
+  },
+  ```
+- `css` is for rich, hand-tuned motion (loops, multi-step keyframes, per-letter effects). It always wins over `anim`
+  on the same element, so don't animate one element both ways.
+- Knobs for `css`: declare a CSS variable with a `@param` comment and its default on `:root`, and the dashboard shows
+  a slider / color picker for it. Its value goes in `anim.params` (the dashboard writes the same place).
+  Types: `number`, `px`, `s`, `deg`, `%` (a range `min..max` and `step N` are optional) and `color` (hex).
+  ```css
+  /* @param --plate-speed number 0.25..4 step 0.05 Plate speed */
+  /* @param --plate-color color Plate color */
+  :root { --plate-speed: 1; --plate-color: #152a5c; }
+  #player-container.in_animation .kit-plate { animation: kitWipe calc(0.55s / var(--plate-speed)) both; }
+  ```
+  Use knobs for what an operator might tune per show (speeds, distances, accent colors), not for every number.
+- `pull` writes the telop's current `anim` into the spec. A `push` without `anim` keeps what the telop already has.
+- Animate.css / Magic presets are only in the dashboard; pick them there.
+
 ## Facts about the player (verified; easy to get wrong)
 
-- **Animation selectors must start with `#player-container.in_animation`.** Direct telop children carry the default
-  `#player-container.in_animation .anim-target { animation: fadeIn 0s }`, and a plain `.in_animation .x` loses to it.
-  For the out animation, use `#player-container.out_animation .x`.
+- **Who owns which CSS.** The player's defaults sit in `@layer telop-base`, and the In/Out from `anim` / the TelopHub
+  dashboard is generated into `<Telop>.anim.css` (`@layer telop-anim`). Never edit `<Telop>.anim.css` or `<Telop>.anim.json`
+  by hand; change `anim` in the spec instead.
+  The spec's `css` (and any rule you add to `<Telop>.css`) is unlayered, so it always wins over both, whatever its specificity.
+  Leave the `@layer telop-base { ... }` block in `<Telop>.css` alone. Write animation as
+  `#player-container.in_animation .x { ... }` and `#player-container.out_animation .x { ... }`.
+- The out animation ends when every animation under the container has finished, so staggered exits play in full.
+  Infinite animations are not waited for.
 - **Animate `translate`, `scale`, `rotate` and `opacity`, never `transform`.** A node's position is its SVG transform attribute,
   and CSS `transform` replaces it, so the node jumps to 0,0. The individual properties stack on top of the position.
 - A `clip` group is a fixed frame whose content moves. Put a `class` on the clipped group and slide it with `translate` for a wipe.

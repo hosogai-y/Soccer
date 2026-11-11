@@ -5,8 +5,9 @@ import { Player } from '../components/PlayerRegistry';
 import { TimerState, getTimerMs } from '../components/GlobalTimerManager';
 import {
     MATCH_LOG_KEY, MATCH_LOG_ARCHIVE_KEY, MatchLogEntry, MatchLogArchive, MatchLogDraft,
-    dedupeKey, parseLogJson, teamGoals, applyLogGoals, formatMatchTime, normalizeMatchTime, isMinuteOnlyInput
+    dedupeKey, parseLogJson, teamGoals, teamCards, applyLogGoals, formatMatchTime, normalizeMatchTime, isMinuteOnlyInput
 } from './matchLog';
+import { StatsData, STATS_DATA_KEY, EMPTY_STATS } from './stats';
 
 // 書き込んだ直後は共有ステートの反映が次の描画まで遅れるので、連続で記録しても前の記録を消さないよう手元に持つ
 let lastWrite: { json: string, at: number } | null = null;
@@ -25,6 +26,8 @@ export function useMatchLog() {
     const [, setPlayers] = useSyncedState<Player[]>('roster', []);
     const smallScore = useTelop('小得点');
     const bigScore = useTelop('大得点');
+    const statsTelop = useTelop('スタッツ');
+    const [, setStatsData] = useSyncedState<StatsData>(STATS_DATA_KEY, EMPTY_STATS);
 
     // 旧形式（配列のまま保存していたころ）のログは、新形式で一度保存するまで引き継いで読む
     const [legacyLog] = useSyncedState<MatchLogEntry[]>(LEGACY_LOG_KEY, []);
@@ -63,15 +66,45 @@ export function useMatchLog() {
         writeScores(teamGoals(log, s.oa_left_team || '札幌創成'), teamGoals(log, s.oa_right_team || '帯広北'));
     }, [syncedStateRef, writeScores]);
 
-    // ログを保存し、ゴールが変わったときは選手のゴール数とチーム得点を数え直す
+    /**
+     * スタッツ（GUI と CG）のイエロー・レッド・チーム得点をログから数え直す。
+     * シュート・FK・CK は手入力のまま。スタッツ CG が ON AIR 中ならその場で UPDATE
+     */
+    const writeStatsFromLog = useCallback((log: MatchLogEntry[]) => {
+        const s = syncedStateRef.current || {};
+        const left = s.oa_left_team || '札幌創成';
+        const right = s.oa_right_team || '帯広北';
+        const cards = {
+            leftYellow: String(teamCards(log, left, 'yellow')),
+            rightYellow: String(teamCards(log, right, 'yellow')),
+            leftRed: String(teamCards(log, left, 'red')),
+            rightRed: String(teamCards(log, right, 'red'))
+        };
+        setStatsData(prev => ({ ...EMPTY_STATS, ...(prev || {}), ...cards }));
+        if (!statsTelop.isVisible) return;
+        const keys = {
+            'Left得点数値': String(teamGoals(log, left)),
+            'Right得点数値': String(teamGoals(log, right)),
+            '左側イエロー数値': cards.leftYellow,
+            '右側イエロー数値': cards.rightYellow,
+            '左側レッド数値': cards.leftRed,
+            '右側レッド数値': cards.rightRed
+        };
+        const payload = { ...(statsTelop.data || {}), ...keys };
+        statsTelop.setData(payload);
+        statsTelop.update(payload);
+    }, [syncedStateRef, setStatsData, statsTelop]);
+
+    // ログを保存し、ゴールが変わったときは選手のゴール数とチーム得点を、ゴール・カードが変わったときはスタッツを数え直す
     const commit = useCallback((next: MatchLogEntry[], changed: MatchLogEntry[]) => {
         saveEntries(next);
+        if (changed.some(e => e.type === 'goal' || e.type === 'yellow' || e.type === 'red')) writeStatsFromLog(next);
         const goals = changed.filter(e => e.type === 'goal');
         if (goals.length === 0) return;
         const ids = new Set(goals.map(e => e.playerId).filter((id): id is string => !!id));
         if (ids.size > 0) setPlayers(prev => applyLogGoals(prev || [], next, ids));
         writeScoresFromLog(next);
-    }, [saveEntries, setPlayers, writeScoresFromLog]);
+    }, [saveEntries, setPlayers, writeScoresFromLog, writeStatsFromLog]);
 
     /**
      * 記録する。時刻を省いたら今のタイマー時刻、前後半は今の前後半で入る。
@@ -125,7 +158,7 @@ export function useMatchLog() {
         return true;
     }, [latestEntries, commit]);
 
-    return { entries, archives, record, remove, update, saveEntries, saveArchives, writeScores };
+    return { entries, archives, record, remove, update, saveEntries, saveArchives, writeScores, writeStatsFromLog };
 }
 
 /** 選手からログの選手欄を作る */

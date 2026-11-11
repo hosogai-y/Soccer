@@ -3,6 +3,7 @@ import { useSyncedState } from '@sdk/TelopHubSDK';
 import { useTelop } from '../utils/telop';
 import { useClearForTake, takeOrUpdate } from '../utils/cgExclusive';
 import { useBigScorePk } from '../utils/useBigScorePk';
+import { useBigScoreStatus } from '../utils/bigScoreStatus';
 
 type Side = 'left' | 'right';
 
@@ -442,6 +443,7 @@ export default function PKControl() {
 /** PK 戦の結果込みの大得点（大得点と得点者の間に「4 PK 5」）。得点者込みかは大得点の設定と共通 */
 function BigScorePkPanel() {
     const big = useBigScorePk();
+    const status = useBigScoreStatus();
     const [bigScoreData] = useSyncedState<Record<string, string>>('大得点', {});
     const d = bigScoreData || {};
     const onAir = big.bigPk.isVisible || big.scorerPk.isVisible;
@@ -456,6 +458,7 @@ function BigScorePkPanel() {
                 <span style={{ background: '#0b0b0b', color: '#fddd10', padding: '2px 10px', borderRadius: 4 }}>{d['左チーム得点'] || '0'} - {d['右チーム得点'] || '0'}</span>
                 <span>{d['右チーム名'] || '右チーム'}</span>
                 <span style={{ background: '#0b0b0b', color: '#fddd10', padding: '2px 10px', borderRadius: 4, fontSize: '0.9rem' }}>{big.pk.left} PK {big.pk.right}</span>
+                {status.pkStatus && <span style={{ background: '#0b0b0b', color: '#fff', padding: '2px 10px', borderRadius: 4, fontSize: '0.9rem' }} title="PK 戦で送出するときのステータスは「試合終了」です（PK 結果はステータスの上）。表示なし／終了表示は CG Operation の大得点で選びます">{status.pkStatus}</span>}
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', cursor: 'pointer', marginBottom: 8 }}
                 title="CG Operation の「大得点を得点者込みで送出」と同じ設定です">

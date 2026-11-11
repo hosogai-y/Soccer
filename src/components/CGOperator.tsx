@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useClearAll, useSyncedState, useTelopHub } from '@sdk/TelopHubSDK';
 import { useTelop } from '../utils/telop';
 import { Player, toHalfWidthNum } from './PlayerRegistry';
@@ -10,10 +10,10 @@ import VoiceCgPanel from './VoiceCgPanel';
 import WeatherStatsSubControl, { WeatherControl, Sub1Control, Sub2Control } from './WeatherStatsSubControl';
 import { useScoreSideChange, useOaTeamSettings, scoreColorKeys, sameScoreColors } from '../utils/useScoreSideChange';
 import { TeamColorSet, teamColorSet, teamColorKeys, teamColorCss } from '../utils/teamColor';
-import { useScorerCg } from '../utils/useScorerCg';
+import { useScorerCg, usePeriodMinutes } from '../utils/useScorerCg';
 import { useMatchupPayload, MATCHUP_TEXT_TELOP, MATCHUP_IMAGE_TELOP } from '../utils/matchup';
 import { SCORER_TELOP, SCORER_ROWS } from '../utils/scorers';
-import { CgQueueItem, useCgQueue, useCgQueueRegister } from '../utils/cgQueue';
+import { CgQueueItem, useCgQueue, useCgQueueOnAir, useCgQueueRegister } from '../utils/cgQueue';
 import { TeamConfig, DEFAULT_TEAM_CONFIGS } from './TeamSettings';
 import { toPhotoAssetUrl, encodePhotoUrl } from '../utils/photoMatcher';
 import { TEAM_LINEUPS_KEY, LINEUP_RESET_AT_KEY, TeamLineup, hasRegistered, registeredStarters, registeredSubs, sortSubsForCg, buildFormationPayload, buildSubsPayload, normalizePosition } from '../utils/lineup';
@@ -22,8 +22,9 @@ import { useMatchLog, playerFields } from '../utils/useMatchLog';
 import { useClearForTake, useClearButtons, KEEP_ON_TAKE, takeOrUpdate } from '../utils/cgExclusive';
 import { useApplySubstitution } from '../utils/useSubstitution';
 import { OneShotMode, playerComments, playerPhotoUrl, buildPlayerOneShotPayload, buildStaffOneShotPayload } from '../utils/oneShotPayload';
-import { isPvMode, pvClear } from '../utils/pv';
+import { isPvMode, pvClear, pvOnSend, runOnAir } from '../utils/pv';
 import { BIG_PK_TELOP, SCORER_PK_TELOP } from '../utils/useBigScorePk';
+import { useBigScoreStatus, BIG_SCORE_STATUS_KEY } from '../utils/bigScoreStatus';
 
 // Profile 2 (プロ２) はユーザー要望により削除
 const ALL_TELOPS = [
@@ -55,9 +56,23 @@ export default function CGOperator() {
     const { clearOnAir: sdkClearOnAir, clearPreview, clearAll: sdkClearAll } = useClearAll();
     // SDK の一括クリアは送出中フラグを戻さない。TAKE は送出中なら UPDATE になるので、
     // フラグが残って TAKE で出なくならないよう各テロップの HIDE も送ってフラグを戻す
-    const { clearAll: hideAllTelops } = useClearButtons();
-    const clearOnAir = () => { if (isPvMode()) { pvClear(); return; } sdkClearOnAir(); hideAllTelops(); };
-    const clearAll = () => { if (isPvMode()) { pvClear(); return; } sdkClearAll(); hideAllTelops(); };
+    const { clearAll: hideAllTelops, clearCg } = useClearButtons();
+    // F4 = 🧹 CGクリア（CGOperation 画面のどのタブでも。PV モード中は CGクリアと同じく PV モニターの CG を消す）
+    // ONAIR を消す F3（PV モニター）とは別のキー。押しっぱなしの連続入力は無視
+    const clearCgRef = useRef(clearCg);
+    clearCgRef.current = clearCg;
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'F4') return;
+            e.preventDefault();
+            if (!e.repeat) clearCgRef.current();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
+    // キューの ON AIR の印も外す（CG が全部消えるので）
+    const clearOnAir = () => { if (isPvMode()) { pvClear(); return; } sdkClearOnAir(); hideAllTelops(); setQueueOnAir(null); };
+    const clearAll = () => { if (isPvMode()) { pvClear(); return; } sdkClearAll(); hideAllTelops(); setQueueOnAir(null); };
     const [players, setPlayers] = useSyncedState<Player[]>('roster', []);
     const [globalPhotoEnabled, setGlobalPhotoEnabled] = useSyncedState<boolean>('global_photo_enabled', true);
     const [oaLeftTeam] = useSyncedState<string>('oa_left_team', '札幌創成');
@@ -140,7 +155,23 @@ export default function CGOperator() {
 
     // キューから送出中のCG（HIDE ボタンで消す対象）
     // id: 送出した項目（キューの一覧で ON AIR の印を付ける）
-    const [queueOnAir, setQueueOnAir] = useSyncedState<{ telopName: string, label: string, id?: string } | null>('cg_queue_on_air', null);
+    const [queueOnAir, setQueueOnAir] = useCgQueueOnAir();
+
+    // キュー以外の操作（各パネルの HIDE・CLEAR CG・別の CG の TAKE で消えたとき）でも印を外す。
+    // TAKE 直後は表示フラグが立つ前なので、「表示中 → 非表示」に変わったときだけ外す
+    const [queueOnAirVisible] = useSyncedState<boolean>(`${queueOnAir?.telopName ?? ''}_visible`, false);
+    const lastOnAirVisibleRef = useRef<{ id?: string, telopName: string, visible: boolean } | null>(null);
+    useEffect(() => {
+        if (!queueOnAir) { lastOnAirVisibleRef.current = null; return; }
+        const last = lastOnAirVisibleRef.current;
+        const sameItem = last && last.id === queueOnAir.id && last.telopName === queueOnAir.telopName;
+        if (sameItem && last.visible && !queueOnAirVisible) {
+            lastOnAirVisibleRef.current = null;
+            setQueueOnAir(null);
+            return;
+        }
+        lastOnAirVisibleRef.current = { id: queueOnAir.id, telopName: queueOnAir.telopName, visible: !!queueOnAirVisible };
+    }, [queueOnAir?.id, queueOnAir?.telopName, queueOnAirVisible]);
 
     const hideQueueOnAir = () => {
         if (!queueOnAir) return;
@@ -193,11 +224,17 @@ export default function CGOperator() {
     // キュー項目を送出（TAKE NEXT と、ダブルクリックでの再送出で共用）
     const takeQueueItem = (item: CgQueueItem) => {
         const payloadTelop = item.payload ? payloadTelops[item.telopName] : undefined;
-        // PV モード: PV モニターに出すだけ（送出済み・ON AIR・当日操作ログは変えない）
+        // PV モード: PV モニターに出すだけ。送出済み・ON AIR・当日操作ログは、PV の「ONAIRへ送出」で OA に出したときに変える
         if (isPvMode()) {
             clearForTake(item.telopName);
             if (payloadTelop && item.payload) payloadTelop.show(item.payload);
             else window.dispatchEvent(new CustomEvent('TRIGGER_TAKE', { detail: item.telopName }));
+            setSelectedQueueId(null);
+            pvOnSend(item.telopName, () => {
+                setCgQueue(prev => (prev || []).map(q => q.id === item.id ? { ...q, played: true } : q));
+                setQueueOnAir({ telopName: item.telopName, label: item.label, id: item.id });
+                if (item.logEntries && item.logEntries.length > 0) recordLog(item.logEntries);
+            });
             return;
         }
         // 同じ CG が送出中なら消さずに UPDATE する（TelopControl 側も送出中なら UPDATE で受ける）
@@ -611,7 +648,9 @@ function OneShotPlayerControl({
         oneShotCard.setData(payload);
         // 1Shotカード送出中なら UPDATE。出ていなければ 1Shot など他の CG を消してから出す
         takeOrUpdate(oneShotCard, payload, () => clearForTake('1Shotカード'));
-        if (!isPvMode()) recordLog(cardLogDraft(cardType));
+        // PV モードでは、PV の「ONAIRへ送出」で OA に出したときに記録する
+        const draft = cardLogDraft(cardType);
+        runOnAir('1Shotカード', () => recordLog(draft));
     };
 
     // 当日操作ログ: カード送出は自動で記録（同じ選手・同じカードは1回だけ）
@@ -902,8 +941,8 @@ function CgClearBar() {
     return (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <button className="btn btn-warning" style={{ flex: 1, padding: '6px', fontSize: '0.85rem', fontWeight: 'bold' }} onClick={clearCg}
-                title="小得点・タイマー・アディショナルタイム以外の CG を消します">
-                🧹 CGクリア
+                title="小得点・タイマー・アディショナルタイム以外の CG を消します（F4 キーでも実行）">
+                🧹 CGクリア [F4]
             </button>
             <button className="btn btn-danger" style={{ flex: 1, padding: '6px', fontSize: '0.85rem', fontWeight: 'bold' }} onClick={clearAll}
                 title="小得点・タイマー・アディショナルタイムも含めて、すべての CG を消します">
@@ -1254,6 +1293,8 @@ function MatchScorePanel() {
     const scorer = useScorerCg();
     const bigScorePk = useTelop(BIG_PK_TELOP);
     const scorerPk = useTelop(SCORER_PK_TELOP);
+    // 大得点のステータス（得点の上の「前半終了」など。自動 or 手動）
+    const bigStatus = useBigScoreStatus();
 
     // OA 左右チームの TeamSettings（チームカラー・小得点/大得点の表記）。スタッツタブ・サイド反転と同じ求め方
     const oa = useOaTeamSettings();
@@ -1359,7 +1400,8 @@ function MatchScorePanel() {
             '右チーム名': cur['右チーム名'] || defaultRightBigName,
             '左チーム得点': cur['左チーム得点'] || '0',
             '右チーム得点': cur['右チーム得点'] || '0',
-            ...scoreColors
+            ...scoreColors,
+            [BIG_SCORE_STATUS_KEY]: bigStatus.status
         };
         bigScore.setData((prev: any) => ({ ...prev, ...payload }));
         if (scorer.enabled) {
@@ -1470,6 +1512,24 @@ function MatchScorePanel() {
                 </button>
             </div>
 
+            {/* 大得点のステータス（得点の上に表示）。表示なし（既定）／終了表示。終了表示の文言はタイマーの前後半と得点から決まる */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#bbb' }}>ステータス</span>
+                <select
+                    className="form-select"
+                    value={bigStatus.show ? 'end' : 'none'}
+                    onChange={e => bigStatus.setShow(e.target.value === 'end')}
+                    style={{ width: 'auto', padding: '2px 6px', fontSize: '0.85rem' }}
+                    title="終了表示: 前半→前半終了／後半→同点なら後半終了・どちらかが勝っていれば試合終了／延長前半→延長前半終了／延長後半→同点なら延長後半終了・どちらかが勝っていれば試合終了"
+                >
+                    <option value="none">表示なし</option>
+                    <option value="end">終了表示（{bigStatus.endLabel}）</option>
+                </select>
+                <span style={{ background: '#0b0b0b', color: '#fff', padding: '2px 10px', borderRadius: 4, fontSize: '0.85rem', fontWeight: 'bold', opacity: bigStatus.status ? 1 : 0.4 }}>
+                    {bigStatus.status || '（表示なし）'}
+                </span>
+            </div>
+
             {/* 大得点の得点者込み送出 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', color: scorer.enabled ? '#ffca28' : '#bbb' }}>
@@ -1545,6 +1605,8 @@ function MatchTimerPanel() {
     const { record: recordLog } = useMatchLog();
 
     const [presetVal, setPresetVal] = useState("0");
+    // プリセットの後半・延長の開始は Lineups の試合時間（40分 / 45分ハーフ）に合わせる
+    const [periodLen] = usePeriodMinutes();
     const [displayMs, setDisplayMs] = useState(0);
     const [showAdjustments, setShowAdjustments] = useState(false);
 
@@ -1688,9 +1750,9 @@ function MatchTimerPanel() {
                     <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                         <select className="form-select" value={presetVal} onChange={e => setPresetVal(e.target.value)} style={{ flex: 1, padding: '2px 4px', fontSize: '0.8rem' }}>
                             <option value="0">0:00 (キックオフ)</option>
-                            <option value="2400000">40:00</option>
-                            <option value="2700000">45:00 (後半スタート)</option>
-                            <option value="5400000">90:00 (延長戦)</option>
+                            <option value={String(periodLen.half * 60000)}>{periodLen.half}:00 (後半スタート)</option>
+                            <option value={String(periodLen.half * 2 * 60000)}>{periodLen.half * 2}:00 (延長前半スタート)</option>
+                            <option value={String((periodLen.half * 2 + periodLen.extra) * 60000)}>{periodLen.half * 2 + periodLen.extra}:00 (延長後半スタート)</option>
                             <option value="6000000">100:00 (3桁テスト)</option>
                         </select>
                         <button className="btn btn-warning" onClick={applyPreset} style={{ padding: '2px 8px', fontSize: '0.8rem' }}>Set</button>

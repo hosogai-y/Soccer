@@ -131,6 +131,78 @@ window.addEventListener('telopRendered', (e) => {
     }
 });
 
+// ==== 1Shot 下段切替エフェクト (telopkit spec 1Shot.mjs) ====
+/**
+ * 同じ選手のまま下段（プロ2コメント / Today'sゴール / Totalゴール）を切り替えたとき、
+ * 前の下段を上へプッシュしてベースの裏に収め、新しい下段を下へプッシュして出す。
+ * UPDATE で DOM が作り直されても動くよう、表示のたびに下段の DOM を複製して取っておき、次の切替でそれを上へ送る。
+ */
+const LOWER_SWAP = {
+    group: '下段',
+    playerKeys: ['氏名', '背番号', '所属', '顔写真'],
+    lowerKeys: ['mode', 'プロ2コメント', 'プロ2コメント黄色', "Today's数値", 'Total数値', "Today's(文字)", '今大会通算(文字)', 'ゴール(文字)'],
+    distance: 80,
+    duration: 800,
+    easeIn: 'cubic-bezier(.55,0,.75,.2)',
+    easeOut: 'cubic-bezier(.16,1,.3,1)'
+};
+let lowerSwapValues = null;
+let lowerSwapSnapshot = null;
+let lowerSwapAnims = [];
+
+function lowerSwapElement() {
+    const d = window.telopDoc;
+    const app = window.telopApp;
+    if (!d || !d.nodesById || !app) return null;
+    const node = Object.values(d.nodesById).find(n => n && n.name === LOWER_SWAP.group);
+    return node ? app.querySelector('[data-node-id="' + node.id + '"]') : null;
+}
+
+function lowerSwapStop() {
+    lowerSwapAnims.forEach(a => { try { a.cancel(); } catch (_) {} });
+    lowerSwapAnims = [];
+    document.querySelectorAll('.oneshot-lower-old').forEach(n => n.remove());
+}
+
+function lowerSwapPlay(el, oldEl) {
+    lowerSwapStop();
+    // 複製には data-node-id を残さない（更新処理が複製のほうを書き換えないように）
+    oldEl.removeAttribute('data-node-id');
+    oldEl.querySelectorAll('[data-node-id]').forEach(n => n.removeAttribute('data-node-id'));
+    oldEl.classList.add('oneshot-lower-old');
+    el.parentNode.insertBefore(oldEl, el);
+    const half = LOWER_SWAP.duration / 2;
+    const hidden = 'translate(0px, -' + LOWER_SWAP.distance + 'px)';
+    const shown = 'translate(0px, 0px)';
+    // 下段は位置 (0,0) のグループなので、CSS transform で動かしても配置は変わらない
+    const out = oldEl.animate([{ transform: shown }, { transform: hidden }], { duration: half, easing: LOWER_SWAP.easeIn, fill: 'forwards' });
+    const inn = el.animate([
+        { transform: hidden, offset: 0 },
+        { transform: hidden, offset: 0.5, easing: LOWER_SWAP.easeOut },
+        { transform: shown, offset: 1 }
+    ], { duration: LOWER_SWAP.duration, fill: 'backwards' });
+    out.onfinish = () => oldEl.remove();
+    lowerSwapAnims = [out, inn];
+}
+
+window.addEventListener('telopRendered', (e) => {
+    const detail = (e && e.detail) || {};
+    const prev = lowerSwapValues;
+    const next = Object.assign({}, prev || {}, detail);
+    lowerSwapValues = next;
+    const el = lowerSwapElement();
+    const oldEl = lowerSwapSnapshot;
+    lowerSwapSnapshot = el ? el.cloneNode(true) : null;
+    const container = document.getElementById(window.containerId || 'player-container');
+    const onAir = !!container && container.classList.contains('in_animation');
+    if (!prev || !onAir || !el || !oldEl || !el.parentNode) { lowerSwapStop(); return; }
+    const same = k => String(prev[k] == null ? '' : prev[k]) === String(next[k] == null ? '' : next[k]);
+    if (!LOWER_SWAP.playerKeys.every(same)) { lowerSwapStop(); return; }
+    if (LOWER_SWAP.lowerKeys.every(same)) return;
+    lowerSwapPlay(el, oldEl);
+});
+// ==== /1Shot 下段切替エフェクト ====
+
 // --- External Control API ---
 window._pendingRenderableObject = null;
 window._pendingShow = false;

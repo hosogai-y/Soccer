@@ -1,5 +1,5 @@
 // Pulled from telop "大得点" by telopkit. Every node keeps its full editor props in `raw`.
-// Edit (or replace nodes with the short-hand), then: node .telopkit/telopkit.mjs push .telopkit/specs/大得点.mjs
+// Edit (or replace nodes with the short-hand), then: node .telopkit/telopkit.mjs push .telopkit/specs/_pulled_大得点.mjs
 export default {
   "title": "soccer",
   "canvas": {
